@@ -31,23 +31,5 @@ namespace UGF.RuntimeTools.Runtime.Tests.Collections
             Assert.AreEqual("Name", result2.Name);
             Assert.AreEqual(10, result2.Value);
         }
-
-        [Test]
-        public void TryGetDictionary()
-        {
-            var collection = new Dictionary<string, Data>
-            {
-                {
-                    "Data",
-                    new Data
-                    {
-                        Name = "Name",
-                        Value = 10
-                    }
-                }
-            };
-
-            bool result1 = CollectionsUtility.TryGet(collection, (name: "Name", value: 10), (value, argument) => value.Name == argument.name, out Data value);
-        }
     }
 }
