@@ -10,6 +10,13 @@ namespace UGF.RuntimeTools.Runtime.Contexts
         public event ContextValueHandler Removed;
         public event ContextHandler Cleared;
 
+        public bool Contains(object value)
+        {
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            return OnContains(value);
+        }
+
         public void Add(object value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
@@ -99,6 +106,7 @@ namespace UGF.RuntimeTools.Runtime.Contexts
             return OnGetEnumerator();
         }
 
+        protected abstract bool OnContains(object value);
         protected abstract void OnAdd(object value);
         protected abstract bool OnRemove(object value);
         protected abstract void OnClear();

@@ -9,6 +9,7 @@ namespace UGF.RuntimeTools.Runtime.Contexts
         event ContextValueHandler Removed;
         event ContextHandler Cleared;
 
+        bool Contains(object value);
         void Add(object value);
         bool Remove(object value);
         void Clear();

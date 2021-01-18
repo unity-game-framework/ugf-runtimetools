@@ -13,6 +13,26 @@ namespace UGF.RuntimeTools.Runtime.Contexts
             return m_values.GetEnumerator();
         }
 
+        protected override bool OnContains(object value)
+        {
+            Type type = value.GetType();
+
+            if (m_values.TryGetValue(type, out List<object> values) && values.Contains(value))
+            {
+                return true;
+            }
+
+            foreach (KeyValuePair<Type, List<object>> pair in m_values)
+            {
+                if (type.IsAssignableFrom(pair.Key) && pair.Value.Contains(value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected override void OnAdd(object value)
         {
             Type type = value.GetType();
