@@ -59,7 +59,7 @@ namespace UGF.RuntimeTools.Runtime.Providers
 
                 Removed?.Invoke(this, id, entry);
                 m_removedHandler?.Invoke(this, id, entry);
-                return false;
+                return true;
             }
 
             return false;
@@ -87,7 +87,7 @@ namespace UGF.RuntimeTools.Runtime.Providers
             if (TryGet(id, out TEntry value))
             {
                 entry = (T)value;
-                return false;
+                return true;
             }
 
             entry = default;
