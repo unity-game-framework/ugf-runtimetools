@@ -35,13 +35,13 @@ namespace UGF.RuntimeTools.Runtime.Tests.Collections
         [Test, Performance]
         public void List()
         {
-            Measure.Method(ListMethod).MeasurementCount(1000).GC().Run();
+            Measure.Method(ListMethod).WarmupCount(1).MeasurementCount(100).GC().Run();
         }
 
         [Test, Performance]
         public void ListDirty()
         {
-            Measure.Method(ListDirtyMethod).MeasurementCount(1000).GC().Run();
+            Measure.Method(ListDirtyMethod).WarmupCount(1).MeasurementCount(100).GC().Run();
         }
 
         private void ListMethod()
