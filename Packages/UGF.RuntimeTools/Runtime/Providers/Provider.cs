@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 
 namespace UGF.RuntimeTools.Runtime.Providers
 {
-    public class Provider<TId, TEntry> : IProvider, IProvider<TId, TEntry>
+    public class Provider<TId, TEntry> : IProvider<TId, TEntry>
     {
         public IReadOnlyDictionary<TId, TEntry> Entries { get { return m_entriesReadOnly; } }
         public IEqualityComparer<TId> Comparer { get; }
