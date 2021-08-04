@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.3.0) - 2021-08-04  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/6?closed=1)  
+    
+
+### Added
+
+- Add extension method for task waiting with coroutines and async operations ([#33](https://github.com/unity-game-framework/ugf-runtimetools/pull/33))  
+    - Update package _Unity_ version up to `2020.3`.
+    - Add `TaskExtensions.WaitCoroutine()` extension method for `Task` class, used to wait for task inside of coroutine.
+    - Add `TaskExtensions.WaitAsync()` extension method for `AsyncOperation` class, used to wait for async operation inside of async/await context.
+    - Add `TaskExtensions.WaitAsync()` extension method for `ResourceRequest` class, used to wait for request inside of async/await context.
+
+### Removed
+
+- Remove empty RuntimeUtility class ([#34](https://github.com/unity-game-framework/ugf-runtimetools/pull/34))  
+    - Remove `RuntimeUtility` class, because it was empty.
+
 ## [2.2.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.2.0) - 2021-07-22  
 
 ### Release Notes
