@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using UGF.RuntimeTools.Runtime.Tasks;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace UGF.RuntimeTools.Runtime.Tests.Tasks
 {
@@ -35,6 +37,17 @@ namespace UGF.RuntimeTools.Runtime.Tests.Tasks
             Assert.AreEqual("Material_1", result.name);
         }
 
+        [UnityTest, UnityPlatform(RuntimePlatform.WindowsEditor)]
+        public IEnumerator ExceptionCatchTests()
+        {
+            Task task = TestException();
+
+            yield return task.WaitCoroutine();
+            yield return null;
+
+            Assert.Fail("No Exception");
+        }
+
         private async Task<int> TestWaitCoroutineAsync()
         {
             for (int i = 0; i < 10; i++)
@@ -43,6 +56,16 @@ namespace UGF.RuntimeTools.Runtime.Tests.Tasks
             }
 
             return 10;
+        }
+
+        private async Task TestException()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                await Task.Yield();
+            }
+
+            throw new Exception("Test Exception");
         }
     }
 }
