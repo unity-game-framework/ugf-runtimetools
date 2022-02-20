@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.6.0) - 2022-02-20  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/9?closed=1)  
+    
+
+### Added
+
+- Add task result ([#43](https://github.com/unity-game-framework/ugf-runtimetools/issues/43))  
+    - Add `TaskResult<T>` structure to hold task result which can be empty to support async try get pattern.
+
 ## [2.5.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.5.0) - 2021-12-29  
 
 ### Release Notes
