@@ -33,6 +33,11 @@ namespace UGF.RuntimeTools.Runtime.Tasks
             }
         }
 
+        public static async Task<T> WaitAsync<T>(this ResourceRequest request) where T : Object
+        {
+            return (T)await WaitAsync(request);
+        }
+
         public static async Task<Object> WaitAsync(this ResourceRequest request)
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
