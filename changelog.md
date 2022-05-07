@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.7.0) - 2022-05-07  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/10?closed=1)  
+    
+
+### Added
+
+- Add wait async with generic argument ([#45](https://github.com/unity-game-framework/ugf-runtimetools/issues/45))  
+    - Update package _Unity_ version to `2021.3`.
+    - Add `TaskExtensions.WaitAsync<T>()` method overload.
+
 ## [2.6.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.6.0) - 2022-02-20  
 
 ### Release Notes

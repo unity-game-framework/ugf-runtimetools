@@ -4,8 +4,8 @@ UGF.RuntimeTools
 
 ## Information
 
-- **Version**: `2.6.0`
-- **Unity**: `2021.2`
+- **Version**: `2.7.0`
+- **Unity**: `2021.3`
 - **API Compatibility Level**: `.NET Standard 2.1`
 
 ### Dependencies
