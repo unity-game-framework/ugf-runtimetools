@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.8.0) - 2022-06-06  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/11?closed=1)  
+    
+
+### Added
+
+- Add nullable reference container ([#25](https://github.com/unity-game-framework/ugf-runtimetools/issues/25))  
+    - Add `ObjectReference<T>` structure to store nullable references with validation.
+
 ## [2.7.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.7.0) - 2022-05-07  
 
 ### Release Notes
