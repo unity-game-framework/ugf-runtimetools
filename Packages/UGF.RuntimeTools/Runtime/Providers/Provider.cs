@@ -72,14 +72,14 @@ namespace UGF.RuntimeTools.Runtime.Providers
             Cleared?.Invoke(this);
         }
 
-        public T Get<T>()
+        public T Get<T>() where T : TEntry
         {
             return (T)Get(typeof(T));
         }
 
-        public object Get(Type type)
+        public TEntry Get(Type type)
         {
-            return TryGet(type, out object value) ? value : throw new ArgumentException($"Value not found by the specified type: '{type}'.");
+            return TryGet(type, out TEntry value) ? value : throw new ArgumentException($"Value not found by the specified type: '{type}'.");
         }
 
         public T Get<T>(TId id) where T : TEntry
@@ -92,9 +92,9 @@ namespace UGF.RuntimeTools.Runtime.Providers
             return TryGet(id, out TEntry entry) ? entry : throw new ArgumentException($"Value not found by the specified key: '{id}'.");
         }
 
-        public bool TryGet<T>(out T value)
+        public bool TryGet<T>(out T value) where T : TEntry
         {
-            if (TryGet(typeof(T), out object result))
+            if (TryGet(typeof(T), out TEntry result))
             {
                 value = (T)result;
                 return true;
@@ -104,7 +104,7 @@ namespace UGF.RuntimeTools.Runtime.Providers
             return false;
         }
 
-        public bool TryGet(Type type, out object value)
+        public bool TryGet(Type type, out TEntry value)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
 
@@ -150,7 +150,7 @@ namespace UGF.RuntimeTools.Runtime.Providers
             m_entries.Clear();
         }
 
-        protected virtual bool OnTryGet(Type type, out object value)
+        protected virtual bool OnTryGet(Type type, out TEntry value)
         {
             foreach ((_, TEntry entry) in m_entries)
             {
@@ -181,6 +181,16 @@ namespace UGF.RuntimeTools.Runtime.Providers
             return Remove((TId)id);
         }
 
+        T IProvider.Get<T>()
+        {
+            return (T)(object)Get(typeof(T));
+        }
+
+        object IProvider.Get(Type type)
+        {
+            return Get(type);
+        }
+
         T IProvider.Get<T>(object id)
         {
             return (T)(object)Get((TId)id);
@@ -189,6 +199,30 @@ namespace UGF.RuntimeTools.Runtime.Providers
         object IProvider.Get(object id)
         {
             return Get((TId)id);
+        }
+
+        bool IProvider.TryGet<T>(out T value)
+        {
+            if (TryGet(typeof(T), out TEntry result))
+            {
+                value = (T)(object)result;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        bool IProvider.TryGet(Type type, out object value)
+        {
+            if (TryGet(type, out TEntry result))
+            {
+                value = result;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
 
         bool IProvider.TryGet<T>(object id, out T entry)
