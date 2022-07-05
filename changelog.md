@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.9.0) - 2022-07-05  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/12?closed=1)  
+    
+
+### Added
+
+- Add component containers ([#50](https://github.com/unity-game-framework/ugf-runtimetools/issues/50))  
+    - Update dependencies: add `com.ugf.editortools` of `2.5.0` version.
+    - Add `Container` class as implementation of `IContainer` interface.
+    - Add `ContainerComponent` class as implementation of `IContainer` interface for gameobject.
+- Add scene get component extensions ([#49](https://github.com/unity-game-framework/ugf-runtimetools/issues/49))  
+    - Add `SceneExtensions.GetComponent()` methods to get component by specified type from gameobjects in scene.
+- Add provider get value by type ([#48](https://github.com/unity-game-framework/ugf-runtimetools/issues/48))  
+    - Add `IProvider.TryGet()` and `Get()` methods using specified type of the value.
+    - Deprecate `ProviderEntryNotFoundByIdException` exception class.
+
 ## [2.8.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.8.0) - 2022-06-06  
 
 ### Release Notes
