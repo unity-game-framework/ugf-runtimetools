@@ -1,0 +1,19 @@
+{
+    "name": "UGF.RuntimeTools.Editor",
+    "rootNamespace": "UGF.RuntimeTools.Editor",
+    "references": [
+        "GUID:16fde9420ef50f34db61e711e19381dd",
+        "GUID:abdd615e45137c74ca2ce9c636c78c15"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

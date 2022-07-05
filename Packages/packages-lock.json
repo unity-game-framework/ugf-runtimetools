@@ -1,10 +1,19 @@
 {
   "dependencies": {
+    "com.ugf.editortools": {
+      "version": "2.5.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://unitygameframework.jfrog.io/artifactory/api/npm/default"
+    },
     "com.ugf.runtimetools": {
       "version": "file:UGF.RuntimeTools",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.ugf.editortools": "2.5.0"
+      }
     },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
