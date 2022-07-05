@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 
 namespace UGF.RuntimeTools.Runtime.Providers
 {
@@ -13,8 +14,12 @@ namespace UGF.RuntimeTools.Runtime.Providers
         void Add(object id, object entry);
         bool Remove(object id);
         void Clear();
+        T Get<T>();
+        object Get(Type type);
         T Get<T>(object id);
         object Get(object id);
+        bool TryGet<T>(out T value);
+        bool TryGet(Type type, out object value);
         bool TryGet<T>(object id, out T entry);
         bool TryGet(object id, out object entry);
     }

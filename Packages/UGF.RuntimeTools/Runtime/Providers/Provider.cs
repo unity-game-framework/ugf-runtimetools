@@ -72,6 +72,16 @@ namespace UGF.RuntimeTools.Runtime.Providers
             Cleared?.Invoke(this);
         }
 
+        public T Get<T>()
+        {
+            return (T)Get(typeof(T));
+        }
+
+        public object Get(Type type)
+        {
+            return TryGet(type, out object value) ? value : throw new ArgumentException($"Value not found by the specified type: '{type}'.");
+        }
+
         public T Get<T>(TId id) where T : TEntry
         {
             return (T)Get(id);
@@ -79,7 +89,26 @@ namespace UGF.RuntimeTools.Runtime.Providers
 
         public TEntry Get(TId id)
         {
-            return TryGet(id, out TEntry entry) ? entry : throw new ProviderEntryNotFoundByIdException(id);
+            return TryGet(id, out TEntry entry) ? entry : throw new ArgumentException($"Value not found by the specified key: '{id}'.");
+        }
+
+        public bool TryGet<T>(out T value)
+        {
+            if (TryGet(typeof(T), out object result))
+            {
+                value = (T)result;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        public bool TryGet(Type type, out object value)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            return OnTryGet(type, out value);
         }
 
         public bool TryGet<T>(TId id, out T entry) where T : TEntry
@@ -119,6 +148,22 @@ namespace UGF.RuntimeTools.Runtime.Providers
         protected virtual void OnClear()
         {
             m_entries.Clear();
+        }
+
+        protected virtual bool OnTryGet(Type type, out object value)
+        {
+            foreach ((_, TEntry entry) in m_entries)
+            {
+                value = entry;
+
+                if (type.IsInstanceOfType(value))
+                {
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
         }
 
         protected virtual bool OnTryGet(TId id, out TEntry entry)
