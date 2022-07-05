@@ -67,5 +67,20 @@ namespace UGF.RuntimeTools.Runtime.Tests.Providers
             Assert.Throws<ArgumentNullException>(() => provider0.Add(default, default));
             Assert.DoesNotThrow(() => provider1.Add(default, default));
         }
+
+        [Test]
+        public void GetByType()
+        {
+            var provider = new Provider<string, object>();
+
+            provider.Add("0", 0);
+            provider.Add("1", 1F);
+            provider.Add("2", "2");
+
+            bool result0 = provider.TryGet(typeof(string), out object result1);
+
+            Assert.True(result0);
+            Assert.AreEqual(result1, "2");
+        }
     }
 }
