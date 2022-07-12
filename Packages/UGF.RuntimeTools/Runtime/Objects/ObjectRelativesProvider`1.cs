@@ -147,5 +147,39 @@ namespace UGF.RuntimeTools.Runtime.Objects
             entry = default;
             return false;
         }
+
+        T IProvider<object, IObjectRelativesCollection>.Get<T>()
+        {
+            return (T)(object)Get(typeof(T));
+        }
+
+        IObjectRelativesCollection IProvider<object, IObjectRelativesCollection>.Get(Type type)
+        {
+            return Get(type);
+        }
+
+        bool IProvider<object, IObjectRelativesCollection>.TryGet<T>(out T value)
+        {
+            if (TryGet(typeof(T), out ObjectRelativeCollection<TObject> collection))
+            {
+                value = (T)(object)collection;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        bool IProvider<object, IObjectRelativesCollection>.TryGet(Type type, out IObjectRelativesCollection value)
+        {
+            if (TryGet(type, out ObjectRelativeCollection<TObject> collection))
+            {
+                value = collection;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
     }
 }
