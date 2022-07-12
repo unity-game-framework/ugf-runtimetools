@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.2](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.9.2) - 2022-07-12  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/14?closed=1)  
+    
+
+### Fixed
+
+- Fix missing tryget by type methods for generic provider interface ([#56](https://github.com/unity-game-framework/ugf-runtimetools/issues/56))  
+    - Update dependencies: `com.ugf.editortools` to `2.8.0` version.
+    - Add `IProvider<T, T>.TryGet()` interface missing methods used to get item by the type.
+
 ## [2.9.1](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.9.1) - 2022-07-05  
 
 ### Release Notes
