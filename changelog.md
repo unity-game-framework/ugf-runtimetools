@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.10.0) - 2022-07-26  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/15?closed=1)  
+    
+
+### Added
+
+- Add table asset ([#58](https://github.com/unity-game-framework/ugf-runtimetools/issues/58))  
+    - Add `Table<T>` class as serializable data stored by key.
+    - Add `TableAsset` class to define asset with `Table<T>` data.
+    - Add `TableDrawer` class to draw table controls in inspector.
+    - Add `TableEntryDropdownAttribute` attribute class to mark fields to draw value selection from any table in project.
+
 ## [2.9.2](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.9.2) - 2022-07-12  
 
 ### Release Notes
