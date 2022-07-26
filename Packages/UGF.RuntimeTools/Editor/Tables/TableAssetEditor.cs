@@ -6,7 +6,7 @@ using UnityEditor;
 namespace UGF.RuntimeTools.Editor.Tables
 {
     [CustomEditor(typeof(TableAsset<>), true)]
-    internal class TableAssetDrawer : UnityEditor.Editor
+    internal class TableAssetEditor : UnityEditor.Editor
     {
         private TableDrawer m_tableDrawer;
 
