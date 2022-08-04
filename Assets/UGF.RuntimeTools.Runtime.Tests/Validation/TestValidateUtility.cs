@@ -194,10 +194,9 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             if (all)
             {
-                Assert.AreEqual(3, report2.Results.Count);
+                Assert.AreEqual(2, report2.Results.Count);
                 Assert.AreEqual("Field", report2.Results[0].Member.Name);
                 Assert.AreEqual("Field2", report2.Results[1].Member.Name);
-                Assert.AreEqual("Field", report2.Results[2].Member.Name);
             }
             else
             {
