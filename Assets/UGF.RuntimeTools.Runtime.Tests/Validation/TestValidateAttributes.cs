@@ -71,6 +71,9 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             Assert.True(new ValidateMatchAttribute("^[0-9]*$").Validate(156, new Context()));
             Assert.True(new ValidateMatchAttribute(@"^\d*\.?\d*$").Validate(5.55F, new Context()));
+
+            Assert.False(new ValidateNotAttribute(default(int)).Validate(default(int), new Context()));
+            Assert.False(new ValidateNotAttribute(default(Guid)).Validate(Guid.Empty, new Context()));
         }
     }
 }
