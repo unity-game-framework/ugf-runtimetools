@@ -5,7 +5,7 @@ using UGF.RuntimeTools.Runtime.Contexts;
 
 namespace UGF.RuntimeTools.Runtime.Validation
 {
-    public static class ValidationUtility
+    public static class ValidateUtility
     {
         public static ValidateResult ValueNotSpecifiedInvalidResult { get; } = ValidateResult.CreateInvalid("Value not specified.");
 
@@ -23,7 +23,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
         {
             report = default;
 
-            bool fields = ValidateProperties(target, context, out ValidateReport fieldsReport, all);
+            bool fields = ValidateFields(target, context, out ValidateReport fieldsReport, all);
             bool properties = ValidateProperties(target, context, out ValidateReport propertiesReport, all);
 
             if (!fields || !properties)
@@ -104,7 +104,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
                             if (valueType.IsClass)
                             {
-                                ValidateMembers(target, context, ref report, all, membersHandler, valueHandler);
+                                ValidateMembers(value, context, ref report, all, membersHandler, valueHandler);
                             }
                         }
                         else
