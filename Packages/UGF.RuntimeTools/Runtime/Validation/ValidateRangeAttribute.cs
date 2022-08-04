@@ -8,7 +8,11 @@ namespace UGF.RuntimeTools.Runtime.Validation
         public object Min { get; }
         public object Max { get; }
 
-        public ValidateRangeAttribute(object min, object max)
+        public ValidateRangeAttribute(object min, object max) : this(min, max, typeof(object))
+        {
+        }
+
+        public ValidateRangeAttribute(object min, object max, Type targetType) : base(targetType)
         {
             Min = min ?? throw new ArgumentNullException(nameof(min));
             Max = max ?? throw new ArgumentNullException(nameof(max));

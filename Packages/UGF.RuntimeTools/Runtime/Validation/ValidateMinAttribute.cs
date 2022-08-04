@@ -7,7 +7,11 @@ namespace UGF.RuntimeTools.Runtime.Validation
     {
         public object Min { get; }
 
-        public ValidateMinAttribute(object min)
+        public ValidateMinAttribute(object min) : this(min, typeof(object))
+        {
+        }
+
+        public ValidateMinAttribute(object min, Type targetType) : base(targetType)
         {
             Min = min ?? throw new ArgumentNullException(nameof(min));
         }
