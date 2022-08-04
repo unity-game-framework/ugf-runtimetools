@@ -5,8 +5,11 @@ namespace UGF.RuntimeTools.Runtime.Validation
 {
     public class ValidateReportException : AggregateException
     {
-        public ValidateReportException(ValidateReport report) : base("Values is invalid.", GetExceptions(report))
+        public ValidateReport Report { get; }
+
+        public ValidateReportException(ValidateReport report) : base("Values are invalid.", GetExceptions(report))
         {
+            Report = report;
         }
 
         private static IEnumerable<Exception> GetExceptions(ValidateReport report)
