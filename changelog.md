@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.11.0) - 2022-08-04  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/16?closed=1)  
+    
+
+### Added
+
+- Add data validation attributes ([#60](https://github.com/unity-game-framework/ugf-runtimetools/issues/60))  
+    - Update dependencies: `com.ugf.editortools` to `2.11.0` version.
+    - Add `ValidateAttribute` attribute class used to validate field or property whether it has value.
+    - Add `ValidateMatchAttribute` attribute class used to validate field or property whether it match specified regular expression.
+    - Add `ValidateMaxAttribute` attribute class used to validate field or property whether its value less or equal to specified value.
+    - Add `ValidateMinAttribute` attribute class used to validate field or property whether its value greater or equal to specified value.
+    - Add `ValidateNotAttribute` attribute class used to validate field or property whether it not equal to specified value.
+    - Add `ValidateOneOfAttribute` attribute class used to validate field or property whether its value one of the specified values.
+    - Add `ValidateRangeAttribute` attribute class used to validate field or property whether its value in range of the specified values.
+    - Add `ValidateUtility` class with methods to validate fields, properties or entire specified object with report or exception.
+    - Add `CollectionsUtility.GetCount()` method to get count from `IEnumerable` object
+
 ## [2.10.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.10.0) - 2022-07-26  
 
 ### Release Notes
