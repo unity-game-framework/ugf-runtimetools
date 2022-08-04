@@ -26,17 +26,32 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
             Assert.False(new ValidateRangeAttribute(0L, 5D).Validate(55.5D, new Context()));
             Assert.False(new ValidateRangeAttribute(0L, 5.5D).Validate(-10L, new Context()));
 
+            Assert.True(new ValidateRangeAttribute(0L, 5.5D).Validate(new object[1], new Context()));
+            Assert.True(new ValidateRangeAttribute(1, 4).Validate("000", new Context()));
+            Assert.False(new ValidateRangeAttribute(0L, 5.49D).Validate(new object[6], new Context()));
+            Assert.False(new ValidateRangeAttribute(1, 4).Validate("00000", new Context()));
+
             Assert.True(new ValidateMinAttribute(0).Validate(0, new Context()));
             Assert.True(new ValidateMinAttribute(10).Validate(15, new Context()));
             Assert.True(new ValidateMinAttribute(-10).Validate(-5, new Context()));
             Assert.False(new ValidateMinAttribute(10).Validate(5, new Context()));
             Assert.False(new ValidateMinAttribute(-10).Validate(-15, new Context()));
 
+            Assert.True(new ValidateMinAttribute(5).Validate(new object[5], new Context()));
+            Assert.True(new ValidateMinAttribute(2).Validate("000", new Context()));
+            Assert.False(new ValidateMinAttribute(5).Validate(new object[2], new Context()));
+            Assert.False(new ValidateMinAttribute(2).Validate("0", new Context()));
+
             Assert.True(new ValidateMaxAttribute(0).Validate(0, new Context()));
             Assert.True(new ValidateMaxAttribute(10).Validate(5, new Context()));
             Assert.True(new ValidateMaxAttribute(-10).Validate(-15, new Context()));
             Assert.False(new ValidateMaxAttribute(10).Validate(15, new Context()));
             Assert.False(new ValidateMaxAttribute(-10).Validate(-5, new Context()));
+
+            Assert.True(new ValidateMaxAttribute(5).Validate(new object[5], new Context()));
+            Assert.True(new ValidateMaxAttribute(3).Validate("000", new Context()));
+            Assert.False(new ValidateMaxAttribute(5).Validate(new object[6], new Context()));
+            Assert.False(new ValidateMaxAttribute(2).Validate("000", new Context()));
 
             Assert.True(new ValidateMatchAttribute("^[0-9]*$").Validate(156, new Context()));
             Assert.True(new ValidateMatchAttribute(@"^\d*\.?\d*$").Validate(5.55F, new Context()));
