@@ -95,6 +95,8 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
                     Assert.AreEqual("Field", resultException.Result.Member.Name);
                 }
+
+                Assert.Pass(exception.Message);
             }
         }
 
