@@ -74,6 +74,10 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             Assert.False(new ValidateNotAttribute(default(int)).Validate(default(int), new Context()));
             Assert.False(new ValidateNotAttribute(default(Guid)).Validate(Guid.Empty, new Context()));
+            Assert.False(new ValidateNotAttribute(TypeCode.Empty).Validate(TypeCode.Empty, new Context()));
+
+            Assert.True(new ValidateOneOfAttribute("One", "Two", "Three").Validate("One", new Context()));
+            Assert.False(new ValidateOneOfAttribute("One", "Two", "Three").Validate("Test", new Context()));
         }
     }
 }
