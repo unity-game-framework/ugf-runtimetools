@@ -4,7 +4,7 @@ using UGF.RuntimeTools.Runtime.Contexts;
 namespace UGF.RuntimeTools.Runtime.Validation
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-    public abstract class ValidateAttribute : Attribute
+    public class ValidateAttribute : Attribute
     {
         public ValidateResult Validate(object value, IContext context)
         {
@@ -14,6 +14,9 @@ namespace UGF.RuntimeTools.Runtime.Validation
             return OnValidate(value, context);
         }
 
-        protected abstract ValidateResult OnValidate(object value, IContext context);
+        protected virtual ValidateResult OnValidate(object value, IContext context)
+        {
+            return ValidateResult.Valid;
+        }
     }
 }
