@@ -69,7 +69,27 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Guid = Guid.NewGuid()
             };
 
+            var target2 = new Target
+            {
+                Bool = false,
+                Bool2 = true,
+                Int = 2,
+                Long = 1,
+                Float = 10F,
+                Double = 5D,
+                String = "00",
+                Code = TypeCode.SByte,
+                Array = new[]
+                {
+                    "One"
+                },
+                Option = "One",
+                Option2 = TypeCode.Boolean,
+                Guid = default
+            };
+
             Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context()));
+            Assert.Throws<ValidateResultException>(() => ValidateUtility.Validate(target2, new Context()));
         }
 
         [Test]
