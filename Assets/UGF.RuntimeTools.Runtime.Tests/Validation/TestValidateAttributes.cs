@@ -9,6 +9,10 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
         [Test]
         public void Validate()
         {
+            Assert.True(new ValidateAttribute().Validate(new object(), new Context()));
+            Assert.True(new ValidateAttribute().Validate(new Context(), new Context()));
+            Assert.False(new ValidateAttribute(typeof(Context)).Validate(new object(), new Context()));
+
             Assert.True(new ValidateRangeAttribute(0, 0).Validate(0, new Context()));
             Assert.True(new ValidateRangeAttribute(0, 5).Validate(1, new Context()));
             Assert.True(new ValidateRangeAttribute(-15L, 5L).Validate(-1L, new Context()));
