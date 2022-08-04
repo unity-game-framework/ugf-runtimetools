@@ -30,7 +30,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
             {
                 report = fieldsReport.HasResults ? fieldsReport : propertiesReport;
 
-                if (fieldsReport.HasResults && propertiesReport.HasResults)
+                if (all && fieldsReport.HasResults && propertiesReport.HasResults)
                 {
                     for (int i = 0; i < propertiesReport.Results.Count; i++)
                     {
