@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.12.0) - 2022-08-04  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/17?closed=1)  
+    
+
+### Fixed
+
+- Fix validate attribute arguments ([#62](https://github.com/unity-game-framework/ugf-runtimetools/issues/62))  
+    - Add `ValidateNotDefaultAttribute` attribute class used to validate field or property whether its value is not default value.
+    - Fix `ValidateMaxAttribute`, `ValidateMinAttribute` and `ValidateRangeAttribute` classes to accept values.
+
 ## [2.11.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.11.0) - 2022-08-04  
 
 ### Release Notes
