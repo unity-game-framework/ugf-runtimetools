@@ -7,13 +7,13 @@ namespace UGF.RuntimeTools.Runtime.Validation
 {
     public class ValidateMaxAttribute : ValidateAttribute
     {
-        public IComparable Max { get; }
+        public object Max { get; }
 
-        public ValidateMaxAttribute(IComparable max) : this(max, typeof(object))
+        public ValidateMaxAttribute(object max) : this(max, typeof(object))
         {
         }
 
-        public ValidateMaxAttribute(IComparable max, Type targetType) : base(targetType)
+        public ValidateMaxAttribute(object max, Type targetType) : base(targetType)
         {
             Max = max ?? throw new ArgumentNullException(nameof(max));
         }
