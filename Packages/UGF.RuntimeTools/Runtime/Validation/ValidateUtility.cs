@@ -87,7 +87,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
                             ValidateResult result = attribute.Validate(value, context);
 
-                            if (result)
+                            if (!result)
                             {
                                 if (!report.HasResults)
                                 {
