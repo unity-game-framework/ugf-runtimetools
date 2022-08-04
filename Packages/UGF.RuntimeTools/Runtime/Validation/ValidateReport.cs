@@ -1,21 +1,23 @@
 ﻿using System;
-using System.Reflection;
+using System.Collections.Generic;
 
 namespace UGF.RuntimeTools.Runtime.Validation
 {
     public readonly struct ValidateReport
     {
-        public MemberInfo Member { get; }
-        public Type AttributeType { get; }
-        public ValidateResult Result { get; }
+        public IList<ValidateMemberResult> Results { get { return m_results ?? throw new ArgumentException("Value not specified."); } }
+        public bool HasResults { get { return m_results.Count > 0; } }
 
-        public ValidateReport(MemberInfo member, Type attributeType, ValidateResult result)
+        private readonly IList<ValidateMemberResult> m_results;
+
+        public ValidateReport(IList<ValidateMemberResult> results)
         {
-            if (!result.IsValid()) throw new ArgumentException("Value should be valid.", nameof(result));
+            m_results = results ?? throw new ArgumentNullException(nameof(results));
+        }
 
-            Member = member ?? throw new ArgumentNullException(nameof(member));
-            AttributeType = attributeType ?? throw new ArgumentNullException(nameof(attributeType));
-            Result = result;
+        public bool IsValid()
+        {
+            return HasResults;
         }
     }
 }
