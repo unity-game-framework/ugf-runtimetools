@@ -37,6 +37,9 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
             Assert.True(new ValidateMaxAttribute(-10).Validate(-15, new Context()));
             Assert.False(new ValidateMaxAttribute(10).Validate(15, new Context()));
             Assert.False(new ValidateMaxAttribute(-10).Validate(-5, new Context()));
+
+            Assert.True(new ValidateMatchAttribute("^[0-9]*$").Validate(156, new Context()));
+            Assert.True(new ValidateMatchAttribute(@"^\d*\.?\d*$").Validate(5.55F, new Context()));
         }
     }
 }
