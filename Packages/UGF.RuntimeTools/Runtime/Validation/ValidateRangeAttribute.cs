@@ -1,18 +1,20 @@
 ﻿using System;
+using System.Collections;
+using UGF.RuntimeTools.Runtime.Collections;
 using UGF.RuntimeTools.Runtime.Contexts;
 
 namespace UGF.RuntimeTools.Runtime.Validation
 {
     public class ValidateRangeAttribute : ValidateAttribute
     {
-        public object Min { get; }
-        public object Max { get; }
+        public IComparable Min { get; }
+        public IComparable Max { get; }
 
-        public ValidateRangeAttribute(object min, object max) : this(min, max, typeof(object))
+        public ValidateRangeAttribute(IComparable min, IComparable max) : this(min, max, typeof(object))
         {
         }
 
-        public ValidateRangeAttribute(object min, object max, Type targetType) : base(targetType)
+        public ValidateRangeAttribute(IComparable min, IComparable max, Type targetType) : base(targetType)
         {
             Min = min ?? throw new ArgumentNullException(nameof(min));
             Max = max ?? throw new ArgumentNullException(nameof(max));
@@ -20,16 +22,23 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
         protected override ValidateResult OnValidate(object value, IContext context)
         {
-            Type type = value.GetType();
-            var min = Convert.ChangeType(Min, type) as IComparable;
-            var max = Convert.ChangeType(Max, type) as IComparable;
-
-            if (min?.CompareTo(value) <= 0 && max?.CompareTo(value) >= 0)
+            if (value is IEnumerable enumerable)
             {
-                return ValidateResult.Valid;
+                value = CollectionsUtility.GetCount(enumerable);
             }
 
-            return ValidateResult.CreateInvalid($"Value must be in range of '{Min}' and '{Max}'.");
+            if (value is not IComparable)
+            {
+                return ValidateResult.CreateInvalid("Value must by comparable.");
+            }
+
+            Type type = value.GetType();
+            var min = (IComparable)Convert.ChangeType(Min, type);
+            var max = (IComparable)Convert.ChangeType(Max, type);
+
+            return min.CompareTo(value) <= 0 && max.CompareTo(value) >= 0
+                ? ValidateResult.Valid
+                : ValidateResult.CreateInvalid($"Value must be in range of '{Min}' and '{Max}'.");
         }
     }
 }
