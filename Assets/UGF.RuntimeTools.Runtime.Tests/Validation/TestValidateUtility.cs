@@ -11,11 +11,24 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
         {
             [Validate]
             public object Field;
+
             [Validate]
             public object Field2;
 
             [Validate]
             public object Property { get; set; }
+
+            [Validate]
+            public object Property2 { get; set; }
+
+            [Validate]
+            public Target2 Nested { get; set; }
+        }
+
+        private class Target2
+        {
+            [Validate]
+            public object Field;
 
             [Validate]
             public object Property2 { get; set; }
@@ -31,7 +44,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Field = new object(),
                 Field2 = new object(),
                 Property = new object(),
-                Property2 = new object()
+                Property2 = new object(),
+                Nested = new Target2
+                {
+                    Field = new object(),
+                    Property2 = new object()
+                }
             };
 
             var target2 = new Target
@@ -39,7 +57,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Field = null,
                 Field2 = null,
                 Property = null,
-                Property2 = null
+                Property2 = null,
+                Nested = new Target2
+                {
+                    Field = new object(),
+                    Property2 = null
+                }
             };
 
             Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context(), all));
@@ -57,11 +80,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
                     var reportException = (ValidateReportException)exception;
 
-                    Assert.AreEqual(4, reportException.Report.Results.Count);
+                    Assert.AreEqual(5, reportException.Report.Results.Count);
                     Assert.AreEqual("Field", reportException.Report.Results[0].Member.Name);
                     Assert.AreEqual("Field2", reportException.Report.Results[1].Member.Name);
                     Assert.AreEqual("Property", reportException.Report.Results[2].Member.Name);
                     Assert.AreEqual("Property2", reportException.Report.Results[3].Member.Name);
+                    Assert.AreEqual("Property2", reportException.Report.Results[4].Member.Name);
                 }
                 else
                 {
@@ -84,7 +108,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Field = new object(),
                 Field2 = new object(),
                 Property = new object(),
-                Property2 = new object()
+                Property2 = new object(),
+                Nested = new Target2
+                {
+                    Field = new object(),
+                    Property2 = new object()
+                }
             };
 
             var target2 = new Target
@@ -92,7 +121,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Field = null,
                 Field2 = null,
                 Property = null,
-                Property2 = null
+                Property2 = null,
+                Nested = new Target2
+                {
+                    Field = new object(),
+                    Property2 = null
+                }
             };
 
             bool result = ValidateUtility.Validate(target, new Context(), out ValidateReport report, all);
@@ -105,11 +139,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             if (all)
             {
-                Assert.AreEqual(4, report2.Results.Count);
+                Assert.AreEqual(5, report2.Results.Count);
                 Assert.AreEqual("Field", report2.Results[0].Member.Name);
                 Assert.AreEqual("Field2", report2.Results[1].Member.Name);
                 Assert.AreEqual("Property", report2.Results[2].Member.Name);
                 Assert.AreEqual("Property2", report2.Results[3].Member.Name);
+                Assert.AreEqual("Property2", report2.Results[4].Member.Name);
             }
             else
             {
@@ -127,8 +162,13 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
             {
                 Field = new object(),
                 Field2 = new object(),
-                Property = null,
-                Property2 = null
+                Property = new object(),
+                Property2 = new object(),
+                Nested = new Target2
+                {
+                    Field = new object(),
+                    Property2 = new object()
+                }
             };
 
             var target2 = new Target
@@ -136,7 +176,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Field = null,
                 Field2 = null,
                 Property = null,
-                Property2 = null
+                Property2 = null,
+                Nested = new Target2
+                {
+                    Field = null,
+                    Property2 = null
+                }
             };
 
             bool result = ValidateUtility.ValidateFields(target, new Context(), out ValidateReport report, all);
@@ -149,9 +194,10 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             if (all)
             {
-                Assert.AreEqual(2, report2.Results.Count);
+                Assert.AreEqual(3, report2.Results.Count);
                 Assert.AreEqual("Field", report2.Results[0].Member.Name);
                 Assert.AreEqual("Field2", report2.Results[1].Member.Name);
+                Assert.AreEqual("Field", report2.Results[2].Member.Name);
             }
             else
             {
@@ -167,10 +213,15 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
         {
             var target = new Target
             {
-                Field = null,
-                Field2 = null,
+                Field = new object(),
+                Field2 = new object(),
                 Property = new object(),
-                Property2 = new object()
+                Property2 = new object(),
+                Nested = new Target2
+                {
+                    Field = new object(),
+                    Property2 = new object()
+                }
             };
 
             var target2 = new Target
@@ -178,7 +229,12 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Field = null,
                 Field2 = null,
                 Property = null,
-                Property2 = null
+                Property2 = null,
+                Nested = new Target2
+                {
+                    Field = null,
+                    Property2 = null
+                }
             };
 
             bool result = ValidateUtility.ValidateProperties(target, new Context(), out ValidateReport report, all);
@@ -191,9 +247,10 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             if (all)
             {
-                Assert.AreEqual(2, report2.Results.Count);
+                Assert.AreEqual(3, report2.Results.Count);
                 Assert.AreEqual("Property", report2.Results[0].Member.Name);
                 Assert.AreEqual("Property2", report2.Results[1].Member.Name);
+                Assert.AreEqual("Property2", report2.Results[2].Member.Name);
             }
             else
             {
