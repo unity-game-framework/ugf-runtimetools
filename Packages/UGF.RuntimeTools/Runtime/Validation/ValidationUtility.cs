@@ -15,50 +15,88 @@ namespace UGF.RuntimeTools.Runtime.Validation
             if (context == null) throw new ArgumentNullException(nameof(context));
             if (reports == null) throw new ArgumentNullException(nameof(reports));
 
-            Type type = target.GetType();
-
-            ValidateFields(target, context, type.GetFields(), reports);
-            ValidateProperties(target, context, type.GetProperties(), reports);
+            ValidateFields(target, context, reports);
+            ValidateProperties(target, context, reports);
         }
 
-        public static void ValidateFields(object target, IContext context, IReadOnlyList<FieldInfo> properties, ICollection<ValidateReport> reports)
-        {
-            ValidateMembers(target, context, properties, (x, member) => member.GetValue(x), reports);
-        }
-
-        public static void ValidateProperties(object target, IContext context, IReadOnlyList<PropertyInfo> properties, ICollection<ValidateReport> reports)
-        {
-            ValidateMembers(target, context, properties, (x, member) => member.GetValue(x), reports);
-        }
-
-        public static void ValidateMembers<T>(object target, IContext context, IReadOnlyList<T> members, ValidateGetMemberValueHandler<T> handler, ICollection<ValidateReport> reports) where T : MemberInfo
+        public static void ValidateFields(object target, IContext context, ICollection<ValidateReport> reports)
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (context == null) throw new ArgumentNullException(nameof(context));
-            if (members == null) throw new ArgumentNullException(nameof(members));
-            if (handler == null) throw new ArgumentNullException(nameof(handler));
             if (reports == null) throw new ArgumentNullException(nameof(reports));
+
+            IReadOnlyList<FieldInfo> members = target.GetType().GetFields();
 
             for (int i = 0; i < members.Count; i++)
             {
-                T member = members[i];
+                FieldInfo member = members[i];
                 object value = null;
+                Type valueType = null;
 
                 using (new ContextValueScope(context, member))
                 {
                     foreach (ValidateAttribute attribute in member.GetCustomAttributes<ValidateAttribute>())
                     {
-                        value ??= handler.Invoke(target, member);
+                        value ??= member.GetValue(target);
 
                         if (value != null)
                         {
+                            valueType ??= value.GetType();
+
                             ValidateResult result = attribute.Validate(value, context);
 
-                            reports.Add(new ValidateReport(member, result));
+                            reports.Add(new ValidateReport(member, attribute.GetType(), result));
+
+                            if (valueType.IsClass)
+                            {
+                                ValidateProperties(target, context, reports);
+                            }
                         }
                         else
                         {
-                            reports.Add(new ValidateReport(member, ValueNotSpecifiedInvalidResult));
+                            reports.Add(new ValidateReport(member, attribute.GetType(), ValueNotSpecifiedInvalidResult));
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void ValidateProperties(object target, IContext context, ICollection<ValidateReport> reports)
+        {
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (context == null) throw new ArgumentNullException(nameof(context));
+            if (reports == null) throw new ArgumentNullException(nameof(reports));
+
+            IReadOnlyList<PropertyInfo> members = target.GetType().GetProperties();
+
+            for (int i = 0; i < members.Count; i++)
+            {
+                PropertyInfo member = members[i];
+                object value = null;
+                Type valueType = null;
+
+                using (new ContextValueScope(context, member))
+                {
+                    foreach (ValidateAttribute attribute in member.GetCustomAttributes<ValidateAttribute>())
+                    {
+                        value ??= member.GetValue(target);
+
+                        if (value != null)
+                        {
+                            valueType ??= value.GetType();
+
+                            ValidateResult result = attribute.Validate(value, context);
+
+                            reports.Add(new ValidateReport(member, attribute.GetType(), result));
+
+                            if (valueType.IsClass)
+                            {
+                                ValidateProperties(target, context, reports);
+                            }
+                        }
+                        else
+                        {
+                            reports.Add(new ValidateReport(member, attribute.GetType(), ValueNotSpecifiedInvalidResult));
                         }
                     }
                 }
