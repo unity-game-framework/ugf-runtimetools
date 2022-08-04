@@ -7,6 +7,70 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 {
     public class TestValidateAttributes
     {
+        private class Target
+        {
+            [Validate]
+            public bool Bool { get; set; }
+
+            [ValidateNot(false)]
+            public bool Bool2 { get; set; }
+
+            [ValidateMin(1)]
+            public int Int { get; set; }
+
+            [ValidateNot(0)]
+            [ValidateNot(int.MinValue)]
+            public long Long { get; set; }
+
+            [ValidateMax(10.5F)]
+            public float Float { get; set; }
+
+            [ValidateRange(1D, 10D)]
+            public double Double { get; set; }
+
+            [ValidateMax(3)]
+            public string String { get; set; }
+
+            [ValidateRange(TypeCode.Boolean, TypeCode.Byte)]
+            public TypeCode Code { get; set; }
+
+            [ValidateRange(1, 3)]
+            public string[] Array { get; set; }
+
+            [ValidateOneOf("One", "Two")]
+            public string Option { get; set; }
+
+            [ValidateOneOf(TypeCode.Boolean, TypeCode.Byte)]
+            public TypeCode Option2 { get; set; }
+
+            public Guid Guid { get; set; }
+        }
+
+        [Test]
+        public void ValidateTarget()
+        {
+            var target = new Target
+            {
+                Bool = false,
+                Bool2 = true,
+                Int = 2,
+                Long = 1,
+                Float = 10F,
+                Double = 5D,
+                String = "00",
+                Code = TypeCode.SByte,
+                Array = new[]
+                {
+                    "One"
+                },
+                Option = "One",
+                Option2 = TypeCode.Boolean,
+                Guid = Guid.NewGuid()
+            };
+
+            Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context()));
+        }
+
         [Test]
         public void Validate()
         {
