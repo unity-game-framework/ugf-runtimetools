@@ -20,9 +20,18 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
         protected override ValidateResult OnValidate(object value, IContext context)
         {
+            Type type = value.GetType();
+
             if (value is IEnumerable enumerable)
             {
+                type = typeof(int);
                 value = CollectionsUtility.GetCount(enumerable);
+            }
+
+            if (value is Enum)
+            {
+                type = type.GetEnumUnderlyingType();
+                value = Convert.ChangeType(value, type);
             }
 
             if (value is not IComparable)
@@ -30,7 +39,6 @@ namespace UGF.RuntimeTools.Runtime.Validation
                 return ValidateResult.CreateInvalid("Value must by comparable.");
             }
 
-            Type type = value.GetType();
             var max = (IComparable)Convert.ChangeType(Max, type);
 
             return max.CompareTo(value) >= 0
