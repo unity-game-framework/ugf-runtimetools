@@ -43,6 +43,7 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
             [ValidateOneOf(TypeCode.Boolean, TypeCode.Byte)]
             public TypeCode Option2 { get; set; }
 
+            [ValidateNotDefault]
             public Guid Guid { get; set; }
         }
 
