@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.13.0) - 2022-08-05  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/18?closed=1)  
+    
+
+### Added
+
+- Add validate no empty attribute ([#64](https://github.com/unity-game-framework/ugf-runtimetools/issues/64))  
+    - Add `ValidateNotEmptyAttribute` attribute class used to validate whether value is not empty collection.
+
 ## [2.12.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.12.0) - 2022-08-04  
 
 ### Release Notes
