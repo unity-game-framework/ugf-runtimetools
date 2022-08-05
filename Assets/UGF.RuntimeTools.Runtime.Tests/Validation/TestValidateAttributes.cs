@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UGF.RuntimeTools.Runtime.Contexts;
 using UGF.RuntimeTools.Runtime.Validation;
@@ -45,6 +46,15 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             [ValidateNotDefault]
             public Guid Guid { get; set; }
+
+            [ValidateNotEmpty]
+            public string String2 { get; set; }
+
+            [ValidateNotEmpty]
+            public object[] Array2 { get; set; }
+
+            [ValidateNotEmpty]
+            public List<object> Collection { get; set; }
         }
 
         [Test]
@@ -66,7 +76,13 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 },
                 Option = "One",
                 Option2 = TypeCode.Boolean,
-                Guid = Guid.NewGuid()
+                Guid = Guid.NewGuid(),
+                String2 = "0",
+                Array2 = new object[] { "0" },
+                Collection = new List<object>
+                {
+                    "0"
+                }
             };
 
             var target2 = new Target
@@ -85,11 +101,14 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 },
                 Option = "One",
                 Option2 = TypeCode.Boolean,
-                Guid = default
+                Guid = default,
+                String2 = "",
+                Array2 = Array.Empty<object>(),
+                Collection = new List<object>()
             };
 
             Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context()));
-            Assert.Throws<ValidateResultException>(() => ValidateUtility.Validate(target2, new Context()));
+            Assert.Throws<ValidateReportException>(() => ValidateUtility.Validate(target2, new Context()));
         }
 
         [Test]
