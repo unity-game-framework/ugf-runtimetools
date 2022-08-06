@@ -16,6 +16,8 @@ namespace UGF.RuntimeTools.Runtime.Validation
         public ValidateMaxAttribute(object max, Type targetType) : base(targetType)
         {
             Max = max ?? throw new ArgumentNullException(nameof(max));
+
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)

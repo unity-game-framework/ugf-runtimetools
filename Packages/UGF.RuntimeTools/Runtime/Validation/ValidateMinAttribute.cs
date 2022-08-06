@@ -16,6 +16,8 @@ namespace UGF.RuntimeTools.Runtime.Validation
         public ValidateMinAttribute(object min, Type targetType) : base(targetType)
         {
             Min = min ?? throw new ArgumentNullException(nameof(min));
+
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)

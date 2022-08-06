@@ -8,6 +8,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
     {
         public ValidateNotEmptyAttribute() : base(typeof(IEnumerable))
         {
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)

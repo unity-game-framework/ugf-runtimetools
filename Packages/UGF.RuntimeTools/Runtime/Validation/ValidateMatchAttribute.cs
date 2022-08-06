@@ -19,6 +19,8 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
             Pattern = pattern;
             Options = options;
+
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)
