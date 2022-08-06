@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.14.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.14.0) - 2022-08-06  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/19?closed=1)  
+    
+
+### Added
+
+- Add not null validate attribute ([#67](https://github.com/unity-game-framework/ugf-runtimetools/issues/67))  
+    - Add `ValidateNotNullAttribute` attribute class used to validate whether member value is not null.
+- Add validate attribute non nested option ([#66](https://github.com/unity-game-framework/ugf-runtimetools/issues/66))  
+    - Add `ValidateAttribute.ValidateMembers` property used to determine whether to validate members of target.
+    - Change all value validate attributes to don't use default validation of the members.
+
 ## [2.13.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.13.0) - 2022-08-05  
 
 ### Release Notes
