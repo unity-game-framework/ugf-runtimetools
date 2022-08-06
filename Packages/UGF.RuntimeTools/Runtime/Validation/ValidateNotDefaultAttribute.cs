@@ -14,6 +14,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
         public ValidateNotDefaultAttribute(Type targetType) : base(targetType)
         {
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)

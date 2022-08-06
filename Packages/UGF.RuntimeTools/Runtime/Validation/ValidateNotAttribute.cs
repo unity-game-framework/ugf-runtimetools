@@ -14,6 +14,8 @@ namespace UGF.RuntimeTools.Runtime.Validation
         public ValidateNotAttribute(object value, Type targetType) : base(targetType)
         {
             Value = value ?? throw new ArgumentNullException(nameof(value));
+
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)

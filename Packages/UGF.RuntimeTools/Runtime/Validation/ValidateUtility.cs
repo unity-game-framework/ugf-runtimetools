@@ -102,7 +102,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
                                 }
                             }
 
-                            if (valueType.IsClass)
+                            if (attribute.ValidateMembers)
                             {
                                 ValidateMembers(value, context, ref report, all, membersHandler, valueHandler);
                             }

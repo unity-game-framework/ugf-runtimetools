@@ -15,6 +15,8 @@ namespace UGF.RuntimeTools.Runtime.Validation
         public ValidateOneOfAttribute(object[] values, Type targetType) : base(targetType)
         {
             Values = values ?? throw new ArgumentNullException(nameof(values));
+
+            ValidateMembers = false;
         }
 
         protected override ValidateResult OnValidate(object value, IContext context)
