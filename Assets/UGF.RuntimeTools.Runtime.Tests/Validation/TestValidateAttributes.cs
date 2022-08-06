@@ -55,6 +55,9 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
 
             [ValidateNotEmpty]
             public List<object> Collection { get; set; }
+
+            [ValidateNotNull]
+            public Target Target2 { get; set; }
         }
 
         [Test]
@@ -82,7 +85,8 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Collection = new List<object>
                 {
                     "0"
-                }
+                },
+                Target2 = new Target()
             };
 
             var target2 = new Target
@@ -104,7 +108,8 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 Guid = default,
                 String2 = "",
                 Array2 = Array.Empty<object>(),
-                Collection = new List<object>()
+                Collection = new List<object>(),
+                Target2 = null
             };
 
             Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context()));
