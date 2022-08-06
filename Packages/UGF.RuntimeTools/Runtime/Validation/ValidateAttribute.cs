@@ -7,6 +7,7 @@ namespace UGF.RuntimeTools.Runtime.Validation
     public class ValidateAttribute : Attribute
     {
         public Type TargetType { get; }
+        public bool ValidateMembers { get; set; } = true;
 
         public ValidateAttribute() : this(typeof(object))
         {
