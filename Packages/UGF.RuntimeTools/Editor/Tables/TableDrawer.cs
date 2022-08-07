@@ -121,7 +121,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             EditorGUILayout.PropertyField(m_selectedPropertyName);
         }
 
-        protected void DrawEntryProperties(int index, SerializedProperty propertyEntry)
+        protected virtual void DrawEntryProperties(int index, SerializedProperty propertyEntry)
         {
             foreach (SerializedProperty property in SerializedPropertyEditorUtility.GetChildrenVisible(propertyEntry))
             {
