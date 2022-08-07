@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.15.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.15.0) - 2022-08-07  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/20?closed=1)  
+    
+
+### Added
+
+- Add table draw default header ([#70](https://github.com/unity-game-framework/ugf-runtimetools/issues/70))  
+    - Add `TableDrawer.DrawEntryDefault()`, `DrawEntryPropertiesHeader()` and `DrawEntryProperties()` methods to draw default inspector for table entry.
+
 ## [2.14.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.14.0) - 2022-08-06  
 
 ### Release Notes
