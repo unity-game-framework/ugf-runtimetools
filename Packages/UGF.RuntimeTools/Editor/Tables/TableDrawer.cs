@@ -23,6 +23,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private readonly DropdownSelection<DropdownItem<int>> m_selection = new DropdownSelection<DropdownItem<int>>();
         private int? m_selectedIndex;
+        private SerializedProperty m_selectedPropertyId;
         private SerializedProperty m_selectedPropertyName;
         private Styles m_styles;
 
@@ -93,6 +94,17 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual void OnDraw(int index, SerializedProperty propertyEntry)
         {
+            DrawEntryDefault(index, propertyEntry);
+        }
+
+        protected void DrawEntryDefault(int index, SerializedProperty propertyEntry)
+        {
+            DrawEntryPropertiesHeader(index, propertyEntry);
+            DrawEntryProperties(index, propertyEntry);
+        }
+
+        protected void DrawEntryPropertiesHeader(int index, SerializedProperty propertyEntry)
+        {
             if (ShowIndexes)
             {
                 using (new EditorGUI.DisabledScope(true))
@@ -101,16 +113,19 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
             }
 
+            using (new EditorGUI.DisabledScope(!UnlockIds))
+            {
+                EditorGUILayout.PropertyField(m_selectedPropertyId);
+            }
+
+            EditorGUILayout.PropertyField(m_selectedPropertyName);
+        }
+
+        protected void DrawEntryProperties(int index, SerializedProperty propertyEntry)
+        {
             foreach (SerializedProperty property in SerializedPropertyEditorUtility.GetChildrenVisible(propertyEntry))
             {
-                if (property.name == PropertyIdName)
-                {
-                    using (new EditorGUI.DisabledScope(!UnlockIds))
-                    {
-                        EditorGUILayout.PropertyField(property);
-                    }
-                }
-                else
+                if (property.name != PropertyIdName && property.name != PropertyNameName)
                 {
                     EditorGUILayout.PropertyField(property);
                 }
@@ -126,6 +141,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 SerializedProperty propertyEntry = PropertyEntries.GetArrayElementAtIndex(index);
 
                 m_selectedIndex = index;
+                m_selectedPropertyId = propertyEntry.FindPropertyRelative(PropertyIdName);
                 m_selectedPropertyName = propertyEntry.FindPropertyRelative(PropertyNameName);
 
                 OnSelect(index, propertyEntry);
@@ -139,6 +155,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 OnDeselect(m_selectedIndex.Value, PropertyEntries.GetArrayElementAtIndex(m_selectedIndex.Value));
 
                 m_selectedIndex = null;
+                m_selectedPropertyId = null;
                 m_selectedPropertyName = null;
             }
         }
