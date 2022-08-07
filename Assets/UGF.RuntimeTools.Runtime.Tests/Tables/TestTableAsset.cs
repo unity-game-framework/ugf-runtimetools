@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UGF.RuntimeTools.Runtime.Tests.Tables
 {
     [CreateAssetMenu(menuName = "Tests/TestTableAsset")]
-    public class TestTableAsset : TableAsset<TableEntry>
+    public class TestTableAsset : TableAsset<TestTableEntry>
     {
     }
 }
