@@ -9,6 +9,21 @@ namespace UGF.RuntimeTools.Runtime.Validation
         public Type TargetType { get; }
         public bool ValidateMembers { get; set; } = true;
 
+        public string Label
+        {
+            get { return HasLabel ? m_label : throw new ArgumentException("Value not specified."); }
+            set
+            {
+                if (string.IsNullOrEmpty(value)) throw new ArgumentException("Value cannot be null or empty.", nameof(value));
+
+                m_label = value;
+            }
+        }
+
+        public bool HasLabel { get { return !string.IsNullOrEmpty(m_label); } }
+
+        private string m_label;
+
         public ValidateAttribute() : this(typeof(object))
         {
         }
