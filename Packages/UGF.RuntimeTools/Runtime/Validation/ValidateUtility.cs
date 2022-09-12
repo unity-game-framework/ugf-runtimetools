@@ -94,7 +94,9 @@ namespace UGF.RuntimeTools.Runtime.Validation
                                     report = new ValidateReport(new List<ValidateMemberResult>());
                                 }
 
-                                report.Results.Add(new ValidateMemberResult(member, attribute.GetType(), result));
+                                report.Results.Add(attribute.HasLabel
+                                    ? new ValidateMemberResult(member, attribute.GetType(), result, attribute.Label)
+                                    : new ValidateMemberResult(member, attribute.GetType(), result));
                             }
 
                             if (attribute.ValidateMembers)
@@ -109,7 +111,9 @@ namespace UGF.RuntimeTools.Runtime.Validation
                                 report = new ValidateReport(new List<ValidateMemberResult>());
                             }
 
-                            report.Results.Add(new ValidateMemberResult(member, attribute.GetType(), ValueNotSpecifiedInvalidResult));
+                            report.Results.Add(attribute.HasLabel
+                                ? new ValidateMemberResult(member, attribute.GetType(), ValueNotSpecifiedInvalidResult, attribute.Label)
+                                : new ValidateMemberResult(member, attribute.GetType(), ValueNotSpecifiedInvalidResult));
                         }
                     }
                 }
