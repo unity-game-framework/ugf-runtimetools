@@ -35,9 +35,7 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
         }
 
         [Test]
-        [TestCase(true, TestName = "All")]
-        [TestCase(false, TestName = "Single")]
-        public void ValidateWithException(bool all)
+        public void ValidateWithException()
         {
             var target = new Target
             {
@@ -65,45 +63,31 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 }
             };
 
-            Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context(), all));
+            Assert.DoesNotThrow(() => ValidateUtility.Validate(target, new Context()));
 
             try
             {
-                ValidateUtility.Validate(target2, new Context(), all);
+                ValidateUtility.Validate(target2, new Context());
                 Assert.Fail("No exception found.");
             }
             catch (Exception exception)
             {
-                if (all)
-                {
-                    Assert.IsInstanceOf<ValidateReportException>(exception);
+                Assert.IsInstanceOf<ValidateReportException>(exception);
 
-                    var reportException = (ValidateReportException)exception;
+                var reportException = (ValidateReportException)exception;
 
-                    Assert.AreEqual(5, reportException.Report.Results.Count);
-                    Assert.AreEqual("Field", reportException.Report.Results[0].Member.Name);
-                    Assert.AreEqual("Field2", reportException.Report.Results[1].Member.Name);
-                    Assert.AreEqual("Property", reportException.Report.Results[2].Member.Name);
-                    Assert.AreEqual("Property2", reportException.Report.Results[3].Member.Name);
-                    Assert.AreEqual("Property2", reportException.Report.Results[4].Member.Name);
-                }
-                else
-                {
-                    Assert.IsInstanceOf<ValidateResultException>(exception);
-
-                    var resultException = (ValidateResultException)exception;
-
-                    Assert.AreEqual("Field", resultException.Result.Member.Name);
-                }
-
+                Assert.AreEqual(5, reportException.Report.Results.Count);
+                Assert.AreEqual("Field", reportException.Report.Results[0].Member.Name);
+                Assert.AreEqual("Field2", reportException.Report.Results[1].Member.Name);
+                Assert.AreEqual("Property", reportException.Report.Results[2].Member.Name);
+                Assert.AreEqual("Property2", reportException.Report.Results[3].Member.Name);
+                Assert.AreEqual("Property2", reportException.Report.Results[4].Member.Name);
                 Assert.Pass(exception.Message);
             }
         }
 
         [Test]
-        [TestCase(true, TestName = "All")]
-        [TestCase(false, TestName = "Single")]
-        public void ValidateWithReport(bool all)
+        public void ValidateWithReport()
         {
             var target = new Target
             {
@@ -131,34 +115,24 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 }
             };
 
-            bool result = ValidateUtility.Validate(target, new Context(), out ValidateReport report, all);
-            bool result2 = ValidateUtility.Validate(target2, new Context(), out ValidateReport report2, all);
+            bool result = ValidateUtility.Validate(target, new Context(), out ValidateReport report);
+            bool result2 = ValidateUtility.Validate(target2, new Context(), out ValidateReport report2);
 
             Assert.True(result);
             Assert.False(report.HasResults);
             Assert.False(result2);
             Assert.True(report2.HasResults);
 
-            if (all)
-            {
-                Assert.AreEqual(5, report2.Results.Count);
-                Assert.AreEqual("Field", report2.Results[0].Member.Name);
-                Assert.AreEqual("Field2", report2.Results[1].Member.Name);
-                Assert.AreEqual("Property", report2.Results[2].Member.Name);
-                Assert.AreEqual("Property2", report2.Results[3].Member.Name);
-                Assert.AreEqual("Property2", report2.Results[4].Member.Name);
-            }
-            else
-            {
-                Assert.AreEqual(1, report2.Results.Count);
-                Assert.AreEqual("Field", report2.Results[0].Member.Name);
-            }
+            Assert.AreEqual(5, report2.Results.Count);
+            Assert.AreEqual("Field", report2.Results[0].Member.Name);
+            Assert.AreEqual("Field2", report2.Results[1].Member.Name);
+            Assert.AreEqual("Property", report2.Results[2].Member.Name);
+            Assert.AreEqual("Property2", report2.Results[3].Member.Name);
+            Assert.AreEqual("Property2", report2.Results[4].Member.Name);
         }
 
         [Test]
-        [TestCase(true, TestName = "All")]
-        [TestCase(false, TestName = "Single")]
-        public void ValidateFields(bool all)
+        public void ValidateFields()
         {
             var target = new Target
             {
@@ -186,31 +160,21 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 }
             };
 
-            bool result = ValidateUtility.ValidateFields(target, new Context(), out ValidateReport report, all);
-            bool result2 = ValidateUtility.ValidateFields(target2, new Context(), out ValidateReport report2, all);
+            bool result = ValidateUtility.ValidateFields(target, new Context(), out ValidateReport report);
+            bool result2 = ValidateUtility.ValidateFields(target2, new Context(), out ValidateReport report2);
 
             Assert.True(result);
             Assert.False(report.HasResults);
             Assert.False(result2);
             Assert.True(report2.HasResults);
 
-            if (all)
-            {
-                Assert.AreEqual(2, report2.Results.Count);
-                Assert.AreEqual("Field", report2.Results[0].Member.Name);
-                Assert.AreEqual("Field2", report2.Results[1].Member.Name);
-            }
-            else
-            {
-                Assert.AreEqual(1, report2.Results.Count);
-                Assert.AreEqual("Field", report2.Results[0].Member.Name);
-            }
+            Assert.AreEqual(2, report2.Results.Count);
+            Assert.AreEqual("Field", report2.Results[0].Member.Name);
+            Assert.AreEqual("Field2", report2.Results[1].Member.Name);
         }
 
         [Test]
-        [TestCase(true, TestName = "All")]
-        [TestCase(false, TestName = "Single")]
-        public void ValidateProperties(bool all)
+        public void ValidateProperties()
         {
             var target = new Target
             {
@@ -238,26 +202,18 @@ namespace UGF.RuntimeTools.Runtime.Tests.Validation
                 }
             };
 
-            bool result = ValidateUtility.ValidateProperties(target, new Context(), out ValidateReport report, all);
-            bool result2 = ValidateUtility.ValidateProperties(target2, new Context(), out ValidateReport report2, all);
+            bool result = ValidateUtility.ValidateProperties(target, new Context(), out ValidateReport report);
+            bool result2 = ValidateUtility.ValidateProperties(target2, new Context(), out ValidateReport report2);
 
             Assert.True(result);
             Assert.False(report.HasResults);
             Assert.False(result2);
             Assert.True(report2.HasResults);
 
-            if (all)
-            {
-                Assert.AreEqual(3, report2.Results.Count);
-                Assert.AreEqual("Property", report2.Results[0].Member.Name);
-                Assert.AreEqual("Property2", report2.Results[1].Member.Name);
-                Assert.AreEqual("Property2", report2.Results[2].Member.Name);
-            }
-            else
-            {
-                Assert.AreEqual(1, report2.Results.Count);
-                Assert.AreEqual("Property", report2.Results[0].Member.Name);
-            }
+            Assert.AreEqual(3, report2.Results.Count);
+            Assert.AreEqual("Property", report2.Results[0].Member.Name);
+            Assert.AreEqual("Property2", report2.Results[1].Member.Name);
+            Assert.AreEqual("Property2", report2.Results[2].Member.Name);
         }
     }
 }
