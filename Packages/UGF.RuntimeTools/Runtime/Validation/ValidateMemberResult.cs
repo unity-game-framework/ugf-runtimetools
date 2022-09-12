@@ -45,7 +45,9 @@ namespace UGF.RuntimeTools.Runtime.Validation
         {
             if (!IsValid()) throw new ArgumentException("Value should be valid.");
 
-            return $"{Member.Name}: {Result.Message}";
+            return HasLabel
+                ? $"{Member.Name}: {Result.Message} ({Label})"
+                : $"{Member.Name}: {Result.Message}";
         }
     }
 }
