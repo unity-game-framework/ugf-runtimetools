@@ -50,6 +50,15 @@ namespace UGF.RuntimeTools.Runtime.Validation
             return false;
         }
 
+        public List<ValidateMemberResult> GetByMemberResults(string memberName)
+        {
+            var results = new List<ValidateMemberResult>();
+
+            TryGetByMemberResults(memberName, results);
+
+            return results;
+        }
+
         public bool TryGetByMemberResults(string memberName, ICollection<ValidateMemberResult> results)
         {
             if (string.IsNullOrEmpty(memberName)) throw new ArgumentException("Value cannot be null or empty.", nameof(memberName));
