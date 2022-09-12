@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.16.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.16.0) - 2022-09-12  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/21?closed=1)  
+    
+
+### Added
+
+- Add validation labels ([#72](https://github.com/unity-game-framework/ugf-runtimetools/issues/72))  
+    - Add `ValidateAttribute.Label` property to specify validation label.
+    - Add `ValidateReport.HasAnyValid()` and `HasAnyInvalid()` methods to determine whether results contains any specific results.
+    - Add `ValidateReport.GetByMemberResults()` and `TryGetByMemberResults()` methods to get results by the specified member name.
+    - Add `ValidateMemberResult.Label` property to specify label of validation result.
+    - Deprecate `ValidateUtility.Validate()`, `ValidateFields()` and `ValidateProperties()` method overloads with `all` argument, validation made for all members by default.
+
 ## [2.15.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.15.0) - 2022-08-07  
 
 ### Release Notes
