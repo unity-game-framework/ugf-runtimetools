@@ -25,6 +25,8 @@ namespace UGF.RuntimeTools.Runtime.Validation
 
         public string GetMessage()
         {
+            if (!IsValid()) throw new ArgumentException("Value should be valid.");
+
             return $"{Member.Name}: {Result.Message}";
         }
     }

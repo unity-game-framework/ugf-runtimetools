@@ -5,13 +5,13 @@ using UGF.RuntimeTools.Runtime.Contexts;
 
 namespace UGF.RuntimeTools.Runtime.Validation
 {
-    public static class ValidateUtility
+    public static partial class ValidateUtility
     {
         public static ValidateResult ValueNotSpecifiedInvalidResult { get; } = ValidateResult.CreateInvalid("Value not specified.");
 
-        public static void Validate(object target, IContext context, bool all = true)
+        public static void Validate(object target, IContext context)
         {
-            if (!Validate(target, context, out ValidateReport report, all))
+            if (!Validate(target, context, out ValidateReport report))
             {
                 throw report.Results.Count > 1
                     ? new ValidateReportException(report)
@@ -19,18 +19,18 @@ namespace UGF.RuntimeTools.Runtime.Validation
             }
         }
 
-        public static bool Validate(object target, IContext context, out ValidateReport report, bool all = true)
+        public static bool Validate(object target, IContext context, out ValidateReport report)
         {
             report = default;
 
-            bool fields = ValidateFields(target, context, out ValidateReport fieldsReport, all);
-            bool properties = ValidateProperties(target, context, out ValidateReport propertiesReport, all);
+            bool fields = ValidateFields(target, context, out ValidateReport fieldsReport);
+            bool properties = ValidateProperties(target, context, out ValidateReport propertiesReport);
 
             if (!fields || !properties)
             {
                 report = fieldsReport.HasResults ? fieldsReport : propertiesReport;
 
-                if (all && fieldsReport.HasResults && propertiesReport.HasResults)
+                if (fieldsReport.HasResults && propertiesReport.HasResults)
                 {
                     for (int i = 0; i < propertiesReport.Results.Count; i++)
                     {
@@ -42,25 +42,25 @@ namespace UGF.RuntimeTools.Runtime.Validation
             return fields && properties;
         }
 
-        public static bool ValidateFields(object target, IContext context, out ValidateReport report, bool all = true)
+        public static bool ValidateFields(object target, IContext context, out ValidateReport report)
         {
             report = default;
 
-            ValidateMembers(target, context, ref report, all, x => x.GetType().GetFields(), (x, y) => y.GetValue(x));
+            ValidateMembers(target, context, ref report, x => x.GetType().GetFields(), (x, y) => y.GetValue(x));
 
-            return !report.HasResults;
+            return !report.HasResults || !report.HasAnyInvalid();
         }
 
-        public static bool ValidateProperties(object target, IContext context, out ValidateReport report, bool all = true)
+        public static bool ValidateProperties(object target, IContext context, out ValidateReport report)
         {
             report = default;
 
-            ValidateMembers(target, context, ref report, all, x => x.GetType().GetProperties(), (x, y) => y.GetValue(x));
+            ValidateMembers(target, context, ref report, x => x.GetType().GetProperties(), (x, y) => y.GetValue(x));
 
-            return !report.HasResults;
+            return !report.HasResults || !report.HasAnyInvalid();
         }
 
-        private static void ValidateMembers<T>(object target, IContext context, ref ValidateReport report, bool all, Func<object, IReadOnlyList<T>> membersHandler, Func<object, T, object> valueHandler) where T : MemberInfo
+        private static void ValidateMembers<T>(object target, IContext context, ref ValidateReport report, Func<object, IReadOnlyList<T>> membersHandler, Func<object, T, object> valueHandler) where T : MemberInfo
         {
             if (target == null) throw new ArgumentNullException(nameof(target));
             if (context == null) throw new ArgumentNullException(nameof(context));
@@ -95,16 +95,11 @@ namespace UGF.RuntimeTools.Runtime.Validation
                                 }
 
                                 report.Results.Add(new ValidateMemberResult(member, attribute.GetType(), result));
-
-                                if (!all)
-                                {
-                                    return;
-                                }
                             }
 
                             if (attribute.ValidateMembers)
                             {
-                                ValidateMembers(value, context, ref report, all, membersHandler, valueHandler);
+                                ValidateMembers(value, context, ref report, membersHandler, valueHandler);
                             }
                         }
                         else
@@ -115,11 +110,6 @@ namespace UGF.RuntimeTools.Runtime.Validation
                             }
 
                             report.Results.Add(new ValidateMemberResult(member, attribute.GetType(), ValueNotSpecifiedInvalidResult));
-
-                            if (!all)
-                            {
-                                return;
-                            }
                         }
                     }
                 }

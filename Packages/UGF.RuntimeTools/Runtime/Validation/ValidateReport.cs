@@ -19,5 +19,35 @@ namespace UGF.RuntimeTools.Runtime.Validation
         {
             return m_results != null;
         }
+
+        public bool HasAnyValid()
+        {
+            if (!IsValid()) throw new ArgumentException("Value should be valid.");
+
+            for (int i = 0; i < m_results.Count; i++)
+            {
+                if (m_results[i].Result)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasAnyInvalid()
+        {
+            if (!IsValid()) throw new ArgumentException("Value should be valid.");
+
+            for (int i = 0; i < m_results.Count; i++)
+            {
+                if (!m_results[i].Result)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
