@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.17.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.17.0) - 2022-10-29  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/22?closed=1)  
+    
+
+### Added
+
+- Add behaviour enable scope ([#74](https://github.com/unity-game-framework/ugf-runtimetools/issues/74))  
+    - Add `BehaviourEnableScope` structure as scope to enable specified behaviour.
+
 ## [2.16.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.16.0) - 2022-09-12  
 
 ### Release Notes
