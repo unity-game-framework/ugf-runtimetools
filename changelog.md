@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.19.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.19.0) - 2023-06-17  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/24?closed=1)  
+    
+
+### Added
+
+- Add table get by name methods ([#79](https://github.com/unity-game-framework/ugf-runtimetools/issues/79))  
+    - Add `ITable.TryGetByName()` method and overloads used to get entry by name.
+
 ## [2.18.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.18.0) - 2022-11-24  
 
 ### Release Notes
