@@ -14,6 +14,46 @@ namespace UGF.RuntimeTools.Runtime.Tables
 
         IEnumerable<ITableEntry> ITable.Entries { get { return Entries; } }
 
+        public T GetByName<T>(string name) where T : ITableEntry
+        {
+            return (T)GetByName(name);
+        }
+
+        public ITableEntry GetByName(string name)
+        {
+            return TryGetByName(name, out ITableEntry entry) ? entry : throw new ArgumentException($"Entry not found by the specified name: '{name}'.");
+        }
+
+        public bool TryGetByName<T>(string name, out T entry) where T : class, ITableEntry
+        {
+            if (TryGetByName(name, out ITableEntry result))
+            {
+                entry = (T)result;
+                return true;
+            }
+
+            entry = default;
+            return false;
+        }
+
+        public bool TryGetByName(string name, out ITableEntry entry)
+        {
+            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+
+            for (int i = 0; i < m_entries.Count; i++)
+            {
+                entry = m_entries[i];
+
+                if (entry.Name == name)
+                {
+                    return true;
+                }
+            }
+
+            entry = default;
+            return false;
+        }
+
         public T Get<T>(GlobalId id) where T : class, ITableEntry
         {
             return (T)Get(id);
