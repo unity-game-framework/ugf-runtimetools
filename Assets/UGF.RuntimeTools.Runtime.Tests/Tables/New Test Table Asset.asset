@@ -20,3 +20,9 @@ MonoBehaviour:
       m_name: Entry
       m_text: Test
       m_bool: 1
+    - m_id:
+        m_first: 5230086139607015692
+        m_second: 6581029558666724232
+      m_name: Entry_1
+      m_text: Test
+      m_bool: 1
