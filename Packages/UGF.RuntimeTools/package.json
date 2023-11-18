@@ -2,7 +2,7 @@
   "name": "com.ugf.runtimetools",
   "displayName": "UGF.RuntimeTools",
   "version": "2.19.0",
-  "unity": "2021.3",
+  "unity": "2023.2",
   "apiCompatibility": ".NET Standard 2.1",
   "description": "Provides tools for working with runtime code.",
   "author": {
@@ -16,9 +16,9 @@
   "changelogUrl": "https://github.com/unity-game-framework/ugf-runtimetools/blob/master/changelog.md",
   "licensesUrl": "https://github.com/unity-game-framework/ugf-runtimetools/blob/master/license",
   "publishConfig": {
-    "registry": "https://unitygameframework.jfrog.io/artifactory/api/npm/default"
+    "registry": "https://api.upmhub.org/registries/unity-game-framework"
   },
   "dependencies": {
-    "com.ugf.editortools": "2.11.0"
+    "com.ugf.editortools": "3.0.0-preview"
   }
 }
