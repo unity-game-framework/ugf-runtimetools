@@ -5,7 +5,7 @@ using UGF.RuntimeTools.Runtime.Contexts;
 
 namespace UGF.RuntimeTools.Runtime.Validation
 {
-    public static partial class ValidateUtility
+    public static class ValidateUtility
     {
         public static ValidateResult ValueNotSpecifiedInvalidResult { get; } = ValidateResult.CreateInvalid("Value not specified.");
 
