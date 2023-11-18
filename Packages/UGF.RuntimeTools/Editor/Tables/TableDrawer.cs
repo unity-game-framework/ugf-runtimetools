@@ -21,6 +21,15 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool ShowIndexes { get; set; }
         public bool UnlockIds { get; set; }
 
+        public event TableDrawerEntryHandler Added;
+        public event TableDrawerEntryHandler Removing;
+        public event TableDrawerEntryHandler Selected;
+        public event TableDrawerEntryHandler Deselecting;
+        public event TableDrawerMenuHandler MenuOpening;
+        public event TableDrawerEntryHandler DrawingEntry;
+        public event TableDrawerEntryHandler DrawingEntryHeader;
+        public event TableDrawerEntryHandler DrawingEntryProperties;
+
         private readonly DropdownSelection<DropdownItem<int>> m_selection = new DropdownSelection<DropdownItem<int>>();
         private int? m_selectedIndex;
         private SerializedProperty m_selectedPropertyId;
@@ -94,7 +103,14 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual void OnDraw(int index, SerializedProperty propertyEntry)
         {
-            DrawEntryDefault(index, propertyEntry);
+            if (DrawingEntry != null)
+            {
+                DrawingEntry.Invoke(index, propertyEntry);
+            }
+            else
+            {
+                DrawEntryDefault(index, propertyEntry);
+            }
         }
 
         protected void DrawEntryDefault(int index, SerializedProperty propertyEntry)
@@ -105,29 +121,43 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected void DrawEntryPropertiesHeader(int index, SerializedProperty propertyEntry)
         {
-            if (ShowIndexes)
+            if (DrawingEntryHeader != null)
             {
-                using (new EditorGUI.DisabledScope(true))
+                DrawingEntryHeader.Invoke(index, propertyEntry);
+            }
+            else
+            {
+                if (ShowIndexes)
                 {
-                    EditorGUILayout.IntField("Index", SelectedIndex);
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        EditorGUILayout.IntField("Index", SelectedIndex);
+                    }
                 }
-            }
 
-            using (new EditorGUI.DisabledScope(!UnlockIds))
-            {
-                EditorGUILayout.PropertyField(m_selectedPropertyId);
-            }
+                using (new EditorGUI.DisabledScope(!UnlockIds))
+                {
+                    EditorGUILayout.PropertyField(m_selectedPropertyId);
+                }
 
-            EditorGUILayout.PropertyField(m_selectedPropertyName);
+                EditorGUILayout.PropertyField(m_selectedPropertyName);
+            }
         }
 
         protected virtual void DrawEntryProperties(int index, SerializedProperty propertyEntry)
         {
-            foreach (SerializedProperty property in SerializedPropertyEditorUtility.GetChildrenVisible(propertyEntry))
+            if (DrawingEntryProperties != null)
             {
-                if (property.name != PropertyIdName && property.name != PropertyNameName)
+                DrawingEntryProperties.Invoke(index, propertyEntry);
+            }
+            else
+            {
+                foreach (SerializedProperty property in SerializedPropertyEditorUtility.GetChildrenVisible(propertyEntry))
                 {
-                    EditorGUILayout.PropertyField(property);
+                    if (property.name != PropertyIdName && property.name != PropertyNameName)
+                    {
+                        EditorGUILayout.PropertyField(property);
+                    }
                 }
             }
         }
@@ -145,6 +175,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 m_selectedPropertyName = propertyEntry.FindPropertyRelative(PropertyNameName);
 
                 OnSelect(index, propertyEntry);
+
+                Selected?.Invoke(index, propertyEntry);
             }
         }
 
@@ -152,7 +184,12 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (m_selectedIndex != null)
             {
-                OnDeselect(m_selectedIndex.Value, PropertyEntries.GetArrayElementAtIndex(m_selectedIndex.Value));
+                int index = m_selectedIndex.Value;
+                SerializedProperty propertyEntry = PropertyEntries.GetArrayElementAtIndex(m_selectedIndex.Value);
+
+                OnDeselect(index, propertyEntry);
+
+                Deselecting?.Invoke(index, propertyEntry);
 
                 m_selectedIndex = null;
                 m_selectedPropertyId = null;
@@ -163,7 +200,12 @@ namespace UGF.RuntimeTools.Editor.Tables
         private void OnEntryRemove(int index)
         {
             OnEntryDeselect();
-            OnRemove(index, PropertyEntries.GetArrayElementAtIndex(index));
+
+            SerializedProperty propertyEntry = PropertyEntries.GetArrayElementAtIndex(index);
+
+            OnRemove(index, propertyEntry);
+
+            Removing?.Invoke(index, propertyEntry);
 
             PropertyEntries.DeleteArrayElementAtIndex(index);
         }
@@ -193,6 +235,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             OnAdd(index, propertyEntry);
             OnEntrySelect(index);
+
+            Added?.Invoke(index, propertyEntry);
         }
 
         private void OnEntrySelectedDraw()
@@ -272,6 +316,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             OnMenu(menu);
+
+            MenuOpening?.Invoke(menu);
 
             menu.DropDown(position);
         }
