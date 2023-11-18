@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview) - 2023-11-18  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/25?closed=1)  
+    
+
+### Added
+
+- Add table drawer override event for entry draw ([#84](https://github.com/unity-game-framework/ugf-runtimetools/issues/84))  
+    - Update dependencies: `com.ugf.editortools` to `3.0.0-preview` version.
+    - Update package _Unity_ version to `2023.2`.
+    - Update package registry to _UPM Hub_.
+    - Add `TableDrawer.Added`, `Removing`, `Selected`, `Deselecting` and `MenuOpening` events which can be used instead of virtual methods.
+    - Add `TableDrawer.DrawingEntry`, `DrawingEntryHeader` and `DrawingEntryProperties` events which can be used instead of virtual methods to override drawing.
+
+### Removed
+
+- Remove deprecated code ([#87](https://github.com/unity-game-framework/ugf-runtimetools/issues/87))  
+    - Remove _Code_ marked with obsolete attributes.
+- Remove collection extensions ([#76](https://github.com/unity-game-framework/ugf-runtimetools/issues/76))  
+    - Remove _Collections_ extension methods and related classes.
+
 ## [2.19.0](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/2.19.0) - 2023-06-17  
 
 ### Release Notes
