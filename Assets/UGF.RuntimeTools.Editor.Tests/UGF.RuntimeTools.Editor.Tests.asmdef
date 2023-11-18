@@ -1,0 +1,25 @@
+{
+    "name": "UGF.RuntimeTools.Editor.Tests",
+    "rootNamespace": "",
+    "references": [
+        "GUID:16fde9420ef50f34db61e711e19381dd",
+        "GUID:978028b866db80345ab97276897ee056",
+        "GUID:39861218607a4cf43be994af2a09b128",
+        "GUID:abdd615e45137c74ca2ce9c636c78c15"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
