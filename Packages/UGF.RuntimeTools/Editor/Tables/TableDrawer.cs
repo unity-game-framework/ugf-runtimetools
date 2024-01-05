@@ -288,9 +288,12 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryInsert(index);
                 }
 
-                Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, GUILayout.Width(25F));
+                if (OnDrawToolbarButton(m_styles.MenuButtonContent, 25F))
+                {
+                    TableEditorUtility.ShowTableWindow(SerializedProperty);
+                }
 
-                if (GUI.Button(rectMenu, m_styles.MenuButtonContent, EditorStyles.toolbarButton))
+                if (OnDrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
                 {
                     OnMenuOpen(rectMenu);
                 }
@@ -366,7 +369,14 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private bool OnDrawToolbarButton(GUIContent content, float width = 50F)
         {
-            return GUILayout.Button(content, EditorStyles.toolbarButton, GUILayout.Width(width));
+            return OnDrawToolbarButton(content, out _, width);
+        }
+
+        private bool OnDrawToolbarButton(GUIContent content, out Rect position, float width = 50F)
+        {
+            position = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, GUILayout.Width(width));
+
+            return GUI.Button(position, content, EditorStyles.toolbarButton);
         }
 
         private string OnGetUniqueName(string entryName)
