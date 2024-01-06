@@ -40,7 +40,7 @@ MonoBehaviour:
       m_text: Test
       m_bool: 1
       m_int: 1
-      m_float: 0
+      m_float: 555
       m_range: 0
       m_enum: 1
       m_asset:
@@ -55,7 +55,7 @@ MonoBehaviour:
     - m_id:
         m_first: 5322336731157189677
         m_second: 400948121021927321
-      m_name: Entry_2
+      m_name: Remove
       m_text: Test
       m_bool: 1
       m_int: 2
@@ -93,7 +93,7 @@ MonoBehaviour:
     - m_id:
         m_first: 5512957858154995823
         m_second: 2879177311250469807
-      m_name: Entry_4
+      m_name: Desc
       m_text: wadwdaw
       m_bool: 1
       m_int: 4
@@ -132,12 +132,12 @@ MonoBehaviour:
         m_first: 5013098253432981153
         m_second: 14486966247066662282
       m_name: Entry_6
-      m_text: Test
+      m_text: m
       m_bool: 1
       m_int: 6
       m_float: 0
       m_range: 0
-      m_enum: 0
+      m_enum: 13
       m_asset:
         m_first: 5201217200863824214
         m_second: 10591832452863027095
@@ -188,7 +188,7 @@ MonoBehaviour:
     - m_id:
         m_first: 5338532554354588382
         m_second: 17775319513514191257
-      m_name: Entry_9
+      m_name: Remove
       m_text: Test
       m_bool: 1
       m_int: 9
