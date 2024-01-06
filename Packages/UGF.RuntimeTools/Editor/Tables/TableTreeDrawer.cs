@@ -11,6 +11,8 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public Object Asset { get; }
         public TableTreeDrawerState State { get; }
+        public string PropertyIdName { get; set; } = "m_id";
+        public bool UnlockIds { get; set; }
 
         private readonly GUILayoutOption[] m_layoutOptions =
         {
@@ -35,12 +37,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_treeView = new TableTreeView(m_serializedObject, (TableTreeViewState)State.State);
             m_treeView.Reload();
             m_treeView.multiColumnHeader.ResizeToFit();
+            m_treeView.RowDraw += OnRowDrawGUI;
+            m_treeView.RowCellDraw += OnRowCellDrawGUI;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
 
+            m_treeView.RowDraw -= OnRowDrawGUI;
+            m_treeView.RowCellDraw -= OnRowCellDrawGUI;
             m_treeView = null;
             m_serializedObject.Dispose();
             m_serializedObject = null;
@@ -67,6 +73,30 @@ namespace UGF.RuntimeTools.Editor.Tables
                     m_treeView.OnGUI(position);
                 }
             }
+        }
+
+        protected virtual void OnDrawEntryGUI(Rect position, SerializedProperty serializedProperty, int rowIndex)
+        {
+        }
+
+        protected virtual void OnDrawEntryCellGUI(Rect position, SerializedProperty serializedProperty, int rowIndex, int columnIndex)
+        {
+            using (new EditorGUI.DisabledScope(!UnlockIds && serializedProperty.name == PropertyIdName))
+            {
+                EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+            }
+        }
+
+        private void OnRowDrawGUI(Rect position, int rowIndex, TableTreeViewItem rowItem)
+        {
+            OnDrawEntryGUI(position, rowItem.SerializedProperty, rowIndex);
+        }
+
+        private void OnRowCellDrawGUI(Rect position, int rowIndex, TableTreeViewItem rowItem, int columnIndex, TableTreeViewColumnState columnState)
+        {
+            SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
+
+            OnDrawEntryCellGUI(position, propertyValue, rowIndex, columnIndex);
         }
     }
 }

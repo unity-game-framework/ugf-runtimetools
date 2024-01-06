@@ -10,7 +10,9 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public SerializedProperty SerializedProperty { get; }
         public SerializedProperty PropertyEntries { get; }
-        public string PropertyIdName { get; set; } = "m_id";
+
+        public event TableTreeViewDrawRowHandler RowDraw;
+        public event TableTreeViewDrawRowCellHandler RowCellDraw;
 
         private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
 
@@ -53,14 +55,16 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected override void RowGUI(RowGUIArgs args)
         {
+            int rowIndex = args.row;
+            var rowItem = (TableTreeViewItem)args.item;
             int count = args.GetNumVisibleColumns();
             float spacing = EditorGUIUtility.standardVerticalSpacing;
+
+            RowDraw?.Invoke(args.rowRect, args.row, rowItem);
 
             for (int i = 0; i < count; i++)
             {
                 Rect position = args.GetCellRect(i);
-                var rowItem = (TableTreeViewItem)args.item;
-                int rowIndex = args.row;
                 int columnIndex = args.GetColumn(i);
                 var columnState = (TableTreeViewColumnState)multiColumnHeader.GetColumn(columnIndex);
 
@@ -69,23 +73,17 @@ namespace UGF.RuntimeTools.Editor.Tables
                 position.yMin += spacing;
                 position.yMax -= spacing;
 
-                OnDrawCellGUI(position, rowIndex, rowItem, columnIndex, columnState);
+                if (RowCellDraw != null)
+                {
+                    RowCellDraw.Invoke(position, rowIndex, rowItem, columnIndex, columnState);
+                }
+                else
+                {
+                    SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
+
+                    EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
+                }
             }
-        }
-
-        private void OnDrawCellGUI(Rect position, int rowIndex, TableTreeViewItem rowItem, int columnIndex, TableTreeViewColumnState columnState)
-        {
-            SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
-
-            using (new EditorGUI.DisabledScope(columnState.PropertyName == PropertyIdName))
-            {
-                OnDrawCellGUI(position, propertyValue);
-            }
-        }
-
-        private void OnDrawCellGUI(Rect position, SerializedProperty serializedProperty)
-        {
-            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, true);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -21,10 +22,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_state = new TableTreeViewState();
         }
 
-        public TableTreeDrawerState(TableAsset tableAsset)
+        public TableTreeDrawerState(TableAsset tableAsset) : this(tableAsset, TableTreeEditorUtility.GetEntryColumns(tableAsset))
         {
+        }
+
+        public TableTreeDrawerState(TableAsset tableAsset, IReadOnlyList<TableTreeDrawerColumn> columns)
+        {
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
+
             m_assetGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(tableAsset));
-            m_state = TableTreeEditorInternalUtility.CreateState(tableAsset);
+            m_state = TableTreeEditorInternalUtility.CreateState(columns);
         }
     }
 }

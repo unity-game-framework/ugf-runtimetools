@@ -10,45 +10,42 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal static class TableTreeEditorInternalUtility
     {
-        public static TableTreeViewState CreateState(TableAsset tableAsset)
+        public static TableTreeViewState CreateState(IReadOnlyList<TableTreeDrawerColumn> columns)
         {
-            if (tableAsset == null) throw new ArgumentNullException(nameof(tableAsset));
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
 
             return new TableTreeViewState
             {
-                Header = CreateHeaderState(tableAsset)
+                Header = CreateHeaderState(columns)
             };
         }
 
-        public static MultiColumnHeaderState CreateHeaderState(TableAsset tableAsset)
+        public static MultiColumnHeaderState CreateHeaderState(IReadOnlyList<TableTreeDrawerColumn> columns)
         {
-            if (tableAsset == null) throw new ArgumentNullException(nameof(tableAsset));
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
 
-            ITable table = tableAsset.Get();
+            var columnStates = new MultiColumnHeaderState.Column[columns.Count];
 
-            return CreateHeaderStateFromTableType(table.GetType());
-        }
-
-        public static MultiColumnHeaderState CreateHeaderStateFromTableType(Type type)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-
-            Type[] genericArguments = type.GetGenericArguments();
-
-            if (genericArguments.Length != 1)
+            for (int i = 0; i < columns.Count; i++)
             {
-                throw new ArgumentException($"Table header state can be created from '{typeof(Table<>)}' generic type only.");
+                TableTreeDrawerColumn column = columns[i];
+
+                columnStates[i] = new TableTreeViewColumnState
+                {
+                    PropertyName = column.PropertyName,
+                    headerContent = new GUIContent(column.DisplayName)
+                };
             }
 
-            return CreateHeaderStateFromEntryType(genericArguments[0]);
+            return new MultiColumnHeaderState(columnStates);
         }
 
-        public static MultiColumnHeaderState CreateHeaderStateFromEntryType(Type type)
+        public static MultiColumnHeaderState CreateHeaderState(Type entryType)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (entryType == null) throw new ArgumentNullException(nameof(entryType));
 
             var columns = new List<MultiColumnHeaderState.Column>();
-            List<FieldInfo> fields = GetEntryFields(type);
+            List<FieldInfo> fields = GetEntryFields(entryType);
 
             for (int i = 0; i < fields.Count; i++)
             {
@@ -89,6 +86,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             fields.Sort(TableTreeEntryFieldComparer.Default);
 
             return fields;
+        }
+
+        public static Type GetTableEntryType(Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            Type[] genericArguments = type.GetGenericArguments();
+
+            if (genericArguments.Length != 1)
+            {
+                throw new ArgumentException($"Table header state can be created from '{typeof(Table<>)}' generic type only.");
+            }
+
+            return genericArguments[0];
         }
     }
 }
