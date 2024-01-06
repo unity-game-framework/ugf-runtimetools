@@ -9,16 +9,17 @@ namespace UGF.RuntimeTools.Editor.Tables
         public string PropertyName { get; }
         public string DisplayName { get; }
         public IComparer<SerializedProperty> PropertyComparer { get; }
+        public ITableTreeDrawerColumnSearchHandler SearchHandler { get; }
 
         public TableTreeDrawerColumn(string propertyName) : this(propertyName, ObjectNames.NicifyVariableName(propertyName))
         {
         }
 
-        public TableTreeDrawerColumn(string propertyName, string displayName) : this(propertyName, displayName, TableTreeDrawerColumnPropertyComparer.Default)
+        public TableTreeDrawerColumn(string propertyName, string displayName) : this(propertyName, displayName, TableTreeDrawerColumnPropertyComparer.Default, TableTreeDrawerColumnSearchHandler.Default)
         {
         }
 
-        public TableTreeDrawerColumn(string propertyName, string displayName, IComparer<SerializedProperty> propertyComparer)
+        public TableTreeDrawerColumn(string propertyName, string displayName, IComparer<SerializedProperty> propertyComparer, ITableTreeDrawerColumnSearchHandler searchHandler)
         {
             if (string.IsNullOrEmpty(propertyName)) throw new ArgumentException("Value cannot be null or empty.", nameof(propertyName));
             if (string.IsNullOrEmpty(displayName)) throw new ArgumentException("Value cannot be null or empty.", nameof(displayName));
@@ -26,6 +27,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             PropertyName = propertyName;
             DisplayName = displayName;
             PropertyComparer = propertyComparer ?? throw new ArgumentNullException(nameof(propertyComparer));
+            SearchHandler = searchHandler ?? throw new ArgumentNullException(nameof(searchHandler));
         }
     }
 }

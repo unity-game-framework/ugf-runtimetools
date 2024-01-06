@@ -33,6 +33,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 {
                     PropertyName = column.PropertyName,
                     PropertyComparer = column.PropertyComparer,
+                    SearchHandler = column.SearchHandler,
                     headerContent = new GUIContent(column.DisplayName)
                 };
             }

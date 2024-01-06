@@ -277,25 +277,25 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 using (new EditorGUI.DisabledScope(m_selectedIndex == null))
                 {
-                    if (OnDrawToolbarButton(m_styles.RemoveButtonContent))
+                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
                     {
                         OnEntryRemove(SelectedIndex);
                     }
                 }
 
-                if (OnDrawToolbarButton(m_styles.AddButtonContent))
+                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
                 {
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
 
                     OnEntryInsert(index);
                 }
 
-                if (OnDrawToolbarButton(m_styles.TableButtonContent, 25F))
+                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.TableButtonContent, 25F))
                 {
                     TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
                 }
 
-                if (OnDrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
+                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
                 {
                     OnMenuOpen(rectMenu);
                 }
@@ -367,18 +367,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return items;
-        }
-
-        private bool OnDrawToolbarButton(GUIContent content, float width = 50F)
-        {
-            return OnDrawToolbarButton(content, out _, width);
-        }
-
-        private bool OnDrawToolbarButton(GUIContent content, out Rect position, float width = 50F)
-        {
-            position = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, GUILayout.Width(width));
-
-            return GUI.Button(position, content, EditorStyles.toolbarButton);
         }
 
         private string OnGetUniqueName(string entryName)

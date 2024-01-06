@@ -13,5 +13,6 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public string PropertyName { get { return m_propertyName; } set { m_propertyName = value; } }
         public IComparer<SerializedProperty> PropertyComparer { get; set; }
+        public ITableTreeDrawerColumnSearchHandler SearchHandler { get; set; }
     }
 }

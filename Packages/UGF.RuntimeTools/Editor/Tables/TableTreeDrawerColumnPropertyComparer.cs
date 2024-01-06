@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UGF.EditorTools.Editor.Ids;
+using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,6 +22,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                 return 0;
             }
 
+            return OnCompare(x, y);
+        }
+
+        protected virtual int OnCompare(SerializedProperty x, SerializedProperty y)
+        {
             switch (x.propertyType)
             {
                 case SerializedPropertyType.LayerMask:
@@ -62,7 +69,25 @@ namespace UGF.RuntimeTools.Editor.Tables
                         default: return 0;
                     }
                 }
-                default: return 0;
+                case SerializedPropertyType.Generic:
+                {
+                    if (!x.isArray)
+                    {
+                        if (x.type == nameof(GlobalId))
+                        {
+                            GlobalId xId = GlobalIdEditorUtility.GetGlobalIdFromProperty(x);
+                            GlobalId yId = GlobalIdEditorUtility.GetGlobalIdFromProperty(y);
+
+                            return xId.CompareTo(yId);
+                        }
+                    }
+
+                    return x.arraySize.CompareTo(y.arraySize);
+                }
+                default:
+                {
+                    return 0;
+                }
             }
         }
     }

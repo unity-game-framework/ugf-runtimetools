@@ -10,6 +10,7 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public SerializedProperty SerializedProperty { get; }
         public SerializedProperty PropertyEntries { get; }
+        public int SearchColumnIndex { get; set; }
 
         public event TableTreeViewDrawRowHandler RowDraw;
         public event TableTreeViewDrawRowCellHandler RowCellDraw;
@@ -17,7 +18,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
 
-        public TableTreeView(SerializedObject serializedObject, TableTreeViewState state) : this(serializedObject.FindProperty("m_table"), state)
+        public TableTreeView(SerializedProperty serializedProperty, IReadOnlyList<TableTreeDrawerColumn> columns) : this(serializedProperty, TableTreeEditorInternalUtility.CreateState(columns))
         {
         }
 
@@ -46,9 +47,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
 
-                var item = new TableTreeViewItem(i, propertyElement);
+                if (OnCheckSearch(propertyElement))
+                {
+                    var item = new TableTreeViewItem(i, propertyElement);
 
-                m_items.Add(item);
+                    m_items.Add(item);
+                }
             }
 
             SetupParentsAndChildrenFromDepths(root, m_items);
@@ -103,6 +107,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             Reload();
 
             m_comparer.ClearColumn();
+        }
+
+        private bool OnCheckSearch(SerializedProperty serializedProperty)
+        {
+            if (hasSearch)
+            {
+                var column = (TableTreeViewColumnState)multiColumnHeader.GetColumn(SearchColumnIndex);
+
+                SerializedProperty propertyValue = serializedProperty.FindPropertyRelative(column.PropertyName);
+
+                return column.SearchHandler.Check(propertyValue, searchString);
+            }
+
+            return true;
         }
     }
 }
