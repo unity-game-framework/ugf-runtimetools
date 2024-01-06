@@ -5,35 +5,52 @@ using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    internal class TableTreeDrawer : DrawerBase
+    public class TableTreeDrawer : DrawerBase
     {
-        private TableTreeView m_treeView;
+        public SerializedProperty SerializedProperty { get; }
+
+        private readonly TableTreeView m_treeView;
+
+        private readonly GUILayoutOption[] m_layoutOptions =
+        {
+            GUILayout.ExpandWidth(true),
+            GUILayout.ExpandHeight(true)
+        };
+
+        public TableTreeDrawer(SerializedProperty serializedProperty, TableTreeViewState state)
+        {
+            SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
+
+            m_treeView = new TableTreeView(serializedProperty, state);
+        }
 
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            m_treeView.Reload();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-
-            m_treeView = null;
         }
 
-        public void SetSerializedProperty(SerializedProperty serializedProperty)
+        public void DrawGUILayout()
         {
-            m_treeView = new TableTreeView(serializedProperty);
-        }
+            Rect position;
 
-        public void ClearSerializedProperty()
-        {
-            m_treeView = null;
+            using (var scope = new EditorGUILayout.VerticalScope(GUIStyle.none, m_layoutOptions))
+            {
+                position = scope.rect;
+            }
+
+            DrawGUI(position);
         }
 
         public void DrawGUI(Rect position)
         {
-            m_treeView?.OnGUI(position);
+            m_treeView.OnGUI(position);
         }
     }
 }

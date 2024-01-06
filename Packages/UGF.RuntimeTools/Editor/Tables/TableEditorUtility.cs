@@ -77,15 +77,5 @@ namespace UGF.RuntimeTools.Editor.Tables
             name = default;
             return false;
         }
-
-        public static void ShowTableWindow(SerializedProperty serializedProperty)
-        {
-            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
-
-            var window = EditorWindow.GetWindow<TableWindow>(serializedProperty.serializedObject.targetObject.name, false);
-
-            window.SetSerializedProperty(serializedProperty);
-            window.Show();
-        }
     }
 }

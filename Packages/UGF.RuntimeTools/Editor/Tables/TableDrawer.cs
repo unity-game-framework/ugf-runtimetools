@@ -290,7 +290,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (OnDrawToolbarButton(m_styles.MenuButtonContent, 25F))
                 {
-                    TableEditorUtility.ShowTableWindow(SerializedProperty);
+                    TableTreeEditorUtility.ShowWindow(SerializedProperty);
                 }
 
                 if (OnDrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
