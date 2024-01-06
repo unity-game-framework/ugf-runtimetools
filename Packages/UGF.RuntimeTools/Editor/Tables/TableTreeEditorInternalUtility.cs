@@ -32,9 +32,10 @@ namespace UGF.RuntimeTools.Editor.Tables
                 columnStates[i] = new TableTreeViewColumnState
                 {
                     PropertyName = column.PropertyName,
-                    PropertyComparer = column.PropertyComparer,
-                    SearchHandler = column.SearchHandler,
-                    headerContent = new GUIContent(column.DisplayName)
+                    PropertyComparer = column.PropertyComparer ?? TableTreeDrawerColumnPropertyComparer.Default,
+                    SearchHandler = column.SearchHandler ?? TableTreeDrawerColumnSearchHandler.Default,
+                    headerContent = new GUIContent(column.DisplayName),
+                    minWidth = column.MinWidth
                 };
             }
 

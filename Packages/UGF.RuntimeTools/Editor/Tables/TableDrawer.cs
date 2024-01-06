@@ -30,6 +30,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event TableDrawerEntryHandler DrawingEntry;
         public event TableDrawerEntryHandler DrawingEntryHeader;
         public event TableDrawerEntryHandler DrawingEntryProperties;
+        public event Action TableOpening;
 
         private readonly DropdownSelection<DropdownItem<int>> m_selection = new DropdownSelection<DropdownItem<int>>();
         private int? m_selectedIndex;
@@ -103,6 +104,18 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
         }
 
+        protected virtual void OnTable()
+        {
+            if (TableOpening != null)
+            {
+                TableOpening?.Invoke();
+            }
+            else
+            {
+                OpenTable();
+            }
+        }
+
         protected virtual void OnDraw(int index, SerializedProperty propertyEntry)
         {
             if (DrawingEntry != null)
@@ -162,6 +175,16 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
             }
+        }
+
+        protected void OpenTable()
+        {
+            TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
+        }
+
+        protected void OpenTable(IReadOnlyList<TableTreeDrawerColumn> columns)
+        {
+            TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject, columns);
         }
 
         private void OnEntrySelect(int index)
@@ -292,7 +315,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.TableButtonContent, 25F))
                 {
-                    TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
+                    OnTableOpen();
                 }
 
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
@@ -300,6 +323,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnMenuOpen(rectMenu);
                 }
             }
+        }
+
+        private void OnTableOpen()
+        {
+            OnTable();
         }
 
         private void OnMenuOpen(Rect position)
