@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Scopes;
+using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
     public class TableTreeDrawer : DrawerBase
     {
-        public Object Asset { get; }
-        public TableTreeDrawerState State { get; }
+        public TableAsset Asset { get; }
         public string PropertyIdName { get; set; } = "m_id";
         public bool UnlockIds { get; set; }
 
@@ -20,13 +20,19 @@ namespace UGF.RuntimeTools.Editor.Tables
             GUILayout.ExpandHeight(true)
         };
 
+        private readonly TableTreeDrawerState m_state;
         private TableTreeView m_treeView;
         private SerializedObject m_serializedObject;
 
-        public TableTreeDrawer(Object asset, TableTreeDrawerState state)
+        public TableTreeDrawer(TableAsset asset) : this(asset, TableTreeEditorUtility.GetEntryColumns(asset))
+        {
+        }
+
+        public TableTreeDrawer(TableAsset asset, IReadOnlyList<TableTreeDrawerColumn> columns)
         {
             Asset = asset ? asset : throw new ArgumentNullException(nameof(asset));
-            State = state ?? throw new ArgumentNullException(nameof(state));
+
+            m_state = new TableTreeDrawerState(asset, columns);
         }
 
         protected override void OnEnable()
@@ -34,7 +40,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             base.OnEnable();
 
             m_serializedObject = new SerializedObject(Asset);
-            m_treeView = new TableTreeView(m_serializedObject, (TableTreeViewState)State.State);
+            m_treeView = new TableTreeView(m_serializedObject, (TableTreeViewState)m_state.State);
             m_treeView.Reload();
             m_treeView.multiColumnHeader.ResizeToFit();
             m_treeView.RowDraw += OnRowDrawGUI;

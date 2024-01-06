@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
@@ -8,7 +9,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public class TableTreeWindow : EditorWindow
     {
-        [SerializeField] private TableTreeDrawerState m_state;
+        [SerializeField] private string m_assetId;
 
         private TableTreeDrawer m_drawer;
         private Styles m_styles;
@@ -21,14 +22,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEnable()
         {
-            if (m_state != null && !string.IsNullOrEmpty(m_state.AssetGuid))
-            {
-                var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(AssetDatabase.GUIDToAssetPath(m_state.AssetGuid));
+            var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(AssetDatabase.GUIDToAssetPath(m_assetId));
 
-                if (asset != null)
-                {
-                    SetTarget(asset);
-                }
+            if (asset != null)
+            {
+                SetTarget(asset);
             }
 
             m_drawer?.Enable();
@@ -71,8 +69,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (m_drawer != null)
                 {
-                    var asset = (TableAsset)m_drawer.Asset;
-                    int count = asset.Get().Entries.Count();
+                    int count = m_drawer.Asset.Get().Entries.Count();
 
                     GUILayout.FlexibleSpace();
                     GUILayout.Label($"Count: {count}");
@@ -80,20 +77,25 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public void SetTarget(TableAsset tableAsset)
+        public void SetTarget(TableAsset asset)
         {
-            if (tableAsset == null) throw new ArgumentNullException(nameof(tableAsset));
+            SetTarget(asset, TableTreeEditorUtility.GetEntryColumns(asset));
+        }
 
+        public void SetTarget(TableAsset asset, IReadOnlyList<TableTreeDrawerColumn> columns)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
+
+            m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             m_drawer?.Disable();
-
-            m_state = new TableTreeDrawerState(tableAsset);
-            m_drawer = new TableTreeDrawer(tableAsset, m_state);
+            m_drawer = new TableTreeDrawer(asset, columns);
             m_drawer.Enable();
         }
 
         public void ClearTarget()
         {
-            m_state = new TableTreeDrawerState();
+            m_assetId = string.Empty;
             m_drawer?.Disable();
             m_drawer = null;
         }

@@ -8,7 +8,7 @@ using UnityEngine;
 namespace UGF.RuntimeTools.Editor.Tables
 {
     [Serializable]
-    public class TableTreeDrawerState
+    internal class TableTreeDrawerState
     {
         [SerializeField] private string m_assetGuid;
         [SerializeField] private TableTreeViewState m_state;
@@ -20,10 +20,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_assetGuid = string.Empty;
             m_state = new TableTreeViewState();
-        }
-
-        public TableTreeDrawerState(TableAsset tableAsset) : this(tableAsset, TableTreeEditorUtility.GetEntryColumns(tableAsset))
-        {
         }
 
         public TableTreeDrawerState(TableAsset tableAsset, IReadOnlyList<TableTreeDrawerColumn> columns)

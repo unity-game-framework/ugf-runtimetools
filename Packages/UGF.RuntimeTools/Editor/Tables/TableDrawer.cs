@@ -44,6 +44,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
+            public GUIContent TableButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
         }
 
         public TableDrawer(SerializedProperty serializedProperty, string propertyIdName = "m_id", string propertyNameName = "m_name")
@@ -274,11 +275,6 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntrySelect(selected.Value);
                 }
 
-                if (OnDrawToolbarButton(m_styles.MenuButtonContent, 25F))
-                {
-                    TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
-                }
-
                 using (new EditorGUI.DisabledScope(m_selectedIndex == null))
                 {
                     if (OnDrawToolbarButton(m_styles.RemoveButtonContent))
@@ -292,6 +288,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
 
                     OnEntryInsert(index);
+                }
+
+                if (OnDrawToolbarButton(m_styles.TableButtonContent, 25F))
+                {
+                    TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
                 }
 
                 if (OnDrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))

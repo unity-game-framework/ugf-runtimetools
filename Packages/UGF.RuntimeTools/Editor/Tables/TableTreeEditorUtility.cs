@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
+using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
@@ -12,9 +13,18 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (tableAsset == null) throw new ArgumentNullException(nameof(tableAsset));
 
+            ShowWindow(tableAsset, GetEntryColumns(tableAsset));
+        }
+
+        public static void ShowWindow(TableAsset tableAsset, IReadOnlyList<TableTreeDrawerColumn> columns)
+        {
+            if (tableAsset == null) throw new ArgumentNullException(nameof(tableAsset));
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
+
             var window = EditorWindow.GetWindow<TableTreeWindow>(tableAsset.name, false);
 
-            window.SetTarget(tableAsset);
+            window.minSize = new Vector2(500F, 500F);
+            window.SetTarget(tableAsset, columns);
             window.Show();
         }
 
