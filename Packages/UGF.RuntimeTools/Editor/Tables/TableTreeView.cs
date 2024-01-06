@@ -53,6 +53,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override void RowGUI(RowGUIArgs args)
         {
             int count = args.GetNumVisibleColumns();
+            float spacing = EditorGUIUtility.standardVerticalSpacing;
 
             for (int i = 0; i < count; i++)
             {
@@ -62,7 +63,10 @@ namespace UGF.RuntimeTools.Editor.Tables
                 int columnIndex = args.GetColumn(i);
                 var columnState = (TableTreeViewColumnState)multiColumnHeader.GetColumn(columnIndex);
 
-                position.yMin += EditorGUIUtility.standardVerticalSpacing;
+                position.xMin += spacing;
+                position.xMax -= spacing;
+                position.yMin += spacing;
+                position.yMax -= spacing;
 
                 OnDrawCellGUI(position, rowIndex, rowItem, columnIndex, columnState);
             }

@@ -48,10 +48,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (type == null) throw new ArgumentNullException(nameof(type));
 
             var columns = new List<MultiColumnHeaderState.Column>();
+            List<FieldInfo> fields = GetEntryFields(type);
 
-            FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
-
-            for (int i = 0; i < fields.Length; i++)
+            for (int i = 0; i < fields.Count; i++)
             {
                 FieldInfo field = fields[i];
 
@@ -66,6 +65,30 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return new MultiColumnHeaderState(columns.ToArray());
+        }
+
+        public static List<FieldInfo> GetEntryFields(Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            var fields = new List<FieldInfo>();
+
+            while (type != null)
+            {
+                foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                {
+                    if (field.IsDefined(typeof(SerializeField)) || field.IsDefined(typeof(SerializeReference)))
+                    {
+                        fields.Add(field);
+                    }
+                }
+
+                type = type.BaseType;
+            }
+
+            fields.Sort(TableTreeEntryFieldComparer.Default);
+
+            return fields;
         }
     }
 }
