@@ -87,10 +87,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual void OnDrawEntryCellGUI(Rect position, SerializedProperty serializedProperty, int rowIndex, int columnIndex)
         {
-            using (new EditorGUI.DisabledScope(!UnlockIds && serializedProperty.name == PropertyIdName))
-            {
-                EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
-            }
+            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
         }
 
         private void OnRowDrawGUI(Rect position, int rowIndex, TableTreeViewItem rowItem)
@@ -102,7 +99,10 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
 
-            OnDrawEntryCellGUI(position, propertyValue, rowIndex, columnIndex);
+            using (new EditorGUI.DisabledScope(!UnlockIds && propertyValue.name == PropertyIdName))
+            {
+                OnDrawEntryCellGUI(position, propertyValue, rowIndex, columnIndex);
+            }
         }
     }
 }

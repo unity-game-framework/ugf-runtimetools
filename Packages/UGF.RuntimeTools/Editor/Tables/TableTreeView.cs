@@ -15,6 +15,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event TableTreeViewDrawRowCellHandler RowCellDraw;
 
         private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
+        private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
 
         public TableTreeView(SerializedObject serializedObject, TableTreeViewState state) : this(serializedObject.FindProperty("m_table"), state)
         {
@@ -28,6 +29,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             showAlternatingRowBackgrounds = true;
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
             rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2F;
+
+            multiColumnHeader.sortingChanged += OnSortingChanged;
         }
 
         protected override TreeViewItem BuildRoot()
@@ -49,6 +52,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             SetupParentsAndChildrenFromDepths(root, m_items);
+
+            if (multiColumnHeader.sortedColumnIndex >= 0)
+            {
+                m_items.Sort(m_comparer);
+            }
 
             return m_items;
         }
@@ -84,6 +92,17 @@ namespace UGF.RuntimeTools.Editor.Tables
                     EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
                 }
             }
+        }
+
+        private void OnSortingChanged(MultiColumnHeader header)
+        {
+            var column = (TableTreeViewColumnState)multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
+
+            m_comparer.SetColumn(column);
+
+            Reload();
+
+            m_comparer.ClearColumn();
         }
     }
 }

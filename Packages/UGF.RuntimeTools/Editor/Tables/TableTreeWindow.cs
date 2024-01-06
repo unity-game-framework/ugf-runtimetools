@@ -97,7 +97,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_assetId = string.Empty;
             m_drawer?.Disable();
-            m_drawer = null;
+            m_drawer = default;
         }
     }
 }

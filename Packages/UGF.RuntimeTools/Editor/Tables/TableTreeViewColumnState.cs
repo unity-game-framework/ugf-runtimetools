@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
@@ -10,5 +12,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         [SerializeField] private string m_propertyName;
 
         public string PropertyName { get { return m_propertyName; } set { m_propertyName = value; } }
+        public IComparer<SerializedProperty> PropertyComparer { get; set; }
     }
 }
