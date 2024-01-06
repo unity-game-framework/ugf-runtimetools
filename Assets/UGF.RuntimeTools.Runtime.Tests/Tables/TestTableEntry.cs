@@ -14,6 +14,8 @@ namespace UGF.RuntimeTools.Runtime.Tests.Tables
         [SerializeField] private bool m_bool;
         [SerializeField] private int m_int;
         [SerializeField] private float m_float;
+        [Range(-5F, 5F)]
+        [SerializeField] private float m_range;
         [SerializeField] private TypeCode m_enum;
         [AssetId]
         [SerializeField] private GlobalId m_asset;
@@ -25,6 +27,7 @@ namespace UGF.RuntimeTools.Runtime.Tests.Tables
         public bool Bool { get { return m_bool; } set { m_bool = value; } }
         public int Int { get { return m_int; } set { m_int = value; } }
         public float Float { get { return m_float; } set { m_float = value; } }
+        public float Range { get { return m_range; } set { m_range = value; } }
         public TypeCode Enum { get { return m_enum; } set { m_enum = value; } }
         public GlobalId Asset { get { return m_asset; } set { m_asset = value; } }
         public GlobalId TableEntry { get { return m_tableEntry; } set { m_tableEntry = value; } }
