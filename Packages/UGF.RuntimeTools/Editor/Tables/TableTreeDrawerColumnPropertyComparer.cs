@@ -47,6 +47,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 case SerializedPropertyType.RectInt: return x.rectIntValue.size.magnitude.CompareTo(y.rectIntValue.size.magnitude);
                 case SerializedPropertyType.BoundsInt: return x.boundsIntValue.size.magnitude.CompareTo(y.boundsIntValue.size.magnitude);
                 case SerializedPropertyType.Hash128: return x.hash128Value.CompareTo(y.hash128Value);
+                case SerializedPropertyType.ManagedReference: return x.managedReferenceId.CompareTo(y.managedReferenceId);
                 case SerializedPropertyType.Color:
                 {
                     var xVector = (Vector4)x.colorValue;

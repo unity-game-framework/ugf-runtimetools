@@ -46,6 +46,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     return text.Contains(search, StringComparison.OrdinalIgnoreCase);
                 }
+                case SerializedPropertyType.ManagedReference:
+                {
+                    string text = serializedProperty.managedReferenceId.ToString();
+
+                    return text.Contains(search, StringComparison.OrdinalIgnoreCase);
+                }
                 case SerializedPropertyType.Enum:
                 {
                     string[] names = serializedProperty.enumDisplayNames;
