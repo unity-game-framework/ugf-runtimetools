@@ -33,6 +33,9 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             public GUIStyle Toolbar { get; } = EditorStyles.toolbar;
             public GUIStyle Footer { get; } = new GUIStyle("IN Footer");
+            public GUIStyle SearchField { get; } = new GUIStyle("ToolbarSearchTextFieldPopup");
+            public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
+            public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
@@ -41,11 +44,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 GUILayout.ExpandWidth(true),
                 GUILayout.ExpandHeight(true)
-            };
-
-            public GUILayoutOption[] SearchDropdownLayoutOptions { get; } =
-            {
-                GUILayout.MaxWidth(100F)
             };
         }
 
@@ -118,9 +116,9 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             using (new EditorGUILayout.HorizontalScope(m_styles.Toolbar))
             {
-                OnDrawSearch();
-
-                GUILayout.FlexibleSpace();
+                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
+                {
+                }
 
                 using (new EditorGUI.DisabledScope(false))
                 {
@@ -129,9 +127,9 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
 
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
-                {
-                }
+                GUILayout.FlexibleSpace();
+
+                OnDrawSearch();
 
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
                 {
@@ -173,13 +171,15 @@ namespace UGF.RuntimeTools.Editor.Tables
                     : "None";
 
                 GUILayout.Label($"Path: {path}");
+                GUILayout.FlexibleSpace();
 
                 if (HasSerializedObject)
                 {
                     var table = (TableAsset)SerializedObject.targetObject;
                     int count = table.Get().Entries.Count();
+                    MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
 
-                    GUILayout.FlexibleSpace();
+                    GUILayout.Label($"Search Column: {column.headerContent.text}");
                     GUILayout.Label($"Count: {count}");
                 }
             }
@@ -196,19 +196,34 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnDrawSearch()
         {
-            GUIContent dropdownContent = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex).headerContent;
+            MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
 
-            if (DropdownEditorGUIUtility.Dropdown(GUIContent.none, dropdownContent, m_searchSelection, m_searchSelectionItemsHandler, out DropdownItem<int> selected, FocusType.Keyboard, EditorStyles.toolbarDropDown, m_styles.SearchDropdownLayoutOptions))
+            float height = EditorGUIUtility.singleLineHeight;
+            float spacing = EditorGUIUtility.standardVerticalSpacing;
+
+            Rect position = GUILayoutUtility.GetRect(300F, height);
+
+            position.xMin += spacing;
+            position.xMax -= spacing;
+            position.yMin += spacing;
+
+            var rectButton = new Rect(position.x, position.y, position.height, position.height);
+            var rectLabel = new Rect(rectButton.xMax + spacing, position.y, position.width - rectButton.width - spacing, position.height);
+
+            if (DropdownEditorGUIUtility.Dropdown(rectButton, GUIContent.none, GUIContent.none, m_searchSelection, m_searchSelectionItemsHandler, out DropdownItem<int> selected, FocusType.Keyboard, GUIStyle.none))
             {
                 m_treeView.SearchColumnIndex = selected.Value;
             }
 
-            Rect rectSearch = GUILayoutUtility.GetRect(250F, EditorGUIUtility.singleLineHeight);
+            m_treeView.searchString = m_search.OnGUI(position, m_treeView.searchString, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
 
-            rectSearch.xMin += EditorGUIUtility.standardVerticalSpacing;
-            rectSearch.yMin += EditorGUIUtility.standardVerticalSpacing;
-
-            m_treeView.searchString = m_search.OnToolbarGUI(rectSearch, m_treeView.searchString);
+            if (!m_search.HasFocus())
+            {
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    GUI.Label(rectLabel, column.headerContent.text, EditorStyles.miniLabel);
+                }
+            }
         }
 
         private void OnDrawRow(Rect position, int rowIndex, TableTreeViewItem rowItem)
