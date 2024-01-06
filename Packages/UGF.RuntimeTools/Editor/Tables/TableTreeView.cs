@@ -11,6 +11,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public SerializedProperty SerializedProperty { get; }
         public SerializedProperty PropertyEntries { get; }
         public int SearchColumnIndex { get; set; }
+        public IReadOnlyList<TreeViewItem> Items { get { return m_items; } }
 
         public event TableTreeViewDrawRowHandler RowDraw;
         public event TableTreeViewDrawRowCellHandler RowCellDraw;

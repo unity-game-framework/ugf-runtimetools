@@ -393,23 +393,29 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             Event current = Event.current;
 
-            if (current.keyCode == KeyCode.Delete)
+            if (current.type == EventType.KeyUp)
             {
-                OnEntryRemove();
+                if (current.keyCode == KeyCode.Delete)
+                {
+                    OnEntryRemove();
 
-                current.Use();
-            }
+                    current.Use();
+                }
 
-            if (current.command && current.keyCode == KeyCode.C)
-            {
-            }
+                if (current.command && current.keyCode == KeyCode.C)
+                {
+                }
 
-            if (current.command && current.keyCode == KeyCode.V)
-            {
-            }
+                if (current.command && current.keyCode == KeyCode.V)
+                {
+                }
 
-            if (current.control && current.keyCode == KeyCode.D)
-            {
+                if (current.control && current.keyCode == KeyCode.D)
+                {
+                    OnEntryAdd();
+
+                    current.Use();
+                }
             }
         }
 
