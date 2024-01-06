@@ -31,6 +31,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: 197086504118648842
     - m_id:
         m_first: 4948598862824916616
         m_second: 11984015586900126115
@@ -48,6 +50,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5322336731157189677
         m_second: 400948121021927321
@@ -65,6 +69,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5516180679838707319
         m_second: 5226019755099917725
@@ -82,11 +88,13 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5512957858154995823
         m_second: 2879177311250469807
       m_name: Entry_4
-      m_text: Test
+      m_text: wadwdaw
       m_bool: 1
       m_int: 0
       m_float: 0
@@ -99,6 +107,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5101678130789776843
         m_second: 12456795742586575282
@@ -116,6 +126,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5013098253432981153
         m_second: 14486966247066662282
@@ -133,6 +145,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5256568628232578424
         m_second: 16600291117814611859
@@ -150,6 +164,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5180839583909176589
         m_second: 15389370431972483737
@@ -167,6 +183,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_list: []
+      m_reference:
+        rid: -2
     - m_id:
         m_first: 5338532554354588382
         m_second: 17775319513514191257
@@ -184,6 +202,8 @@ MonoBehaviour:
         m_first: 4989261895982915254
         m_second: 6157247676228133822
       m_list: []
+      m_reference:
+        rid: 197086504118648844
     - m_id:
         m_first: 5297959794086724887
         m_second: 16924411882088388272
@@ -201,3 +221,76 @@ MonoBehaviour:
         m_first: 4989261895982915254
         m_second: 6157247676228133822
       m_list: []
+      m_reference:
+        rid: 197086504118648843
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 197086504118648842
+      type: {class: TestTableEntry, ns: UGF.RuntimeTools.Runtime.Tests.Tables, asm: UGF.RuntimeTools.Runtime.Tests}
+      data:
+        m_id:
+          m_first: 0
+          m_second: 0
+        m_name: 
+        m_text: 
+        m_bool: 0
+        m_int: 0
+        m_float: 0
+        m_range: 0
+        m_enum: 0
+        m_asset:
+          m_first: 0
+          m_second: 0
+        m_tableEntry:
+          m_first: 0
+          m_second: 0
+        m_list: []
+        m_reference:
+          rid: -2
+    - rid: 197086504118648843
+      type: {class: TestTableEntry, ns: UGF.RuntimeTools.Runtime.Tests.Tables, asm: UGF.RuntimeTools.Runtime.Tests}
+      data:
+        m_id:
+          m_first: 0
+          m_second: 0
+        m_name: 
+        m_text: 
+        m_bool: 0
+        m_int: 0
+        m_float: 0
+        m_range: 0
+        m_enum: 0
+        m_asset:
+          m_first: 0
+          m_second: 0
+        m_tableEntry:
+          m_first: 0
+          m_second: 0
+        m_list: []
+        m_reference:
+          rid: -2
+    - rid: 197086504118648844
+      type: {class: TestTableEntry, ns: UGF.RuntimeTools.Runtime.Tests.Tables, asm: UGF.RuntimeTools.Runtime.Tests}
+      data:
+        m_id:
+          m_first: 0
+          m_second: 0
+        m_name: 
+        m_text: 
+        m_bool: 0
+        m_int: 0
+        m_float: 0
+        m_range: 0
+        m_enum: 0
+        m_asset:
+          m_first: 0
+          m_second: 0
+        m_tableEntry:
+          m_first: 0
+          m_second: 0
+        m_list: []
+        m_reference:
+          rid: -2
