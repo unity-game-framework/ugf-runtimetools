@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEngine;
@@ -20,6 +21,16 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEnable()
         {
+            if (m_state != null && !string.IsNullOrEmpty(m_state.AssetGuid))
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(AssetDatabase.GUIDToAssetPath(m_state.AssetGuid));
+
+                if (asset != null)
+                {
+                    SetTarget(asset);
+                }
+            }
+
             m_drawer?.Enable();
         }
 
@@ -52,8 +63,20 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             using (new EditorGUILayout.HorizontalScope(m_styles.Statusbar))
             {
-                GUILayout.FlexibleSpace();
-                GUILayout.Label(string.Empty);
+                string path = m_drawer != null
+                    ? AssetDatabase.GetAssetPath(m_drawer.Asset)
+                    : "None";
+
+                GUILayout.Label($"Path: {path}");
+
+                if (m_drawer != null)
+                {
+                    var asset = (TableAsset)m_drawer.Asset;
+                    int count = asset.Get().Entries.Count();
+
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label($"Count: {count}");
+                }
             }
         }
 

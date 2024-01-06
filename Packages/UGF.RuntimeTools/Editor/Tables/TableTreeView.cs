@@ -10,6 +10,7 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public SerializedProperty SerializedProperty { get; }
         public SerializedProperty PropertyEntries { get; }
+        public string PropertyIdName { get; set; } = "m_id";
 
         private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
 
@@ -76,7 +77,10 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
 
-            OnDrawCellGUI(position, propertyValue);
+            using (new EditorGUI.DisabledScope(columnState.PropertyName == PropertyIdName))
+            {
+                OnDrawCellGUI(position, propertyValue);
+            }
         }
 
         private void OnDrawCellGUI(Rect position, SerializedProperty serializedProperty)
