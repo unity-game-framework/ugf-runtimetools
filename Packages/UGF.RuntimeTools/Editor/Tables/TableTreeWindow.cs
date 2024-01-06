@@ -1,11 +1,13 @@
-﻿using UnityEditor;
+﻿using System;
+using UGF.RuntimeTools.Runtime.Tables;
+using UnityEditor;
 using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
     public class TableTreeWindow : EditorWindow
     {
-        [SerializeField] private TableTreeViewState m_state;
+        [SerializeField] private TableTreeDrawerState m_state;
 
         private TableTreeDrawer m_drawer;
         private Styles m_styles;
@@ -22,8 +24,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnDisable()
         {
-            m_drawer?.Disable();
-            m_drawer = null;
+            ClearTarget();
+
+            m_styles = null;
         }
 
         private void OnGUI()
@@ -55,13 +58,22 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public void SetSerializedProperty(SerializedProperty serializedProperty)
+        public void SetTarget(TableAsset tableAsset)
         {
-            m_state = TableTreeEditorUtility.CreateState(serializedProperty);
+            if (tableAsset == null) throw new ArgumentNullException(nameof(tableAsset));
 
             m_drawer?.Disable();
-            m_drawer = new TableTreeDrawer(serializedProperty, m_state);
+
+            m_state = new TableTreeDrawerState(tableAsset);
+            m_drawer = new TableTreeDrawer(tableAsset, m_state);
             m_drawer.Enable();
+        }
+
+        public void ClearTarget()
+        {
+            m_state = new TableTreeDrawerState();
+            m_drawer?.Disable();
+            m_drawer = null;
         }
     }
 }

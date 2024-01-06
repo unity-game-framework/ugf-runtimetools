@@ -5,6 +5,7 @@ using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
 using UGF.EditorTools.Editor.Serialized;
 using UGF.EditorTools.Runtime.Ids;
+using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEngine;
 
@@ -273,6 +274,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntrySelect(selected.Value);
                 }
 
+                if (OnDrawToolbarButton(m_styles.MenuButtonContent, 25F))
+                {
+                    TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
+                }
+
                 using (new EditorGUI.DisabledScope(m_selectedIndex == null))
                 {
                     if (OnDrawToolbarButton(m_styles.RemoveButtonContent))
@@ -286,11 +292,6 @@ namespace UGF.RuntimeTools.Editor.Tables
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
 
                     OnEntryInsert(index);
-                }
-
-                if (OnDrawToolbarButton(m_styles.MenuButtonContent, 25F))
-                {
-                    TableTreeEditorUtility.ShowWindow(SerializedProperty);
                 }
 
                 if (OnDrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))

@@ -2,12 +2,13 @@
 using UGF.EditorTools.Editor.IMGUI;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    public class TableTreeDrawer : DrawerBase
+    public class TableTreeDrawer : DrawerBase, IDisposable
     {
-        public SerializedProperty SerializedProperty { get; }
+        public SerializedObject SerializedObject { get; }
 
         private readonly TableTreeView m_treeView;
 
@@ -17,11 +18,17 @@ namespace UGF.RuntimeTools.Editor.Tables
             GUILayout.ExpandHeight(true)
         };
 
-        public TableTreeDrawer(SerializedProperty serializedProperty, TableTreeViewState state)
+        public TableTreeDrawer(Object tableAsset, TableTreeDrawerState state) : this(new SerializedObject(tableAsset), state)
         {
-            SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
+        }
 
-            m_treeView = new TableTreeView(serializedProperty, state);
+        public TableTreeDrawer(SerializedObject serializedObject, TableTreeDrawerState state)
+        {
+            SerializedObject = serializedObject ?? throw new ArgumentNullException(nameof(serializedObject));
+
+            SerializedProperty propertyTable = serializedObject.FindProperty("m_table");
+
+            m_treeView = new TableTreeView(propertyTable, (TableTreeViewState)state.State);
         }
 
         protected override void OnEnable()
@@ -34,6 +41,11 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override void OnDisable()
         {
             base.OnDisable();
+        }
+
+        public void Dispose()
+        {
+            SerializedObject.Dispose();
         }
 
         public void DrawGUILayout()

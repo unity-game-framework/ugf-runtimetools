@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
@@ -39,6 +40,24 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return m_items;
+        }
+
+        protected override void RowGUI(RowGUIArgs args)
+        {
+            int count = args.GetNumVisibleColumns();
+
+            for (int i = 0; i < count; i++)
+            {
+                Rect position = args.GetCellRect(i);
+                int column = args.GetColumn(i);
+                var item = (TableTreeViewItem)args.item;
+
+                OnDrawCellGUI(position, args.row, column, item);
+            }
+        }
+
+        private void OnDrawCellGUI(Rect position, int rowIndex, int columnIndex, TableTreeViewItem item)
+        {
         }
     }
 }
