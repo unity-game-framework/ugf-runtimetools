@@ -1,16 +1,16 @@
 ﻿using System;
 using UGF.EditorTools.Editor.IMGUI;
+using UGF.EditorTools.Editor.IMGUI.Scopes;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    public class TableTreeDrawer : DrawerBase, IDisposable
+    public class TableTreeDrawer : DrawerBase
     {
-        public SerializedObject SerializedObject { get; }
-
-        private readonly TableTreeView m_treeView;
+        public Object Asset { get; }
+        public TableTreeDrawerState State { get; }
 
         private readonly GUILayoutOption[] m_layoutOptions =
         {
@@ -18,34 +18,32 @@ namespace UGF.RuntimeTools.Editor.Tables
             GUILayout.ExpandHeight(true)
         };
 
-        public TableTreeDrawer(Object tableAsset, TableTreeDrawerState state) : this(new SerializedObject(tableAsset), state)
+        private TableTreeView m_treeView;
+        private SerializedObject m_serializedObject;
+
+        public TableTreeDrawer(Object asset, TableTreeDrawerState state)
         {
-        }
-
-        public TableTreeDrawer(SerializedObject serializedObject, TableTreeDrawerState state)
-        {
-            SerializedObject = serializedObject ?? throw new ArgumentNullException(nameof(serializedObject));
-
-            SerializedProperty propertyTable = serializedObject.FindProperty("m_table");
-
-            m_treeView = new TableTreeView(propertyTable, (TableTreeViewState)state.State);
+            Asset = asset ? asset : throw new ArgumentNullException(nameof(asset));
+            State = state ?? throw new ArgumentNullException(nameof(state));
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
+            m_serializedObject = new SerializedObject(Asset);
+            m_treeView = new TableTreeView(m_serializedObject, (TableTreeViewState)State.State);
             m_treeView.Reload();
+            m_treeView.multiColumnHeader.ResizeToFit();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-        }
 
-        public void Dispose()
-        {
-            SerializedObject.Dispose();
+            m_treeView = null;
+            m_serializedObject.Dispose();
+            m_serializedObject = null;
         }
 
         public void DrawGUILayout()
@@ -62,7 +60,13 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public void DrawGUI(Rect position)
         {
-            m_treeView.OnGUI(position);
+            if (m_treeView != null)
+            {
+                using (new SerializedObjectUpdateScope(m_serializedObject))
+                {
+                    m_treeView.OnGUI(position);
+                }
+            }
         }
     }
 }

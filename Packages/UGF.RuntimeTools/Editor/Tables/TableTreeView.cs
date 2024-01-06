@@ -9,14 +9,22 @@ namespace UGF.RuntimeTools.Editor.Tables
     internal class TableTreeView : TreeView
     {
         public SerializedProperty SerializedProperty { get; }
+        public SerializedProperty PropertyEntries { get; }
 
         private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
+
+        public TableTreeView(SerializedObject serializedObject, TableTreeViewState state) : this(serializedObject.FindProperty("m_table"), state)
+        {
+        }
 
         public TableTreeView(SerializedProperty serializedProperty, TableTreeViewState state) : base(state, new MultiColumnHeader(state.Header))
         {
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
+            PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
 
             showAlternatingRowBackgrounds = true;
+            cellMargin = EditorGUIUtility.standardVerticalSpacing;
+            rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2F;
         }
 
         protected override TreeViewItem BuildRoot()
@@ -28,16 +36,16 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_items.Clear();
 
-            SerializedProperty propertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
-
-            for (int i = 0; i < propertyEntries.arraySize; i++)
+            for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
-                SerializedProperty propertyElement = propertyEntries.GetArrayElementAtIndex(i);
+                SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
 
-                var item = new TableTreeViewItem(propertyElement);
+                var item = new TableTreeViewItem(i, propertyElement);
 
                 m_items.Add(item);
             }
+
+            SetupParentsAndChildrenFromDepths(root, m_items);
 
             return m_items;
         }
@@ -49,15 +57,27 @@ namespace UGF.RuntimeTools.Editor.Tables
             for (int i = 0; i < count; i++)
             {
                 Rect position = args.GetCellRect(i);
-                int column = args.GetColumn(i);
-                var item = (TableTreeViewItem)args.item;
+                var rowItem = (TableTreeViewItem)args.item;
+                int rowIndex = args.row;
+                int columnIndex = args.GetColumn(i);
+                var columnState = (TableTreeViewColumnState)multiColumnHeader.GetColumn(columnIndex);
 
-                OnDrawCellGUI(position, args.row, column, item);
+                position.yMin += EditorGUIUtility.standardVerticalSpacing;
+
+                OnDrawCellGUI(position, rowIndex, rowItem, columnIndex, columnState);
             }
         }
 
-        private void OnDrawCellGUI(Rect position, int rowIndex, int columnIndex, TableTreeViewItem item)
+        private void OnDrawCellGUI(Rect position, int rowIndex, TableTreeViewItem rowItem, int columnIndex, TableTreeViewColumnState columnState)
         {
+            SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
+
+            OnDrawCellGUI(position, propertyValue);
+        }
+
+        private void OnDrawCellGUI(Rect position, SerializedProperty serializedProperty)
+        {
+            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, true);
         }
     }
 }

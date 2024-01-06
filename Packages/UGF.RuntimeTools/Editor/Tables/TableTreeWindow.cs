@@ -20,13 +20,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEnable()
         {
+            m_drawer?.Enable();
         }
 
         private void OnDisable()
         {
-            ClearTarget();
-
-            m_styles = null;
+            m_drawer?.Disable();
         }
 
         private void OnGUI()

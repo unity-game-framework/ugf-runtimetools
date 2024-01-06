@@ -6,6 +6,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal class TableTreeViewItem : TreeViewItem
     {
+        public int Index { get; }
         public SerializedProperty SerializedProperty { get; }
 
         public override int id
@@ -31,8 +32,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             set { }
         }
 
-        public TableTreeViewItem(SerializedProperty serializedProperty)
+        public TableTreeViewItem(int index, SerializedProperty serializedProperty)
         {
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
+
+            Index = index;
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
         }
     }

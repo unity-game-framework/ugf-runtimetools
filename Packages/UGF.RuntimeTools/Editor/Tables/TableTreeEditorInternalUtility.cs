@@ -60,7 +60,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     columns.Add(new TableTreeViewColumnState
                     {
                         PropertyName = field.Name,
-                        headerContent = new GUIContent(ObjectNames.NicifyVariableName(field.Name)),
+                        headerContent = new GUIContent(ObjectNames.NicifyVariableName(field.Name))
                     });
                 }
             }
