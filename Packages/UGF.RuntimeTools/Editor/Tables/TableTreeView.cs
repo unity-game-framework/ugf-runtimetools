@@ -14,6 +14,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public event TableTreeViewDrawRowHandler RowDraw;
         public event TableTreeViewDrawRowCellHandler RowCellDraw;
+        public event Action KeyEventProcessing;
 
         private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
@@ -28,6 +29,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
 
             showAlternatingRowBackgrounds = true;
+            enableItemHovering = true;
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
             rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2F;
 
@@ -49,7 +51,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (OnCheckSearch(propertyElement))
                 {
-                    var item = new TableTreeViewItem(i, propertyElement);
+                    var item = new TableTreeViewItem(propertyElement);
 
                     m_items.Add(item);
                 }
@@ -98,6 +100,27 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        public TableTreeViewItem GetItem(int id)
+        {
+            return TryGetItem(id, out TableTreeViewItem item) ? item : throw new ArgumentException($"Table tree view item not found by the specified id: '{id}'.");
+        }
+
+        public bool TryGetItem(int id, out TableTreeViewItem item)
+        {
+            for (int i = 0; i < m_items.Count; i++)
+            {
+                item = (TableTreeViewItem)m_items[i];
+
+                if (item.id == id)
+                {
+                    return true;
+                }
+            }
+
+            item = default;
+            return false;
+        }
+
         private void OnSortingChanged(MultiColumnHeader header)
         {
             var column = (TableTreeViewColumnState)multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
@@ -121,6 +144,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return true;
+        }
+
+        protected override void KeyEvent()
+        {
+            KeyEventProcessing?.Invoke();
         }
     }
 }

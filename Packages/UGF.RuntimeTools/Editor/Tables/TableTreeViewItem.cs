@@ -1,4 +1,6 @@
 ﻿using System;
+using UGF.EditorTools.Editor.Ids;
+using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
@@ -6,38 +8,24 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal class TableTreeViewItem : TreeViewItem
     {
-        public int Index { get; }
         public SerializedProperty SerializedProperty { get; }
 
-        public override int id
+        public override int id { get { return m_id; } set { } }
+
+        private readonly int m_id;
+
+        public TableTreeViewItem(SerializedProperty serializedProperty)
         {
-            get
-            {
-                SerializedProperty propertyId = SerializedProperty.FindPropertyRelative("m_id");
-                SerializedProperty propertyIdFirst = propertyId.FindPropertyRelative("m_first");
+            m_id = (int)GlobalId.Generate().First;
 
-                return propertyIdFirst.intValue;
-            }
-            set { }
-        }
-
-        public override string displayName
-        {
-            get
-            {
-                SerializedProperty propertyName = SerializedProperty.FindPropertyRelative("m_name");
-
-                return propertyName.stringValue;
-            }
-            set { }
-        }
-
-        public TableTreeViewItem(int index, SerializedProperty serializedProperty)
-        {
-            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
-
-            Index = index;
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
+        }
+
+        public GlobalId GetId()
+        {
+            SerializedProperty propertyId = SerializedProperty.FindPropertyRelative("m_id");
+
+            return GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
         }
     }
 }
