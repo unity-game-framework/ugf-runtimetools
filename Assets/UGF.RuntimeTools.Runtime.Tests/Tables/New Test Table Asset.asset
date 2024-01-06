@@ -20,7 +20,7 @@ MonoBehaviour:
       m_name: Entry
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 5
       m_float: 0
       m_range: 1.2
       m_enum: 0
@@ -39,10 +39,10 @@ MonoBehaviour:
       m_name: Entry_1
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 1
       m_float: 0
       m_range: 0
-      m_enum: 0
+      m_enum: 1
       m_asset:
         m_first: 0
         m_second: 0
@@ -58,7 +58,7 @@ MonoBehaviour:
       m_name: Entry_2
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 2
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -77,7 +77,7 @@ MonoBehaviour:
       m_name: Entry_3
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 3
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -96,7 +96,7 @@ MonoBehaviour:
       m_name: Entry_4
       m_text: wadwdaw
       m_bool: 1
-      m_int: 0
+      m_int: 4
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -115,7 +115,7 @@ MonoBehaviour:
       m_name: Entry_5
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 5
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -134,13 +134,13 @@ MonoBehaviour:
       m_name: Entry_6
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 6
       m_float: 0
       m_range: 0
       m_enum: 0
       m_asset:
-        m_first: 0
-        m_second: 0
+        m_first: 5201217200863824214
+        m_second: 10591832452863027095
       m_tableEntry:
         m_first: 0
         m_second: 0
@@ -152,8 +152,8 @@ MonoBehaviour:
         m_second: 16600291117814611859
       m_name: Entry_7
       m_text: Test
-      m_bool: 1
-      m_int: 0
+      m_bool: 0
+      m_int: 7
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -172,7 +172,7 @@ MonoBehaviour:
       m_name: Entry_8
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 8
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -191,7 +191,7 @@ MonoBehaviour:
       m_name: Entry_9
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 9
       m_float: 0
       m_range: 0
       m_enum: 0
@@ -210,7 +210,7 @@ MonoBehaviour:
       m_name: Entry_10
       m_text: Test
       m_bool: 1
-      m_int: 0
+      m_int: 10
       m_float: 0
       m_range: 0
       m_enum: 0
