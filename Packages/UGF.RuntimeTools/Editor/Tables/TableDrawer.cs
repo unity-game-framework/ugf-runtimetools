@@ -45,7 +45,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
-            public GUIContent TableButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("VerticalLayoutGroup Icon"), "Open table window.");
+            public GUIContent TableButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Profiler.UIDetails"), "Open table window.");
         }
 
         public TableDrawer(SerializedProperty serializedProperty, string propertyIdName = "m_id", string propertyNameName = "m_name")
