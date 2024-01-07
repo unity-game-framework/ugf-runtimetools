@@ -55,9 +55,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
             PropertyIdName = propertyIdName;
             PropertyNameName = propertyNameName;
+            PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
 
             m_selection.Dropdown.MinimumHeight = 300F;
-            PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
         }
 
         protected override void OnDisable()
