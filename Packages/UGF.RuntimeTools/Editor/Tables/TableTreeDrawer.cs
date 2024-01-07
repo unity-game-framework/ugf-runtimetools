@@ -61,6 +61,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_searchSelection.Dropdown.RootName = "Search Column";
             m_searchSelection.Dropdown.MinimumWidth = 300F;
+            m_searchSelection.Dropdown.MinimumHeight = 300F;
             m_searchSelectionItemsHandler = OnGetSearchSelectionItems;
         }
 
