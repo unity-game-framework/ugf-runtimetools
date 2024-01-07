@@ -181,11 +181,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
         }
 
-        protected void OpenTable(IReadOnlyList<TableTreeDrawerColumn> columns)
-        {
-            TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject, columns);
-        }
-
         private void OnEntrySelect(int index)
         {
             OnEntryDeselect();

@@ -9,37 +9,27 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal static class TableTreeEditorInternalUtility
     {
-        public static TableTreeViewState CreateState(IReadOnlyList<TableTreeDrawerColumn> columns)
+        public static TableTreeViewState CreateState(ITableTree tableTree)
         {
-            if (columns == null) throw new ArgumentNullException(nameof(columns));
+            if (tableTree == null) throw new ArgumentNullException(nameof(tableTree));
 
-            return new TableTreeViewState
+            var columns = new MultiColumnHeaderState.Column[tableTree.Columns.Count];
+
+            for (int i = 0; i < tableTree.Columns.Count; i++)
             {
-                Header = CreateHeaderState(columns)
-            };
-        }
+                ITableTreeColumn column = tableTree.Columns[i];
 
-        public static MultiColumnHeaderState CreateHeaderState(IReadOnlyList<TableTreeDrawerColumn> columns)
-        {
-            if (columns == null) throw new ArgumentNullException(nameof(columns));
-
-            var columnStates = new MultiColumnHeaderState.Column[columns.Count];
-
-            for (int i = 0; i < columns.Count; i++)
-            {
-                TableTreeDrawerColumn column = columns[i];
-
-                columnStates[i] = new TableTreeViewColumnState
+                columns[i] = new MultiColumnHeaderState.Column
                 {
-                    PropertyName = column.PropertyName,
-                    PropertyComparer = column.PropertyComparer ?? TableTreeDrawerColumnPropertyComparer.Default,
-                    SearchHandler = column.SearchHandler ?? TableTreeDrawerColumnSearchHandler.Default,
-                    headerContent = new GUIContent(column.DisplayName),
-                    minWidth = column.MinWidth
+                    headerContent = column.DisplayName,
+                    userData = i
                 };
             }
 
-            return new MultiColumnHeaderState(columnStates);
+            return new TableTreeViewState
+            {
+                Header = new MultiColumnHeaderState(columns)
+            };
         }
 
         public static List<FieldInfo> GetEntryFields(Type type)

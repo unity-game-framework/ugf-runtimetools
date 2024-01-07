@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEngine;
@@ -10,7 +9,8 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         [SerializeField] private string m_assetId;
 
-        public TableTreeDrawer Drawer { get; } = new TableTreeDrawer();
+        private SerializedObject m_serializedObject;
+        private TableTreeDrawer m_drawer;
 
         private void OnEnable()
         {
@@ -18,61 +18,57 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (asset != null)
             {
-                Drawer.SetTarget(asset);
-            }
-
-            if (Drawer.HasSerializedObject)
-            {
-                Drawer.Enable();
+                SetTarget(asset);
             }
         }
 
         private void OnDisable()
         {
-            if (Drawer.HasSerializedObject)
-            {
-                Drawer.Disable();
-                Drawer.ClearTarget();
-            }
+            m_drawer?.Disable();
+            m_drawer = null;
+            m_serializedObject.Dispose();
+            m_serializedObject = null;
         }
 
         private void OnGUI()
         {
-            if (Drawer.HasSerializedObject && Drawer.SerializedObject.targetObject == null)
+            if (m_serializedObject?.targetObject == null)
             {
-                Drawer.Disable();
-                Drawer.ClearTarget();
+                m_serializedObject = null;
+                m_drawer = null;
             }
 
-            Drawer.DrawGUILayout();
+            m_drawer?.DrawGUILayout();
         }
 
         public void SetTarget(TableAsset asset)
         {
-            SetTarget(asset, TableTreeEditorUtility.GetEntryColumns(asset));
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            m_serializedObject = new SerializedObject(asset);
+            m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+            m_drawer?.Disable();
+            m_drawer = new TableTreeDrawer(m_serializedObject, TableTreeEditorUtility.CreateTableTree(m_serializedObject));
+            m_drawer.Enable();
         }
 
-        public void SetTarget(TableAsset asset, IReadOnlyList<TableTreeDrawerColumn> columns)
+        public void SetTarget(TableAsset asset, ITableTree tableTree)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (columns == null) throw new ArgumentNullException(nameof(columns));
+            if (tableTree == null) throw new ArgumentNullException(nameof(tableTree));
 
+            m_serializedObject = new SerializedObject(asset);
             m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
-
-            if (Drawer.HasSerializedObject)
-            {
-                Drawer.Disable();
-            }
-
-            Drawer.SetTarget(asset, columns);
-            Drawer.Enable();
+            m_drawer?.Disable();
+            m_drawer = new TableTreeDrawer(m_serializedObject, tableTree);
+            m_drawer.Enable();
         }
 
         public void ClearTarget()
         {
             m_assetId = string.Empty;
-
-            Drawer.Disable();
+            m_drawer?.Disable();
+            m_drawer = null;
         }
     }
 }

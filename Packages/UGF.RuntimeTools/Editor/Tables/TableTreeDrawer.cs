@@ -15,22 +15,19 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public class TableTreeDrawer : DrawerBase
     {
-        public SerializedObject SerializedObject { get { return m_serializedObject ?? throw new ArgumentException("Value not specified."); } }
-        public bool HasSerializedObject { get { return m_serializedObject != null; } }
-        public IReadOnlyList<TableTreeDrawerColumn> Columns { get { return m_columns ?? throw new ArgumentException("Value not specified."); } }
+        public SerializedObject SerializedObject { get; }
+        public ITableTree TableTree { get; }
         public string PropertyIdName { get; set; } = "m_id";
         public string PropertyNameName { get; set; } = "m_name";
         public bool UnlockIds { get; set; }
         public bool DisplayToolbar { get; set; } = true;
         public bool DisplayFooter { get; set; } = true;
 
+        private readonly TableTreeView m_treeView;
+        private readonly string m_treeViewStateDefaultData;
         private readonly HashSet<GlobalId> m_selectionIds = new HashSet<GlobalId>();
         private readonly DropdownSelection<DropdownItem<int>> m_searchSelection = new DropdownSelection<DropdownItem<int>>();
         private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
-        private SerializedObject m_serializedObject;
-        private IReadOnlyList<TableTreeDrawerColumn> m_columns;
-        private TableTreeView m_treeView;
-        private string m_treeViewStateDefaultData;
         private SearchField m_search;
         private Styles m_styles;
 
@@ -45,7 +42,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
             public GUIContent SearchDropdownContent { get; } = new GUIContent(string.Empty, "Select search column.");
-            public GUIContent SearchFieldNoneContent { get; } = new GUIContent("None");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
@@ -57,8 +53,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             };
         }
 
-        public TableTreeDrawer()
+        public TableTreeDrawer(SerializedObject serializedObject, ITableTree tableTree)
         {
+            SerializedObject = serializedObject ?? throw new ArgumentNullException(nameof(serializedObject));
+            TableTree = tableTree ?? throw new ArgumentNullException(nameof(tableTree));
+
+            m_treeView = new TableTreeView(SerializedObject.FindProperty("m_table"), tableTree);
+            m_treeViewStateDefaultData = EditorJsonUtility.ToJson(m_treeView.state);
             m_searchSelection.Dropdown.RootName = "Search Column";
             m_searchSelection.Dropdown.MinimumWidth = 300F;
             m_searchSelection.Dropdown.MinimumHeight = 300F;
@@ -71,11 +72,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             Undo.undoRedoPerformed += OnUndoOrRedoPerformed;
 
-            m_treeView = new TableTreeView(SerializedObject.FindProperty("m_table"), Columns);
-            m_treeView.RowDraw += OnDrawRow;
-            m_treeView.RowCellDraw += OnDrawRowCell;
+            m_treeView.DrawRowCell += OnDrawRowCell;
             m_treeView.KeyEventProcessing += OnKeyEventProcessing;
-            m_treeViewStateDefaultData = EditorJsonUtility.ToJson(m_treeView.state);
 
             OnPreferenceRead();
 
@@ -91,31 +89,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
-            m_treeView.RowDraw -= OnDrawRow;
-            m_treeView.RowCellDraw -= OnDrawRowCell;
+            m_treeView.DrawRowCell -= OnDrawRowCell;
             m_treeView.KeyEventProcessing -= OnKeyEventProcessing;
-            m_treeView = null;
-
-            SerializedObject.Dispose();
-        }
-
-        public void SetTarget(TableAsset asset)
-        {
-            SetTarget(asset, TableTreeEditorUtility.GetEntryColumns(asset));
-        }
-
-        public void SetTarget(TableAsset asset, IReadOnlyList<TableTreeDrawerColumn> columns)
-        {
-            if (asset == null) throw new ArgumentNullException(nameof(asset));
-
-            m_serializedObject = new SerializedObject(asset);
-            m_columns = columns;
-        }
-
-        public void ClearTarget()
-        {
-            m_serializedObject = null;
-            m_columns = null;
         }
 
         public void DrawGUILayout()
@@ -135,7 +110,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 DrawFooter();
             }
 
-            if (HasSerializedObject && GUI.changed)
+            if (GUI.changed)
             {
                 OnPreferenceWrite();
             }
@@ -143,7 +118,6 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected void DrawToolbar()
         {
-            using (new EditorGUI.DisabledScope(!HasSerializedObject))
             using (new EditorGUILayout.HorizontalScope(m_styles.Toolbar))
             {
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
@@ -151,7 +125,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryAdd();
                 }
 
-                using (new EditorGUI.DisabledScope(m_treeView == null || !m_treeView.HasSelection()))
+                using (new EditorGUI.DisabledScope(!m_treeView.HasSelection()))
                 {
                     if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
                     {
@@ -172,26 +146,26 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected void DrawTable()
         {
-            if (m_treeView != null)
+            Rect position;
+
+            using (var scope = new EditorGUILayout.VerticalScope(GUIStyle.none, m_styles.TableLayoutOptions))
             {
-                Rect position;
-
-                using (var scope = new EditorGUILayout.VerticalScope(GUIStyle.none, m_styles.TableLayoutOptions))
-                {
-                    position = scope.rect;
-                }
-
-                using (new SerializedObjectUpdateScope(SerializedObject))
-                {
-                    m_treeView.OnGUI(position);
-                }
+                position = scope.rect;
             }
-            else
+
+            using (new SerializedObjectUpdateScope(SerializedObject))
             {
-                using (new EditorGUILayout.VerticalScope(GUILayout.ExpandHeight(true)))
-                {
-                    EditorGUILayout.HelpBox("No table data to display.", MessageType.Info);
-                }
+                m_treeView.OnGUI(position);
+            }
+        }
+
+        protected virtual void OnDrawRowCell(Rect position, ITableTreeItem item, ITableTreeColumn column)
+        {
+            SerializedProperty propertyValue = item.GetProperty(column);
+
+            using (new EditorGUI.DisabledScope(!UnlockIds && propertyValue.name == PropertyIdName))
+            {
+                EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
             }
         }
 
@@ -199,44 +173,27 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             using (new EditorGUILayout.HorizontalScope(m_styles.Footer))
             {
-                string path = HasSerializedObject
-                    ? AssetDatabase.GetAssetPath(SerializedObject.targetObject)
-                    : "None";
+                string path = AssetDatabase.GetAssetPath(SerializedObject.targetObject);
+                int columnsVisible = m_treeView.multiColumnHeader.state.visibleColumns.Length;
+                int columnsTotal = m_treeView.multiColumnHeader.state.columns.Length;
+                int count = ((TableAsset)SerializedObject.targetObject).Get().Entries.Count();
 
                 GUILayout.Label($"Path: {path}");
                 GUILayout.FlexibleSpace();
 
-                if (HasSerializedObject)
+                if (OnHasClipboard())
                 {
-                    MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
-                    int columnsVisible = m_treeView.multiColumnHeader.state.visibleColumns.Length;
-                    int columnsTotal = m_treeView.multiColumnHeader.state.columns.Length;
-                    var table = (TableAsset)SerializedObject.targetObject;
-                    int count = table.Get().Entries.Count();
-
-                    if (OnHasClipboard())
-                    {
-                        GUILayout.Label($"Clipboard Entries: {m_clipboardEntries.Count}");
-                    }
-
-                    GUILayout.Label($"Search Column: {column.headerContent.text}");
-
-                    GUILayout.Label(columnsVisible == columnsTotal
-                        ? $"Columns: {columnsTotal}"
-                        : $"Columns: {columnsVisible}/{columnsTotal}");
-
-                    GUILayout.Label($"Entries: {count}");
+                    GUILayout.Label($"Clipboard Entries: {m_clipboardEntries.Count}");
                 }
+
+                GUILayout.Label($"Search Column: {m_treeView.SearchColumn.DisplayName.text}");
+
+                GUILayout.Label(columnsVisible == columnsTotal
+                    ? $"Columns: {columnsTotal}"
+                    : $"Columns: {columnsVisible}/{columnsTotal}");
+
+                GUILayout.Label($"Entries: {count}");
             }
-        }
-
-        protected virtual void OnDrawEntryGUI(Rect position, SerializedProperty serializedProperty, int rowIndex)
-        {
-        }
-
-        protected virtual void OnDrawEntryCellGUI(Rect position, SerializedProperty serializedProperty, int rowIndex, int columnIndex)
-        {
-            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
         }
 
         private void OnDrawSearch()
@@ -258,24 +215,13 @@ namespace UGF.RuntimeTools.Editor.Tables
                 m_treeView.SearchColumnIndex = selected.Value;
             }
 
-            string search = HasSerializedObject ? m_treeView.searchString : string.Empty;
-
-            search = m_search.OnGUI(position, search, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
-
-            if (HasSerializedObject)
-            {
-                m_treeView.searchString = search;
-            }
+            m_treeView.searchString = m_search.OnGUI(position, m_treeView.searchString, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
 
             if (!m_search.HasFocus())
             {
-                GUIContent content = HasSerializedObject
-                    ? m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex).headerContent
-                    : m_styles.SearchFieldNoneContent;
-
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    GUI.Label(rectLabel, content, EditorStyles.miniLabel);
+                    GUI.Label(rectLabel, m_treeView.SearchColumn.DisplayName, EditorStyles.miniLabel);
                 }
             }
         }
@@ -284,13 +230,13 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var items = new List<DropdownItem<int>>();
 
-            for (int i = 0; i < m_columns.Count; i++)
+            for (int i = 0; i < TableTree.Columns.Count; i++)
             {
-                TableTreeDrawerColumn column = m_columns[i];
+                ITableTreeColumn column = TableTree.Columns[i];
 
-                items.Add(new DropdownItem<int>(column.DisplayName, i)
+                items.Add(new DropdownItem<int>(column.DisplayName.text, i)
                 {
-                    Priority = m_columns.Count - i
+                    Priority = TableTree.Columns.Count - i
                 });
             }
 
@@ -389,7 +335,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                         try
                         {
-                            value = item.SerializedProperty.boxedValue;
+                            value = item.Item.GetValue();
                         }
                         catch (Exception exception)
                         {
@@ -435,7 +381,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
                     {
-                        m_selectionIds.Add(item.GetId());
+                        m_selectionIds.Add(item.Item.GetId());
                     }
                 }
             }
@@ -469,56 +415,38 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_treeView.Reload();
         }
 
-        private void OnDrawRow(Rect position, int rowIndex, TableTreeViewItem rowItem)
-        {
-            OnDrawEntryGUI(position, rowItem.SerializedProperty, rowIndex);
-        }
-
-        private void OnDrawRowCell(Rect position, int rowIndex, TableTreeViewItem rowItem, int columnIndex, TableTreeViewColumnState columnState)
-        {
-            SerializedProperty propertyValue = rowItem.SerializedProperty.FindPropertyRelative(columnState.PropertyName);
-
-            using (new EditorGUI.DisabledScope(!UnlockIds && propertyValue.name == PropertyIdName))
-            {
-                OnDrawEntryCellGUI(position, propertyValue, rowIndex, columnIndex);
-            }
-        }
-
         private void OnKeyEventProcessing()
         {
-            if (HasSerializedObject)
+            Event current = Event.current;
+
+            if (current.type == EventType.ValidateCommand)
             {
-                Event current = Event.current;
-
-                if (current.type == EventType.ValidateCommand)
+                if (current.commandName == "SoftDelete")
                 {
-                    if (current.commandName == "SoftDelete")
-                    {
-                        OnEntryRemove();
+                    OnEntryRemove();
 
-                        current.Use();
-                    }
+                    current.Use();
+                }
 
-                    if (current.commandName == "Copy")
-                    {
-                        OnEntryCopy();
+                if (current.commandName == "Copy")
+                {
+                    OnEntryCopy();
 
-                        current.Use();
-                    }
+                    current.Use();
+                }
 
-                    if (current.commandName == "Paste")
-                    {
-                        OnEntryPaste();
+                if (current.commandName == "Paste")
+                {
+                    OnEntryPaste();
 
-                        current.Use();
-                    }
+                    current.Use();
+                }
 
-                    if (current.commandName == "Duplicate")
-                    {
-                        OnEntryAdd();
+                if (current.commandName == "Duplicate")
+                {
+                    OnEntryAdd();
 
-                        current.Use();
-                    }
+                    current.Use();
                 }
             }
         }
@@ -561,11 +489,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnUndoOrRedoPerformed()
         {
-            if (HasSerializedObject)
-            {
-                m_treeView.SerializedProperty.serializedObject.Update();
-                m_treeView.Reload();
-            }
+            m_treeView.SerializedProperty.serializedObject.Update();
+            m_treeView.Reload();
         }
 
         private bool OnHasClipboard()

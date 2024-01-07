@@ -7,19 +7,22 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal class TableTreeViewItemComparer : IComparer<TreeViewItem>
     {
-        public TableTreeViewColumnState Column { get { return m_column ?? throw new ArgumentException("Value not specified."); } }
+        public ITableTreeColumn Column { get { return m_column ?? throw new ArgumentException("Value not specified."); } }
         public bool HasColumn { get { return m_column != null; } }
 
-        private TableTreeViewColumnState m_column;
+        private ITableTreeColumn m_column;
+        private bool m_ascending;
 
-        public void SetColumn(TableTreeViewColumnState column)
+        public void SetColumn(ITableTreeColumn column, bool ascending)
         {
             m_column = column ?? throw new ArgumentNullException(nameof(column));
+            m_ascending = ascending;
         }
 
         public void ClearColumn()
         {
             m_column = default;
+            m_ascending = false;
         }
 
         public int Compare(TreeViewItem x, TreeViewItem y)
@@ -35,11 +38,12 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (HasColumn)
             {
-                SerializedProperty propertyX = x.SerializedProperty.FindPropertyRelative(Column.PropertyName);
-                SerializedProperty propertyY = y.SerializedProperty.FindPropertyRelative(Column.PropertyName);
-                IComparer<SerializedProperty> comparer = Column.PropertyComparer ?? TableTreeDrawerColumnPropertyComparer.Default;
+                SerializedProperty propertyX = x.Item.GetProperty(Column);
+                SerializedProperty propertyY = y.Item.GetProperty(Column);
 
-                return m_column.sortedAscending
+                IComparer<SerializedProperty> comparer = Column.Comparer ?? TableTreeColumnPropertyComparer.Default;
+
+                return m_ascending
                     ? comparer.Compare(propertyX, propertyY)
                     : comparer.Compare(propertyY, propertyX);
             }

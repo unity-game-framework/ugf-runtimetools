@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    public class TableTreeDrawerColumnPropertyComparer : IComparer<SerializedProperty>
+    public class TableTreeColumnPropertyComparer : IComparer<SerializedProperty>
     {
-        public static TableTreeDrawerColumnPropertyComparer Default { get; } = new TableTreeDrawerColumnPropertyComparer();
+        public static TableTreeColumnPropertyComparer Default { get; } = new TableTreeColumnPropertyComparer();
 
         public int Compare(SerializedProperty x, SerializedProperty y)
         {

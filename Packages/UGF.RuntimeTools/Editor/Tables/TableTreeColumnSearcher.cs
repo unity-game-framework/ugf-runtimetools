@@ -5,9 +5,9 @@ using UnityEditor;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    public class TableTreeDrawerColumnSearchHandler : ITableTreeDrawerColumnSearchHandler
+    public class TableTreeColumnSearcher : ITableTreeColumnSearcher
     {
-        public static TableTreeDrawerColumnSearchHandler Default { get; } = new TableTreeDrawerColumnSearchHandler();
+        public static TableTreeColumnSearcher Default { get; } = new TableTreeColumnSearcher();
 
         public bool Check(SerializedProperty serializedProperty, string search)
         {
