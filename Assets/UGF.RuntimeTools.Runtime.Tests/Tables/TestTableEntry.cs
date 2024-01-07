@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UGF.EditorTools.Runtime.Assets;
 using UGF.EditorTools.Runtime.Ids;
-using UGF.EditorTools.Runtime.IMGUI.References;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEngine;
 
@@ -23,8 +22,6 @@ namespace UGF.RuntimeTools.Runtime.Tests.Tables
         [TableEntryDropdown(typeof(TestTableAsset))]
         [SerializeField] private GlobalId m_tableEntry;
         [SerializeField] private List<string> m_list = new List<string>();
-        [ManagedReference(typeof(TestTableEntry))]
-        [SerializeReference] private ITableEntry m_reference;
 
         public string Text { get { return m_text; } set { m_text = value; } }
         public bool Bool { get { return m_bool; } set { m_bool = value; } }
@@ -35,6 +32,5 @@ namespace UGF.RuntimeTools.Runtime.Tests.Tables
         public GlobalId Asset { get { return m_asset; } set { m_asset = value; } }
         public GlobalId TableEntry { get { return m_tableEntry; } set { m_tableEntry = value; } }
         public List<string> List { get { return m_list; } set { m_list = value; } }
-        public ITableEntry Reference { get { return m_reference; } set { m_reference = value; } }
     }
 }
