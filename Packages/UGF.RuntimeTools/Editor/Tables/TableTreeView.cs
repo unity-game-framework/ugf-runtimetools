@@ -62,7 +62,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (multiColumnHeader.sortedColumnIndex >= 0)
             {
+                var column = (TableTreeViewColumnState)multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
+
+                m_comparer.SetColumn(column);
                 m_items.Sort(m_comparer);
+                m_comparer.ClearColumn();
             }
 
             return m_items;
@@ -124,13 +128,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnSortingChanged(MultiColumnHeader header)
         {
-            var column = (TableTreeViewColumnState)multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
-
-            m_comparer.SetColumn(column);
-
             Reload();
-
-            m_comparer.ClearColumn();
         }
 
         private bool OnCheckSearch(SerializedProperty serializedProperty)

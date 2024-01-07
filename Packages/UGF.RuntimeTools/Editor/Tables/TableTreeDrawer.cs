@@ -74,6 +74,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_treeView.RowCellDraw += OnDrawRowCell;
             m_treeView.KeyEventProcessing += OnKeyEventProcessing;
 
+            OnPreferenceRead();
+
             m_treeView.Reload();
             m_treeView.multiColumnHeader.ResizeToFit();
         }
@@ -81,6 +83,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override void OnDisable()
         {
             base.OnDisable();
+
+            OnPreferenceWrite();
 
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
@@ -126,6 +130,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (DisplayFooter)
             {
                 DrawFooter();
+            }
+
+            if (GUI.changed)
+            {
+                OnPreferenceWrite();
             }
         }
 
@@ -505,6 +514,32 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                         current.Use();
                     }
+                }
+            }
+        }
+
+        private void OnPreferenceWrite()
+        {
+            if (HasSerializedObject)
+            {
+                string path = SerializedObject.targetObject.GetType().FullName;
+                string data = EditorJsonUtility.ToJson(m_treeView.state);
+
+                EditorPrefs.SetString(path, data);
+            }
+        }
+
+        private void OnPreferenceRead()
+        {
+            if (HasSerializedObject)
+            {
+                string path = SerializedObject.targetObject.GetType().FullName;
+
+                if (EditorPrefs.HasKey(path))
+                {
+                    string data = EditorPrefs.GetString(path);
+
+                    EditorJsonUtility.FromJsonOverwrite(data, m_treeView.state);
                 }
             }
         }
