@@ -197,6 +197,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 if (HasSerializedObject)
                 {
                     MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
+                    int columnsVisible = m_treeView.multiColumnHeader.state.visibleColumns.Length;
+                    int columnsTotal = m_treeView.multiColumnHeader.state.columns.Length;
                     var table = (TableAsset)SerializedObject.targetObject;
                     int count = table.Get().Entries.Count();
 
@@ -206,7 +208,12 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
 
                     GUILayout.Label($"Search Column: {column.headerContent.text}");
-                    GUILayout.Label($"Count: {count}");
+
+                    GUILayout.Label(columnsVisible == columnsTotal
+                        ? $"Columns: {columnsTotal}"
+                        : $"Columns: {columnsVisible}/{columnsTotal}");
+
+                    GUILayout.Label($"Entries: {count}");
                 }
             }
         }
