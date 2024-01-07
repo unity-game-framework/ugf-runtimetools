@@ -33,6 +33,9 @@ namespace UGF.RuntimeTools.Editor.Tables
         private SearchField m_search;
         private Styles m_styles;
 
+        private static readonly HashSet<object> m_clipboardEntries = new HashSet<object>();
+        private static Type m_clipboardTableType;
+
         private class Styles
         {
             public GUIStyle Toolbar { get; } = EditorStyles.toolbar;
@@ -191,9 +194,14 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (HasSerializedObject)
                 {
+                    MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
                     var table = (TableAsset)SerializedObject.targetObject;
                     int count = table.Get().Entries.Count();
-                    MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
+
+                    if (OnHasClipboard())
+                    {
+                        GUILayout.Label($"Clipboard Entries: {m_clipboardEntries.Count}");
+                    }
 
                     GUILayout.Label($"Search Column: {column.headerContent.text}");
                     GUILayout.Label($"Count: {count}");
@@ -261,20 +269,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryAdd()
         {
-            if (m_treeView.HasSelection())
-            {
-                var selection = (IReadOnlyList<int>)m_treeView.GetSelection();
-
-                for (int i = 0; i < selection.Count; i++)
-                {
-                    int id = selection[i];
-
-                    if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
-                    {
-                        m_selectionIds.Add(item.GetId());
-                    }
-                }
-            }
+            OnCollectSelection();
 
             if (m_selectionIds.Count > 0)
             {
@@ -289,24 +284,31 @@ namespace UGF.RuntimeTools.Editor.Tables
                         OnEntryInsert(i++);
                     }
                 }
+
+                m_selectionIds.Clear();
             }
             else
             {
                 OnEntryInsert(m_treeView.PropertyEntries.arraySize);
             }
 
-            m_selectionIds.Clear();
             m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
             m_treeView.Reload();
         }
 
-        private void OnEntryInsert(int index)
+        private void OnEntryInsert(int index, object value = null)
         {
             m_treeView.PropertyEntries.InsertArrayElementAtIndex(index);
 
             index = Mathf.Min(index + 1, m_treeView.PropertyEntries.arraySize - 1);
 
             SerializedProperty propertyEntry = m_treeView.PropertyEntries.GetArrayElementAtIndex(index);
+
+            if (value != null)
+            {
+                propertyEntry.boxedValue = value;
+            }
+
             SerializedProperty propertyId = propertyEntry.FindPropertyRelative(PropertyIdName);
             SerializedProperty propertyName = propertyEntry.FindPropertyRelative(PropertyNameName);
             string entryName = propertyName.stringValue;
@@ -318,33 +320,94 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryRemove()
         {
-            IList<int> selection = m_treeView.GetSelection();
+            OnCollectSelection();
 
-            for (int i = 0; i < selection.Count; i++)
+            if (m_selectionIds.Count > 0)
             {
-                int id = selection[i];
-
-                if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
+                for (int i = 0; i < m_treeView.PropertyEntries.arraySize; i++)
                 {
-                    m_selectionIds.Add(item.GetId());
+                    SerializedProperty propertyElement = m_treeView.PropertyEntries.GetArrayElementAtIndex(i);
+                    SerializedProperty propertyId = propertyElement.FindPropertyRelative(PropertyIdName);
+                    GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
+
+                    if (m_selectionIds.Contains(id))
+                    {
+                        m_treeView.PropertyEntries.DeleteArrayElementAtIndex(i--);
+                    }
+                }
+
+                m_selectionIds.Clear();
+                m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
+                m_treeView.Reload();
+            }
+        }
+
+        private void OnEntryCopy()
+        {
+            if (m_treeView.HasSelection())
+            {
+                IList<int> selection = m_treeView.GetSelection();
+
+                for (int i = 0; i < selection.Count; i++)
+                {
+                    int id = selection[i];
+
+                    if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
+                    {
+                        object value;
+
+                        try
+                        {
+                            value = item.SerializedProperty.boxedValue;
+                        }
+                        catch (Exception exception)
+                        {
+                            Debug.LogWarning($"Table entry can not be copied.\n{exception}");
+                            break;
+                        }
+
+                        m_clipboardEntries.Add(value);
+                    }
+                }
+
+                if (m_clipboardEntries.Count > 0)
+                {
+                    m_clipboardTableType = SerializedObject.targetObject.GetType();
                 }
             }
+        }
 
-            for (int i = 0; i < m_treeView.PropertyEntries.arraySize; i++)
+        private void OnEntryPaste()
+        {
+            if (OnHasClipboard())
             {
-                SerializedProperty propertyElement = m_treeView.PropertyEntries.GetArrayElementAtIndex(i);
-                SerializedProperty propertyId = propertyElement.FindPropertyRelative(PropertyIdName);
-                GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
-
-                if (m_selectionIds.Contains(id))
+                foreach (object value in m_clipboardEntries)
                 {
-                    m_treeView.PropertyEntries.DeleteArrayElementAtIndex(i--);
+                    OnEntryInsert(m_treeView.PropertyEntries.arraySize, value);
+                }
+
+                m_clipboardEntries.Clear();
+                m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
+                m_treeView.Reload();
+            }
+        }
+
+        private void OnCollectSelection()
+        {
+            if (m_treeView.HasSelection())
+            {
+                IList<int> selection = m_treeView.GetSelection();
+
+                for (int i = 0; i < selection.Count; i++)
+                {
+                    int id = selection[i];
+
+                    if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
+                    {
+                        m_selectionIds.Add(item.GetId());
+                    }
                 }
             }
-
-            m_selectionIds.Clear();
-            m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
-            m_treeView.Reload();
         }
 
         private void OnMenuOpen(Rect position)
@@ -393,30 +456,49 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             Event current = Event.current;
 
-            if (current.type == EventType.KeyUp)
+            if (current.type == EventType.ValidateCommand)
             {
-                if (current.keyCode == KeyCode.Delete)
+                if (current.commandName == "SoftDelete")
                 {
                     OnEntryRemove();
 
                     current.Use();
                 }
 
-                if (current.command && current.keyCode == KeyCode.C)
+                if (current.commandName == "Copy")
                 {
+                    OnEntryCopy();
+
+                    current.Use();
                 }
 
-                if (current.command && current.keyCode == KeyCode.V)
+                if (current.commandName == "Paste")
                 {
+                    OnEntryPaste();
+
+                    current.Use();
                 }
 
-                if (current.control && current.keyCode == KeyCode.D)
+                if (current.commandName == "Duplicate")
                 {
                     OnEntryAdd();
 
                     current.Use();
                 }
             }
+        }
+
+        private void OnUndoOrRedoPerformed()
+        {
+            m_treeView.SerializedProperty.serializedObject.Update();
+            m_treeView.Reload();
+        }
+
+        private bool OnHasClipboard()
+        {
+            return m_clipboardTableType != null
+                   && m_clipboardTableType == SerializedObject.targetObject.GetType()
+                   && m_clipboardEntries.Count > 0;
         }
 
         private string OnGetUniqueName(string entryName)
@@ -432,12 +514,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return ObjectNames.GetUniqueName(names, entryName);
-        }
-
-        private void OnUndoOrRedoPerformed()
-        {
-            m_treeView.SerializedProperty.serializedObject.Update();
-            m_treeView.Reload();
         }
     }
 }
