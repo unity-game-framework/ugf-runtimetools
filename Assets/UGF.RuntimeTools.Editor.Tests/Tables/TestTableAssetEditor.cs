@@ -36,7 +36,6 @@ namespace UGF.RuntimeTools.Editor.Tests.Tables
                 EditorIMGUIUtility.DrawScriptProperty(serializedObject);
 
                 m_tableDrawer.DrawGUILayout();
-                m_tableDrawer2.DrawGUILayout();
             }
         }
 
