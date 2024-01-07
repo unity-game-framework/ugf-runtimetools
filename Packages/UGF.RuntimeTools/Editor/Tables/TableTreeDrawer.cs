@@ -522,9 +522,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        private string OnPreferencePath()
+        {
+            string name = SerializedObject.targetObject.GetType().FullName;
+
+            return $"{nameof(TableTreeDrawer)}:{name}";
+        }
+
         private void OnPreferenceWrite()
         {
-            string path = SerializedObject.targetObject.GetType().FullName;
+            string path = OnPreferencePath();
             string data = EditorJsonUtility.ToJson(m_treeView.state);
 
             EditorPrefs.SetString(path, data);
@@ -532,7 +539,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnPreferenceRead()
         {
-            string path = SerializedObject.targetObject.GetType().FullName;
+            string path = OnPreferencePath();
 
             if (EditorPrefs.HasKey(path))
             {
