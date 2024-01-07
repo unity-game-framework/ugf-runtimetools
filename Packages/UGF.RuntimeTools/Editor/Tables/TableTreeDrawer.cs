@@ -44,6 +44,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
             public GUIContent SearchDropdownContent { get; } = new GUIContent(string.Empty, "Select search column.");
+            public GUIContent SearchFieldNoneContent { get; } = new GUIContent("None");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
@@ -130,6 +131,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected void DrawToolbar()
         {
+            using (new EditorGUI.DisabledScope(!HasSerializedObject))
             using (new EditorGUILayout.HorizontalScope(m_styles.Toolbar))
             {
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
@@ -137,7 +139,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryAdd();
                 }
 
-                using (new EditorGUI.DisabledScope(!m_treeView.HasSelection()))
+                using (new EditorGUI.DisabledScope(m_treeView == null || !m_treeView.HasSelection()))
                 {
                     if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
                     {
@@ -220,8 +222,6 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnDrawSearch()
         {
-            MultiColumnHeaderState.Column column = m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex);
-
             float height = EditorGUIUtility.singleLineHeight;
             float spacing = EditorGUIUtility.standardVerticalSpacing;
 
@@ -239,13 +239,24 @@ namespace UGF.RuntimeTools.Editor.Tables
                 m_treeView.SearchColumnIndex = selected.Value;
             }
 
-            m_treeView.searchString = m_search.OnGUI(position, m_treeView.searchString, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
+            string search = HasSerializedObject ? m_treeView.searchString : string.Empty;
+
+            search = m_search.OnGUI(position, search, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
+
+            if (HasSerializedObject)
+            {
+                m_treeView.searchString = search;
+            }
 
             if (!m_search.HasFocus())
             {
+                GUIContent content = HasSerializedObject
+                    ? m_treeView.multiColumnHeader.GetColumn(m_treeView.SearchColumnIndex).headerContent
+                    : m_styles.SearchFieldNoneContent;
+
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    GUI.Label(rectLabel, column.headerContent.text, EditorStyles.miniLabel);
+                    GUI.Label(rectLabel, content, EditorStyles.miniLabel);
                 }
             }
         }
@@ -454,44 +465,50 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnKeyEventProcessing()
         {
-            Event current = Event.current;
-
-            if (current.type == EventType.ValidateCommand)
+            if (HasSerializedObject)
             {
-                if (current.commandName == "SoftDelete")
+                Event current = Event.current;
+
+                if (current.type == EventType.ValidateCommand)
                 {
-                    OnEntryRemove();
+                    if (current.commandName == "SoftDelete")
+                    {
+                        OnEntryRemove();
 
-                    current.Use();
-                }
+                        current.Use();
+                    }
 
-                if (current.commandName == "Copy")
-                {
-                    OnEntryCopy();
+                    if (current.commandName == "Copy")
+                    {
+                        OnEntryCopy();
 
-                    current.Use();
-                }
+                        current.Use();
+                    }
 
-                if (current.commandName == "Paste")
-                {
-                    OnEntryPaste();
+                    if (current.commandName == "Paste")
+                    {
+                        OnEntryPaste();
 
-                    current.Use();
-                }
+                        current.Use();
+                    }
 
-                if (current.commandName == "Duplicate")
-                {
-                    OnEntryAdd();
+                    if (current.commandName == "Duplicate")
+                    {
+                        OnEntryAdd();
 
-                    current.Use();
+                        current.Use();
+                    }
                 }
             }
         }
 
         private void OnUndoOrRedoPerformed()
         {
-            m_treeView.SerializedProperty.serializedObject.Update();
-            m_treeView.Reload();
+            if (HasSerializedObject)
+            {
+                m_treeView.SerializedProperty.serializedObject.Update();
+                m_treeView.Reload();
+            }
         }
 
         private bool OnHasClipboard()

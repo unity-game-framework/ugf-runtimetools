@@ -38,6 +38,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnGUI()
         {
+            if (Drawer.HasSerializedObject && Drawer.SerializedObject.targetObject == null)
+            {
+                Drawer.Disable();
+                Drawer.ClearTarget();
+            }
+
             Drawer.DrawGUILayout();
         }
 
