@@ -30,6 +30,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private SerializedObject m_serializedObject;
         private IReadOnlyList<TableTreeDrawerColumn> m_columns;
         private TableTreeView m_treeView;
+        private string m_treeViewStateDefaultData;
         private SearchField m_search;
         private Styles m_styles;
 
@@ -73,6 +74,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_treeView.RowDraw += OnDrawRow;
             m_treeView.RowCellDraw += OnDrawRowCell;
             m_treeView.KeyEventProcessing += OnKeyEventProcessing;
+            m_treeViewStateDefaultData = EditorJsonUtility.ToJson(m_treeView.state);
 
             OnPreferenceRead();
 
@@ -132,7 +134,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 DrawFooter();
             }
 
-            if (GUI.changed)
+            if (HasSerializedObject && GUI.changed)
             {
                 OnPreferenceWrite();
             }
@@ -365,6 +367,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 m_selectionIds.Clear();
                 m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
+                m_treeView.SetSelection(ArraySegment<int>.Empty);
                 m_treeView.Reload();
             }
         }
@@ -443,6 +446,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             menu.AddItem(new GUIContent("Ping Asset"), false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
+            menu.AddItem(new GUIContent("Reset Preferences"), false, OnPreferenceReset);
             menu.AddSeparator(string.Empty);
 
             if (m_treeView != null && m_treeView.PropertyEntries.arraySize > 0)
@@ -520,28 +524,31 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnPreferenceWrite()
         {
-            if (HasSerializedObject)
-            {
-                string path = SerializedObject.targetObject.GetType().FullName;
-                string data = EditorJsonUtility.ToJson(m_treeView.state);
+            string path = SerializedObject.targetObject.GetType().FullName;
+            string data = EditorJsonUtility.ToJson(m_treeView.state);
 
-                EditorPrefs.SetString(path, data);
-            }
+            EditorPrefs.SetString(path, data);
         }
 
         private void OnPreferenceRead()
         {
-            if (HasSerializedObject)
+            string path = SerializedObject.targetObject.GetType().FullName;
+
+            if (EditorPrefs.HasKey(path))
             {
-                string path = SerializedObject.targetObject.GetType().FullName;
+                string data = EditorPrefs.GetString(path);
 
-                if (EditorPrefs.HasKey(path))
-                {
-                    string data = EditorPrefs.GetString(path);
-
-                    EditorJsonUtility.FromJsonOverwrite(data, m_treeView.state);
-                }
+                EditorJsonUtility.FromJsonOverwrite(data, m_treeView.state);
             }
+        }
+
+        private void OnPreferenceReset()
+        {
+            EditorJsonUtility.FromJsonOverwrite(m_treeViewStateDefaultData, m_treeView.state);
+
+            m_treeView.multiColumnHeader.ResizeToFit();
+
+            OnPreferenceWrite();
         }
 
         private void OnUndoOrRedoPerformed()

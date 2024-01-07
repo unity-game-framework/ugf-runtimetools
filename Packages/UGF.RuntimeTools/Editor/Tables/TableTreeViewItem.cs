@@ -16,9 +16,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public TableTreeViewItem(SerializedProperty serializedProperty)
         {
-            m_id = (int)GlobalId.Generate().First;
-
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
+
+            m_id = (int)GetId().First;
         }
 
         public GlobalId GetId()

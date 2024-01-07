@@ -45,7 +45,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
-            public GUIContent TableButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Profiler.UIDetails"), "Open table window.");
         }
 
         public TableDrawer(SerializedProperty serializedProperty, string propertyIdName = "m_id", string propertyNameName = "m_name")
@@ -298,14 +297,6 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntrySelect(selected.Value);
                 }
 
-                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
-                {
-                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
-                    {
-                        OnEntryRemove(SelectedIndex);
-                    }
-                }
-
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
                 {
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
@@ -313,9 +304,12 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryInsert(index);
                 }
 
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.TableButtonContent, 25F))
+                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
                 {
-                    OnTableOpen();
+                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
+                    {
+                        OnEntryRemove(SelectedIndex);
+                    }
                 }
 
                 if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
@@ -334,6 +328,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var menu = new GenericMenu();
 
+            menu.AddItem(new GUIContent("Open Window"), false, OnTableOpen);
             menu.AddItem(new GUIContent("Search by Id"), SearchById, () => SearchById = !SearchById);
             menu.AddItem(new GUIContent("Show Indexes"), ShowIndexes, () => ShowIndexes = !ShowIndexes);
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
