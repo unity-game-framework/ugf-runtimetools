@@ -53,9 +53,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
             PropertyIdName = propertyIdName;
             PropertyNameName = propertyNameName;
+            PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
 
             m_selection.Dropdown.MinimumHeight = 300F;
-            PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
         }
 
         protected override void OnDisable()
@@ -273,24 +273,22 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntrySelect(selected.Value);
                 }
 
-                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
-                {
-                    if (OnDrawToolbarButton(m_styles.RemoveButtonContent))
-                    {
-                        OnEntryRemove(SelectedIndex);
-                    }
-                }
-
-                if (OnDrawToolbarButton(m_styles.AddButtonContent))
+                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
                 {
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
 
                     OnEntryInsert(index);
                 }
 
-                Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, GUILayout.Width(25F));
+                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
+                {
+                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
+                    {
+                        OnEntryRemove(SelectedIndex);
+                    }
+                }
 
-                if (GUI.Button(rectMenu, m_styles.MenuButtonContent, EditorStyles.toolbarButton))
+                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
                 {
                     OnMenuOpen(rectMenu);
                 }
@@ -362,11 +360,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return items;
-        }
-
-        private bool OnDrawToolbarButton(GUIContent content, float width = 50F)
-        {
-            return GUILayout.Button(content, EditorStyles.toolbarButton, GUILayout.Width(width));
         }
 
         private string OnGetUniqueName(string entryName)
