@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
@@ -53,10 +50,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_drawer?.Disable();
             m_drawer = new TableTreeDrawer(m_serializedObject, TableTreeEditorUtility.CreateTableTree(m_serializedObject));
             m_drawer.Enable();
-
-            // m_tree = TableTreeEditorUtility.CreateTableTree(m_serializedObject);
-            //
-            // CreateTreeView(m_tree);
         }
 
         public void SetTarget(TableAsset asset, ITableTree tableTree)
@@ -76,54 +69,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_assetId = string.Empty;
             m_drawer?.Disable();
             m_drawer = null;
-        }
-
-        private void CreateTreeView(ITableTree tableTree)
-        {
-            var treeView = new MultiColumnTreeView
-            {
-                showAlternatingRowBackgrounds = AlternatingRowBackground.All,
-                sortingEnabled = true,
-                selectionType = SelectionType.Multiple
-            };
-
-            var items = new List<ITableTreeItem>();
-            var itemData = new List<TreeViewItemData<ITableTreeItem>>();
-
-            tableTree.GetItems(items);
-
-            for (int i = 0; i < items.Count; i++)
-            {
-                ITableTreeItem item = items[i];
-
-                itemData.Add(new TreeViewItemData<ITableTreeItem>(i, item));
-            }
-
-            treeView.SetRootItems(itemData);
-
-            foreach (ITableTreeColumn column in tableTree.Columns)
-            {
-                Columns columns = treeView.columns;
-
-                columns.Add(new Column
-                {
-                    name = column.DisplayName.text,
-                    title = column.DisplayName.text,
-                    makeCell = () => new PropertyField
-                    {
-                        label = string.Empty
-                    },
-                    bindCell = (element, index) =>
-                    {
-                        var field = (PropertyField)element;
-                        var item = treeView.GetItemDataForIndex<ITableTreeItem>(index);
-
-                        field.BindProperty(item.GetProperty(column));
-                    }
-                });
-            }
-
-            rootVisualElement.Add(treeView);
         }
     }
 }
