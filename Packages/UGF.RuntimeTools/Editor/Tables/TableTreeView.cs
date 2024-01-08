@@ -229,6 +229,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             SetSelection(ArraySegment<int>.Empty);
         }
 
+        public void ClearSorting()
+        {
+            multiColumnHeader.sortedColumnIndex = -1;
+
+            Reload();
+        }
+
         public TableTreeViewItem GetItem(int id)
         {
             return TryGetItem(id, out TableTreeViewItem item) ? item : throw new ArgumentException($"Table tree view item not found by the specified id: '{id}'.");

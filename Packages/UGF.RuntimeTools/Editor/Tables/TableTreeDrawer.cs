@@ -360,6 +360,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             menu.AddItem(new GUIContent("Ping Asset"), false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
+            menu.AddItem(new GUIContent("Reset Sorting"), false, () => m_treeView.ClearSorting());
             menu.AddItem(new GUIContent("Reset Preferences"), false, OnPreferenceReset);
             menu.AddSeparator(string.Empty);
 
