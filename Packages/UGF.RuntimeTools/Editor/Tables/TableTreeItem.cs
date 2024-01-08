@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 
@@ -6,7 +7,18 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public abstract class TableTreeItem : ITableTreeItem
     {
-        public int Depth { get; set; }
+        public List<ITableTreeItem> Children { get; }
+
+        IReadOnlyList<ITableTreeItem> ITableTreeItem.Children { get { return Children; } }
+
+        protected TableTreeItem() : this(new List<ITableTreeItem>())
+        {
+        }
+
+        protected TableTreeItem(List<ITableTreeItem> children)
+        {
+            Children = children ?? throw new ArgumentNullException(nameof(children));
+        }
 
         public GlobalId GetId()
         {
@@ -18,15 +30,15 @@ namespace UGF.RuntimeTools.Editor.Tables
             return OnGetValue();
         }
 
-        public SerializedProperty GetProperty(ITableTreeColumn column)
+        public bool TryGetProperty(ITableTreeColumn column, out SerializedProperty serializedProperty)
         {
             if (column == null) throw new ArgumentNullException(nameof(column));
 
-            return OnGetProperty(column);
+            return OnTryGetProperty(column, out serializedProperty);
         }
 
         protected abstract GlobalId OnGetId();
         protected abstract object OnGetValue();
-        protected abstract SerializedProperty OnGetProperty(ITableTreeColumn column);
+        protected abstract bool OnTryGetProperty(ITableTreeColumn column, out SerializedProperty serializedProperty);
     }
 }

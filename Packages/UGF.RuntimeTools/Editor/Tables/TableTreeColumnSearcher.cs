@@ -61,14 +61,18 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
                 case SerializedPropertyType.Generic:
                 {
-                    if (!serializedProperty.isArray)
+                    if (serializedProperty.isArray)
                     {
-                        if (serializedProperty.type == nameof(GlobalId))
-                        {
-                            string id = GlobalIdEditorUtility.GetGuidFromProperty(serializedProperty);
+                        string text = serializedProperty.arraySize.ToString();
 
-                            return id.Contains(search, StringComparison.OrdinalIgnoreCase);
-                        }
+                        return text.Contains(search, StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    if (serializedProperty.type == nameof(GlobalId))
+                    {
+                        string id = GlobalIdEditorUtility.GetGuidFromProperty(serializedProperty);
+
+                        return id.Contains(search, StringComparison.OrdinalIgnoreCase);
                     }
 
                     return false;

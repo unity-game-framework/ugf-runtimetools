@@ -34,10 +34,10 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             m_state = state;
 
-            showAlternatingRowBackgrounds = true;
-            enableItemHovering = true;
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
             rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2F;
+            showAlternatingRowBackgrounds = true;
+            enableItemHovering = true;
 
             multiColumnHeader.sortingChanged += OnSortingChanged;
         }
@@ -54,18 +54,23 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             TableTree.GetItems(m_items);
 
+            int indexer = 0;
+
             for (int i = 0; i < m_items.Count; i++)
             {
                 ITableTreeItem item = m_items[i];
 
                 if (OnCheckSearch(item))
                 {
-                    var view = new TableTreeViewItem(i, item)
-                    {
-                        depth = item.Depth
-                    };
+                    m_views.Add(new TableTreeViewItem(indexer++, item));
 
-                    m_views.Add(view);
+                    foreach (ITableTreeItem child in item.Children)
+                    {
+                        m_views.Add(new TableTreeViewItem(indexer++, child)
+                        {
+                            depth = 1
+                        });
+                    }
                 }
             }
 
@@ -101,15 +106,21 @@ namespace UGF.RuntimeTools.Editor.Tables
                 position.yMin += spacing;
                 position.yMax -= spacing;
 
+                if (columnIndex == columnIndexForTreeFoldouts)
+                {
+                    position.xMin += foldoutWidth + spacing * 2F;
+                }
+
                 if (DrawRowCell != null)
                 {
                     DrawRowCell?.Invoke(position, rowItem.Item, column);
                 }
                 else
                 {
-                    SerializedProperty propertyValue = rowItem.Item.GetProperty(column);
-
-                    EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
+                    if (rowItem.Item.TryGetProperty(column, out SerializedProperty propertyValue))
+                    {
+                        EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
+                    }
                 }
             }
         }
@@ -157,9 +168,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 ITableTreeColumn column = SearchColumn;
 
-                SerializedProperty propertyValue = item.GetProperty(column);
-
-                return column.Searcher.Check(propertyValue, searchString);
+                if (item.TryGetProperty(column, out SerializedProperty propertyValue))
+                {
+                    return column.Searcher.Check(propertyValue, searchString);
+                }
             }
 
             return true;

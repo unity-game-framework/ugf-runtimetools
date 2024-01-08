@@ -26,6 +26,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public TableEntryDropdownPropertyDrawer() : base(SerializedPropertyType.Generic)
         {
+            m_selection.Dropdown.RootName = "Entries";
             m_selection.Dropdown.MinimumHeight = 300F;
             m_itemsHandler = GetItems;
         }

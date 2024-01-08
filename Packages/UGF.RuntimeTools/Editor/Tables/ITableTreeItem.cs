@@ -1,14 +1,15 @@
-﻿using UGF.EditorTools.Runtime.Ids;
+﻿using System.Collections.Generic;
+using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
     public interface ITableTreeItem
     {
-        int Depth { get; }
+        IReadOnlyList<ITableTreeItem> Children { get; }
 
         GlobalId GetId();
         object GetValue();
-        SerializedProperty GetProperty(ITableTreeColumn column);
+        bool TryGetProperty(ITableTreeColumn column, out SerializedProperty serializedProperty);
     }
 }

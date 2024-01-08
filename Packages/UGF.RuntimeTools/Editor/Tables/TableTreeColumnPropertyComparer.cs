@@ -72,18 +72,20 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
                 case SerializedPropertyType.Generic:
                 {
-                    if (!x.isArray)
+                    if (x.isArray)
                     {
-                        if (x.type == nameof(GlobalId))
-                        {
-                            GlobalId xId = GlobalIdEditorUtility.GetGlobalIdFromProperty(x);
-                            GlobalId yId = GlobalIdEditorUtility.GetGlobalIdFromProperty(y);
-
-                            return xId.CompareTo(yId);
-                        }
+                        return x.arraySize.CompareTo(y.arraySize);
                     }
 
-                    return x.arraySize.CompareTo(y.arraySize);
+                    if (x.type == nameof(GlobalId))
+                    {
+                        GlobalId xId = GlobalIdEditorUtility.GetGlobalIdFromProperty(x);
+                        GlobalId yId = GlobalIdEditorUtility.GetGlobalIdFromProperty(y);
+
+                        return xId.CompareTo(yId);
+                    }
+
+                    return 0;
                 }
                 default:
                 {

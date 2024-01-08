@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
@@ -32,7 +31,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             };
         }
 
-        public static List<FieldInfo> GetEntryFields(Type type)
+        public static List<FieldInfo> GetSerializedFields(Type type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
 
@@ -64,10 +63,29 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (genericArguments.Length != 1)
             {
-                throw new ArgumentException($"Table header state can be created from '{typeof(Table<>)}' generic type only.");
+                throw new ArgumentException("Table entry type is unknown.");
             }
 
             return genericArguments[0];
+        }
+
+        public static Type GetTableEntryChildrenType(Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            if (type.IsArray)
+            {
+                return type.GetElementType();
+            }
+
+            if (type.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type[] genericArguments = type.GetGenericArguments();
+
+                return genericArguments[0];
+            }
+
+            throw new ArgumentException("Table entry children type is unknown.");
         }
     }
 }

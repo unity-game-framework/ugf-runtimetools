@@ -36,19 +36,84 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (serializedObject == null) throw new ArgumentNullException(nameof(serializedObject));
 
-            Type type = TableTreeEditorInternalUtility.GetTableEntryType(((TableAsset)serializedObject.targetObject).Get().GetType());
-            List<FieldInfo> fields = TableTreeEditorInternalUtility.GetEntryFields(type);
-            var columns = new List<ITableTreeColumn>();
+            Type tableType = ((TableAsset)serializedObject.targetObject).Get().GetType();
+            Type tableEntryType = TableTreeEditorInternalUtility.GetTableEntryType(tableType);
+            List<TableTreeColumnProperty> columns = CreateColumnsFromFields(tableEntryType);
+
+            if (!TryGetEntryChildrenPropertyName(tableEntryType, out string childrenPropertyName))
+            {
+                childrenPropertyName = "m_children";
+            }
+
+            return new TableTreeProperty(serializedObject.FindProperty("m_table"), columns, childrenPropertyName);
+        }
+
+        public static List<TableTreeColumnProperty> CreateColumnsFromFields(Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            var columns = new List<TableTreeColumnProperty>();
+
+            if (!TryGetEntryChildrenPropertyName(type, out string childrenPropertyName))
+            {
+                childrenPropertyName = string.Empty;
+            }
+
+            List<FieldInfo> fields = TableTreeEditorInternalUtility.GetSerializedFields(type);
+
+            CreateColumnsFromFields(columns, fields);
 
             for (int i = 0; i < fields.Count; i++)
             {
                 FieldInfo field = fields[i];
-                var displayName = new GUIContent(ObjectNames.NicifyVariableName(field.Name));
 
-                columns.Add(new TableTreeColumnProperty(displayName, field.Name));
+                if (!string.IsNullOrEmpty(childrenPropertyName) && field.Name == childrenPropertyName)
+                {
+                    CreateColumnsFromFields(columns, TableTreeEditorInternalUtility.GetTableEntryChildrenType(field.FieldType));
+                    break;
+                }
             }
 
-            return new TableTreeProperty(serializedObject.FindProperty("m_table.m_entries"), columns);
+            return columns;
+        }
+
+        public static void CreateColumnsFromFields(ICollection<TableTreeColumnProperty> columns, Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+
+            CreateColumnsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type));
+        }
+
+        public static void CreateColumnsFromFields(ICollection<TableTreeColumnProperty> columns, IReadOnlyList<FieldInfo> fields)
+        {
+            if (columns == null) throw new ArgumentNullException(nameof(columns));
+            if (fields == null) throw new ArgumentNullException(nameof(fields));
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                FieldInfo field = fields[i];
+
+                var displayName = new GUIContent(ObjectNames.NicifyVariableName(field.Name));
+                var column = new TableTreeColumnProperty(displayName, field.Name);
+
+                columns.Add(column);
+            }
+        }
+
+        public static bool TryGetEntryChildrenPropertyName(Type entryType, out string propertyName)
+        {
+            if (entryType == null) throw new ArgumentNullException(nameof(entryType));
+
+            var attribute = entryType.GetCustomAttribute<TableEntryChildrenAttribute>();
+
+            if (attribute != null)
+            {
+                propertyName = attribute.PropertyName;
+                return true;
+            }
+
+            propertyName = default;
+            return false;
         }
     }
 }

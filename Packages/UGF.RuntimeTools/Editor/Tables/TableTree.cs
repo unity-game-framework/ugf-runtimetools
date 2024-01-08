@@ -3,11 +3,13 @@ using System.Collections.Generic;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    public abstract class TableTree : ITableTree
+    public abstract class TableTree<TColumn> : ITableTree where TColumn : class, ITableTreeColumn
     {
-        public IReadOnlyList<ITableTreeColumn> Columns { get; }
+        public IReadOnlyList<TColumn> Columns { get; }
 
-        protected TableTree(IReadOnlyList<ITableTreeColumn> columns)
+        IReadOnlyList<ITableTreeColumn> ITableTree.Columns { get { return Columns; } }
+
+        protected TableTree(IReadOnlyList<TColumn> columns)
         {
             Columns = columns ?? throw new ArgumentNullException(nameof(columns));
         }

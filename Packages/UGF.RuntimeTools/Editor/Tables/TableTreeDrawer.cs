@@ -161,11 +161,22 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual void OnDrawRowCell(Rect position, ITableTreeItem item, ITableTreeColumn column)
         {
-            SerializedProperty propertyValue = item.GetProperty(column);
-
-            using (new EditorGUI.DisabledScope(!UnlockIds && propertyValue.name == PropertyIdName))
+            if (item.TryGetProperty(column, out SerializedProperty propertyValue))
             {
-                EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
+                if (propertyValue.propertyType == SerializedPropertyType.Generic && propertyValue.isArray)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        EditorGUI.IntField(position, GUIContent.none, propertyValue.arraySize);
+                    }
+                }
+                else
+                {
+                    using (new EditorGUI.DisabledScope(!UnlockIds && propertyValue.name == PropertyIdName))
+                    {
+                        EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
+                    }
+                }
             }
         }
 
@@ -268,8 +279,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 OnEntryInsert(m_treeView.PropertyEntries.arraySize);
             }
 
-            m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
-            m_treeView.Reload();
+            m_treeView.Apply();
         }
 
         private void OnEntryInsert(int index, object value = null)
@@ -313,9 +323,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
 
                 m_selectionIds.Clear();
-                m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
-                m_treeView.SetSelection(ArraySegment<int>.Empty);
-                m_treeView.Reload();
+                m_treeView.ClearSelection();
+                m_treeView.Apply();
             }
         }
 
@@ -364,8 +373,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
 
                 m_clipboardEntries.Clear();
-                m_treeView.SerializedProperty.serializedObject.ApplyModifiedProperties();
-                m_treeView.Reload();
+                m_treeView.Apply();
             }
         }
 
@@ -411,8 +419,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private void OnMenuClear()
         {
             m_treeView.PropertyEntries.ClearArray();
-            m_treeView.PropertyEntries.serializedObject.ApplyModifiedProperties();
-            m_treeView.Reload();
+            m_treeView.Apply();
         }
 
         private void OnKeyEventProcessing()
