@@ -8,7 +8,7 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public string PropertyPath { get; }
         public string DisplayName { get; }
-        public IComparer<SerializedProperty> Comparer { get; set; } = TableTreeColumnPropertyComparer.Default;
+        public IComparer<SerializedProperty> Comparer { get; set; } = TableTreeColumnComparer.Default;
         public ITableTreeColumnSearcher Searcher { get; set; } = TableTreeColumnSearcher.Default;
 
         public TableTreeColumnOptions(string propertyPath, string displayName)

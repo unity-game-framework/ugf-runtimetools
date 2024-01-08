@@ -40,7 +40,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 && x.ColumnProperties.TryGetValue(Column.PropertyPath, out SerializedProperty xProperty)
                 && y.ColumnProperties.TryGetValue(Column.PropertyPath, out SerializedProperty yProperty))
             {
-                IComparer<SerializedProperty> comparer = Column.Comparer ?? TableTreeColumnPropertyComparer.Default;
+                IComparer<SerializedProperty> comparer = Column.Comparer ?? TableTreeColumnComparer.Default;
 
                 return m_ascending
                     ? comparer.Compare(xProperty, yProperty)

@@ -171,8 +171,6 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private bool OnCheckSearch(SerializedProperty serializedProperty)
         {
-            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
-
             if (hasSearch)
             {
                 TableTreeColumnOptions column = SearchColumn;
@@ -180,7 +178,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (propertyValue != null)
                 {
-                    return column.Searcher.Check(propertyValue, searchString);
+                    ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
+
+                    return searcher.Check(propertyValue, searchString);
                 }
             }
 
