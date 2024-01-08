@@ -182,7 +182,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 string path = AssetDatabase.GetAssetPath(SerializedObject.targetObject);
                 int columnsVisible = m_treeView.multiColumnHeader.state.visibleColumns.Length;
                 int columnsTotal = m_treeView.multiColumnHeader.state.columns.Length;
-                int count = ((TableAsset)SerializedObject.targetObject).Get().Entries.Count();
+                int countVisible = m_treeView.Count;
+                int countTotal = ((TableAsset)SerializedObject.targetObject).Get().Entries.Count();
 
                 GUILayout.Label($"Path: {path}");
                 GUILayout.FlexibleSpace();
@@ -198,7 +199,9 @@ namespace UGF.RuntimeTools.Editor.Tables
                     ? $"Columns: {columnsTotal}"
                     : $"Columns: {columnsVisible}/{columnsTotal}");
 
-                GUILayout.Label($"Entries: {count}");
+                GUILayout.Label(countVisible == countTotal
+                    ? $"Entries: {countTotal}"
+                    : $"Entries: {countVisible}/{countTotal}");
             }
         }
 
