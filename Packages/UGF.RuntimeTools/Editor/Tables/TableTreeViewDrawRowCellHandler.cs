@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    internal delegate void TableTreeViewDrawRowCellHandler(Rect position, ITableTreeItem item, ITableTreeColumn column);
+    internal delegate void TableTreeViewDrawRowCellHandler(Rect position, SerializedProperty serializedProperty, TableTreeColumnOptions column);
 }

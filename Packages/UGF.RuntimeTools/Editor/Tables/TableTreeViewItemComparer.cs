@@ -7,13 +7,13 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal class TableTreeViewItemComparer : IComparer<TreeViewItem>
     {
-        public ITableTreeColumn Column { get { return m_column ?? throw new ArgumentException("Value not specified."); } }
+        public TableTreeColumnOptions Column { get { return m_column ?? throw new ArgumentException("Value not specified."); } }
         public bool HasColumn { get { return m_column != null; } }
 
-        private ITableTreeColumn m_column;
+        private TableTreeColumnOptions m_column;
         private bool m_ascending;
 
-        public void SetColumn(ITableTreeColumn column, bool ascending)
+        public void SetColumn(TableTreeColumnOptions column, bool ascending)
         {
             m_column = column ?? throw new ArgumentNullException(nameof(column));
             m_ascending = ascending;
@@ -37,8 +37,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         private int OnCompare(TableTreeViewItem x, TableTreeViewItem y)
         {
             if (HasColumn
-                && x.Item.TryGetProperty(Column, out SerializedProperty xProperty)
-                && y.Item.TryGetProperty(Column, out SerializedProperty yProperty))
+                && x.ColumnProperties.TryGetValue(Column.PropertyPath, out SerializedProperty xProperty)
+                && y.ColumnProperties.TryGetValue(Column.PropertyPath, out SerializedProperty yProperty))
             {
                 IComparer<SerializedProperty> comparer = Column.Comparer ?? TableTreeColumnPropertyComparer.Default;
 

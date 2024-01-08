@@ -13,63 +13,66 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
 
-            var window = EditorWindow.GetWindow<TableTreeWindow>(asset.name, false);
+            TableTreeOptions options = CreateOptions(asset.Get().GetType());
 
-            window.minSize = new Vector2(500F, 500F);
-            window.SetTarget(asset);
-            window.Show();
+            ShowWindow(asset, options);
         }
 
-        public static void ShowWindow(TableAsset asset, ITableTree tableTree)
+        public static void ShowWindow(TableAsset asset, TableTreeOptions options)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (tableTree == null) throw new ArgumentNullException(nameof(tableTree));
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
             var window = EditorWindow.GetWindow<TableTreeWindow>(asset.name, false);
 
             window.minSize = new Vector2(500F, 500F);
-            window.SetTarget(asset, tableTree);
+            window.SetTarget(asset, options);
             window.Show();
         }
 
-        public static ITableTree CreateTableTree(SerializedObject serializedObject)
+        public static TableTreeOptions CreateOptions(Type tableType)
         {
-            if (serializedObject == null) throw new ArgumentNullException(nameof(serializedObject));
+            if (tableType == null) throw new ArgumentNullException(nameof(tableType));
 
-            Type tableType = ((TableAsset)serializedObject.targetObject).Get().GetType();
-            Type tableEntryType = TableTreeEditorInternalUtility.GetTableEntryType(tableType);
-            List<TableTreeColumnProperty> columns = CreateColumnsFromFields(tableEntryType);
+            Type entryType = TableTreeEditorInternalUtility.GetTableEntryType(tableType);
 
-            if (!TryGetEntryChildrenPropertyName(tableEntryType, out string childrenPropertyName))
+            if (TryGetEntryChildrenPropertyName(entryType, out string childrenPropertyName))
             {
                 childrenPropertyName = "m_children";
             }
 
-            return new TableTreeProperty(serializedObject.FindProperty("m_table"), columns, childrenPropertyName);
+            List<TableTreeColumnOptions> columns = CreateColumnOptions(entryType);
+
+            return new TableTreeOptions(columns)
+            {
+                PropertyChildrenName = childrenPropertyName
+            };
         }
 
-        public static List<TableTreeColumnProperty> CreateColumnsFromFields(Type type)
+        public static List<TableTreeColumnOptions> CreateColumnOptions(Type entryType)
         {
-            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (entryType == null) throw new ArgumentNullException(nameof(entryType));
 
-            var columns = new List<TableTreeColumnProperty>();
+            var columns = new List<TableTreeColumnOptions>();
 
-            if (!TryGetEntryChildrenPropertyName(type, out string childrenPropertyName))
+            if (!TryGetEntryChildrenPropertyName(entryType, out string childrenPropertyName))
             {
-                childrenPropertyName = string.Empty;
+                childrenPropertyName = "m_children";
             }
 
-            List<FieldInfo> fields = TableTreeEditorInternalUtility.GetSerializedFields(type);
+            List<FieldInfo> fields = TableTreeEditorInternalUtility.GetSerializedFields(entryType);
 
-            CreateColumnsFromFields(columns, fields);
+            CreateColumnOptionsFromFields(columns, fields);
 
             for (int i = 0; i < fields.Count; i++)
             {
                 FieldInfo field = fields[i];
 
-                if (!string.IsNullOrEmpty(childrenPropertyName) && field.Name == childrenPropertyName)
+                if (field.Name == childrenPropertyName)
                 {
-                    CreateColumnsFromFields(columns, TableTreeEditorInternalUtility.GetTableEntryChildrenType(field.FieldType));
+                    Type type = TableTreeEditorInternalUtility.GetTableEntryChildrenType(field.FieldType);
+
+                    CreateColumnOptionsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type));
                     break;
                 }
             }
@@ -77,14 +80,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             return columns;
         }
 
-        public static void CreateColumnsFromFields(ICollection<TableTreeColumnProperty> columns, Type type)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-
-            CreateColumnsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type));
-        }
-
-        public static void CreateColumnsFromFields(ICollection<TableTreeColumnProperty> columns, IReadOnlyList<FieldInfo> fields)
+        public static void CreateColumnOptionsFromFields(ICollection<TableTreeColumnOptions> columns, IReadOnlyList<FieldInfo> fields)
         {
             if (columns == null) throw new ArgumentNullException(nameof(columns));
             if (fields == null) throw new ArgumentNullException(nameof(fields));
@@ -93,10 +89,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 FieldInfo field = fields[i];
 
-                var displayName = new GUIContent(ObjectNames.NicifyVariableName(field.Name));
-                var column = new TableTreeColumnProperty(displayName, field.Name);
+                string displayName = ObjectNames.NicifyVariableName(field.Name);
 
-                columns.Add(column);
+                columns.Add(new TableTreeColumnOptions(field.Name, displayName));
             }
         }
 

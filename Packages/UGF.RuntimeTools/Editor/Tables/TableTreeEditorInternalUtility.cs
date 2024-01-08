@@ -8,20 +8,19 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal static class TableTreeEditorInternalUtility
     {
-        public static TableTreeViewState CreateState(ITableTree tableTree)
+        public static TableTreeViewState CreateState(TableTreeOptions options)
         {
-            if (tableTree == null) throw new ArgumentNullException(nameof(tableTree));
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
-            var columns = new MultiColumnHeaderState.Column[tableTree.Columns.Count];
+            var columns = new MultiColumnHeaderState.Column[options.Columns.Count];
 
-            for (int i = 0; i < tableTree.Columns.Count; i++)
+            for (int i = 0; i < options.Columns.Count; i++)
             {
-                ITableTreeColumn column = tableTree.Columns[i];
+                TableTreeColumnOptions column = options.Columns[i];
 
                 columns[i] = new MultiColumnHeaderState.Column
                 {
-                    headerContent = column.DisplayName,
-                    userData = i
+                    headerContent = new GUIContent(column.DisplayName)
                 };
             }
 

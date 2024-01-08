@@ -48,19 +48,19 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_serializedObject = new SerializedObject(asset);
             m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             m_drawer?.Disable();
-            m_drawer = new TableTreeDrawer(m_serializedObject, TableTreeEditorUtility.CreateTableTree(m_serializedObject));
+            m_drawer = new TableTreeDrawer(m_serializedObject, TableTreeEditorUtility.CreateOptions(asset.Get().GetType()));
             m_drawer.Enable();
         }
 
-        public void SetTarget(TableAsset asset, ITableTree tableTree)
+        public void SetTarget(TableAsset asset, TableTreeOptions options)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (tableTree == null) throw new ArgumentNullException(nameof(tableTree));
+            if (options == null) throw new ArgumentNullException(nameof(options));
 
             m_serializedObject = new SerializedObject(asset);
             m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             m_drawer?.Disable();
-            m_drawer = new TableTreeDrawer(m_serializedObject, tableTree);
+            m_drawer = new TableTreeDrawer(m_serializedObject, options);
             m_drawer.Enable();
         }
 

@@ -16,9 +16,7 @@ namespace UGF.RuntimeTools.Editor.Tables
     public class TableTreeDrawer : DrawerBase
     {
         public SerializedObject SerializedObject { get; }
-        public ITableTree TableTree { get; }
-        public string PropertyIdName { get; set; } = "m_id";
-        public string PropertyNameName { get; set; } = "m_name";
+        public TableTreeOptions Options { get; }
         public bool UnlockIds { get; set; }
         public bool DisplayToolbar { get; set; } = true;
         public bool DisplayFooter { get; set; } = true;
@@ -53,12 +51,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             };
         }
 
-        public TableTreeDrawer(SerializedObject serializedObject, ITableTree tableTree)
+        public TableTreeDrawer(SerializedObject serializedObject, TableTreeOptions options)
         {
             SerializedObject = serializedObject ?? throw new ArgumentNullException(nameof(serializedObject));
-            TableTree = tableTree ?? throw new ArgumentNullException(nameof(tableTree));
+            Options = options ?? throw new ArgumentNullException(nameof(options));
 
-            m_treeView = new TableTreeView(SerializedObject.FindProperty("m_table"), tableTree);
+            m_treeView = new TableTreeView(SerializedObject.FindProperty("m_table"), options);
             m_treeViewStateDefaultData = EditorJsonUtility.ToJson(m_treeView.state);
             m_searchSelection.Dropdown.RootName = "Search Column";
             m_searchSelection.Dropdown.MinimumWidth = 300F;
@@ -159,23 +157,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        protected virtual void OnDrawRowCell(Rect position, ITableTreeItem item, ITableTreeColumn column)
+        protected virtual void OnDrawRowCell(Rect position, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
-            if (item.TryGetProperty(column, out SerializedProperty propertyValue))
+            if (serializedProperty.propertyType == SerializedPropertyType.Generic && serializedProperty.isArray)
             {
-                if (propertyValue.propertyType == SerializedPropertyType.Generic && propertyValue.isArray)
+                using (new EditorGUI.DisabledScope(true))
                 {
-                    using (new EditorGUI.DisabledScope(true))
-                    {
-                        EditorGUI.IntField(position, GUIContent.none, propertyValue.arraySize);
-                    }
+                    EditorGUI.IntField(position, GUIContent.none, serializedProperty.arraySize);
                 }
-                else
+            }
+            else
+            {
+                using (new EditorGUI.DisabledScope(!UnlockIds && serializedProperty.name == Options.PropertyIdName))
                 {
-                    using (new EditorGUI.DisabledScope(!UnlockIds && propertyValue.name == PropertyIdName))
-                    {
-                        EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
-                    }
+                    EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
                 }
             }
         }
@@ -197,7 +192,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     GUILayout.Label($"Clipboard Entries: {m_clipboardEntries.Count}");
                 }
 
-                GUILayout.Label($"Search Column: {m_treeView.SearchColumn.DisplayName.text}");
+                GUILayout.Label($"Search Column: {m_treeView.SearchColumn.DisplayName}");
 
                 GUILayout.Label(columnsVisible == columnsTotal
                     ? $"Columns: {columnsTotal}"
@@ -241,13 +236,13 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var items = new List<DropdownItem<int>>();
 
-            for (int i = 0; i < TableTree.Columns.Count; i++)
+            for (int i = 0; i < Options.Columns.Count; i++)
             {
-                ITableTreeColumn column = TableTree.Columns[i];
+                TableTreeColumnOptions column = Options.Columns[i];
 
-                items.Add(new DropdownItem<int>(column.DisplayName.text, i)
+                items.Add(new DropdownItem<int>(column.DisplayName, i)
                 {
-                    Priority = TableTree.Columns.Count - i
+                    Priority = Options.Columns.Count - i
                 });
             }
 
@@ -263,7 +258,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 for (int i = 0; i < m_treeView.PropertyEntries.arraySize; i++)
                 {
                     SerializedProperty propertyElement = m_treeView.PropertyEntries.GetArrayElementAtIndex(i);
-                    SerializedProperty propertyId = propertyElement.FindPropertyRelative(PropertyIdName);
+                    SerializedProperty propertyId = propertyElement.FindPropertyRelative(Options.PropertyIdName);
                     GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
 
                     if (m_selectionIds.Contains(id))
@@ -295,8 +290,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 propertyEntry.boxedValue = value;
             }
 
-            SerializedProperty propertyId = propertyEntry.FindPropertyRelative(PropertyIdName);
-            SerializedProperty propertyName = propertyEntry.FindPropertyRelative(PropertyNameName);
+            SerializedProperty propertyId = propertyEntry.FindPropertyRelative(Options.PropertyIdName);
+            SerializedProperty propertyName = propertyEntry.FindPropertyRelative(Options.PropertyNameName);
             string entryName = propertyName.stringValue;
 
             GlobalIdEditorUtility.SetGlobalIdToProperty(propertyId, GlobalId.Generate());
@@ -313,7 +308,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 for (int i = 0; i < m_treeView.PropertyEntries.arraySize; i++)
                 {
                     SerializedProperty propertyElement = m_treeView.PropertyEntries.GetArrayElementAtIndex(i);
-                    SerializedProperty propertyId = propertyElement.FindPropertyRelative(PropertyIdName);
+                    SerializedProperty propertyId = propertyElement.FindPropertyRelative(Options.PropertyIdName);
                     GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
 
                     if (m_selectionIds.Contains(id))
@@ -344,7 +339,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                         try
                         {
-                            value = item.Item.GetValue();
+                            value = item.SerializedProperty.boxedValue;
                         }
                         catch (Exception exception)
                         {
@@ -389,7 +384,6 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
                     {
-                        m_selectionIds.Add(item.Item.GetId());
                     }
                 }
             }
@@ -514,7 +508,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             for (int i = 0; i < m_treeView.PropertyEntries.arraySize; i++)
             {
                 SerializedProperty propertyEntry = m_treeView.PropertyEntries.GetArrayElementAtIndex(i);
-                SerializedProperty propertyName = propertyEntry.FindPropertyRelative(PropertyNameName);
+                SerializedProperty propertyName = propertyEntry.FindPropertyRelative(Options.PropertyNameName);
 
                 names[i] = propertyName.stringValue;
             }

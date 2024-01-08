@@ -9,28 +9,27 @@ namespace UGF.RuntimeTools.Editor.Tables
     internal class TableTreeView : TreeView
     {
         public SerializedProperty SerializedProperty { get; }
-        public ITableTree TableTree { get; }
+        public TableTreeOptions Options { get; }
         public SerializedProperty PropertyEntries { get; }
         public int SearchColumnIndex { get { return m_state.SearchColumnIndex; } set { m_state.SearchColumnIndex = value; } }
-        public ITableTreeColumn SearchColumn { get { return TableTree.Columns[SearchColumnIndex]; } }
+        public TableTreeColumnOptions SearchColumn { get { return Options.Columns[SearchColumnIndex]; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
 
         private readonly TableTreeViewState m_state;
-        private readonly List<ITableTreeItem> m_items = new List<ITableTreeItem>();
-        private readonly List<TreeViewItem> m_views = new List<TreeViewItem>();
+        private readonly List<TreeViewItem> m_items = new List<TreeViewItem>();
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
 
-        public TableTreeView(SerializedProperty serializedProperty, ITableTree tableTree) : this(serializedProperty, tableTree, TableTreeEditorInternalUtility.CreateState(tableTree))
+        public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorInternalUtility.CreateState(options))
         {
         }
 
-        public TableTreeView(SerializedProperty serializedProperty, ITableTree tableTree, TableTreeViewState state) : base(state, new MultiColumnHeader(state.Header))
+        public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options, TableTreeViewState state) : base(state, new MultiColumnHeader(state.Header))
         {
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
-            TableTree = tableTree ?? throw new ArgumentNullException(nameof(tableTree));
-            PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
+            Options = options ?? throw new ArgumentNullException(nameof(options));
+            PropertyEntries = SerializedProperty.FindPropertyRelative(Options.PropertyEntriesName);
 
             m_state = state;
 
@@ -50,43 +49,50 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
         {
             m_items.Clear();
-            m_views.Clear();
-
-            TableTree.GetItems(m_items);
 
             int indexer = 0;
 
-            for (int i = 0; i < m_items.Count; i++)
+            for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
-                ITableTreeItem item = m_items[i];
+                SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
 
-                if (OnCheckSearch(item))
+                if (OnCheckSearch(propertyElement))
                 {
-                    m_views.Add(new TableTreeViewItem(indexer++, item));
+                    m_items.Add(new TableTreeViewItem(indexer++, i, propertyElement, false, Options));
+                }
 
-                    foreach (ITableTreeItem child in item.Children)
+                SerializedProperty propertyChildren = propertyElement.FindPropertyRelative(Options.PropertyChildrenName);
+
+                if (propertyChildren != null)
+                {
+                    for (int c = 0; c < propertyChildren.arraySize; c++)
                     {
-                        m_views.Add(new TableTreeViewItem(indexer++, child)
+                        SerializedProperty propertyChild = propertyChildren.GetArrayElementAtIndex(c);
+
+                        if (OnCheckSearch(propertyChild))
                         {
-                            depth = 1
-                        });
+                            m_items.Add(new TableTreeViewItem(indexer++, c, propertyChild, true, Options)
+                            {
+                                depth = 1
+                            });
+                        }
                     }
                 }
             }
 
-            SetupParentsAndChildrenFromDepths(root, m_views);
+            SetupParentsAndChildrenFromDepths(root, m_items);
 
             if (multiColumnHeader.sortedColumnIndex >= 0)
             {
-                ITableTreeColumn column = TableTree.Columns[multiColumnHeader.sortedColumnIndex];
+                TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
                 MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
 
                 m_comparer.SetColumn(column, columnState.sortedAscending);
-                m_views.Sort(m_comparer);
+                m_items.Sort(m_comparer);
                 m_comparer.ClearColumn();
             }
 
-            return m_views;
+            return m_items;
         }
 
         protected override void RowGUI(RowGUIArgs args)
@@ -97,29 +103,30 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             for (int i = 0; i < count; i++)
             {
-                Rect position = args.GetCellRect(i);
                 int columnIndex = args.GetColumn(i);
-                ITableTreeColumn column = TableTree.Columns[columnIndex];
+                TableTreeColumnOptions column = Options.Columns[columnIndex];
 
-                position.xMin += spacing;
-                position.xMax -= spacing;
-                position.yMin += spacing;
-                position.yMax -= spacing;
+                if (rowItem.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
+                {
+                    Rect position = args.GetCellRect(i);
 
-                if (columnIndex == columnIndexForTreeFoldouts)
-                {
-                    position.xMin += foldoutWidth + spacing * 2F;
-                }
+                    position.xMin += spacing;
+                    position.xMax -= spacing;
+                    position.yMin += spacing;
+                    position.yMax -= spacing;
 
-                if (DrawRowCell != null)
-                {
-                    DrawRowCell?.Invoke(position, rowItem.Item, column);
-                }
-                else
-                {
-                    if (rowItem.Item.TryGetProperty(column, out SerializedProperty propertyValue))
+                    if (columnIndex == columnIndexForTreeFoldouts)
                     {
-                        EditorGUI.PropertyField(position, propertyValue, GUIContent.none, false);
+                        position.xMin += foldoutWidth + spacing * 2F;
+                    }
+
+                    if (DrawRowCell != null)
+                    {
+                        DrawRowCell?.Invoke(position, serializedProperty, column);
+                    }
+                    else
+                    {
+                        EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
                     }
                 }
             }
@@ -143,9 +150,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public bool TryGetItem(int id, out TableTreeViewItem item)
         {
-            for (int i = 0; i < m_views.Count; i++)
+            for (int i = 0; i < m_items.Count; i++)
             {
-                item = (TableTreeViewItem)m_views[i];
+                item = (TableTreeViewItem)m_items[i];
 
                 if (item.id == id)
                 {
@@ -162,13 +169,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             Reload();
         }
 
-        private bool OnCheckSearch(ITableTreeItem item)
+        private bool OnCheckSearch(SerializedProperty serializedProperty)
         {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+
             if (hasSearch)
             {
-                ITableTreeColumn column = SearchColumn;
+                TableTreeColumnOptions column = SearchColumn;
+                SerializedProperty propertyValue = serializedProperty.FindPropertyRelative(column.PropertyPath);
 
-                if (item.TryGetProperty(column, out SerializedProperty propertyValue))
+                if (propertyValue != null)
                 {
                     return column.Searcher.Check(propertyValue, searchString);
                 }
