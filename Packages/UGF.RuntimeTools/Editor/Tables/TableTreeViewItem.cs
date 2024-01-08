@@ -9,17 +9,19 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public int Index { get; }
         public SerializedProperty SerializedProperty { get; }
-        public bool IsChild { get; }
+        public SerializedProperty PropertyChildren { get { return m_propertyChildren ?? throw new ArgumentException("Value not specified."); } }
+        public bool HasPropertyChildren { get { return m_propertyChildren != null; } }
         public Dictionary<string, SerializedProperty> ColumnProperties { get; } = new Dictionary<string, SerializedProperty>();
 
-        public TableTreeViewItem(int id, int index, SerializedProperty serializedProperty, bool isChild, TableTreeOptions options) : base(id)
+        private readonly SerializedProperty m_propertyChildren;
+
+        public TableTreeViewItem(int id, int index, SerializedProperty serializedProperty, TableTreeOptions options) : base(id)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
 
             Index = index;
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
-            IsChild = isChild;
 
             for (int i = 0; i < options.Columns.Count; i++)
             {
@@ -28,6 +30,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (propertyValue != null)
                 {
+                    if (m_propertyChildren == null && propertyValue.name == options.PropertyChildrenName)
+                    {
+                        m_propertyChildren = propertyValue;
+                    }
+
                     ColumnProperties.Add(column.PropertyPath, propertyValue);
                 }
             }

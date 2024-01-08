@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public SerializedProperty PropertyEntries { get; }
         public int SearchColumnIndex { get { return m_state.SearchColumnIndex; } set { m_state.SearchColumnIndex = value; } }
         public TableTreeColumnOptions SearchColumn { get { return Options.Columns[SearchColumnIndex]; } }
-        public int Count { get { return rootItem.children?.Count ?? 0; } }
+        public int Count { get { return rootItem.hasChildren ? rootItem.children.Count : 0; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
@@ -43,7 +44,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem(0, -1);
-            int indexer = 0;
+            int indexer = 1;
 
             if (multiColumnHeader.sortedColumnIndex >= 0)
             {
@@ -59,7 +60,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (OnCheckSearch(propertyElement))
                 {
-                    var item = new TableTreeViewItem(indexer++, i, propertyElement, false, Options);
+                    var item = new TableTreeViewItem(indexer++, i, propertyElement, Options);
 
                     root.AddChild(item);
 
@@ -73,7 +74,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                             if (OnCheckSearch(propertyChild))
                             {
-                                item.AddChild(new TableTreeViewItem(indexer++, c, propertyChild, true, Options)
+                                item.AddChild(new TableTreeViewItem(indexer++, c, propertyChild, Options)
                                 {
                                     depth = 1
                                 });
@@ -85,7 +86,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
             }
 
-            if (root.children != null && multiColumnHeader.sortedColumnIndex >= 0)
+            if (root.hasChildren && multiColumnHeader.sortedColumnIndex >= 0)
             {
                 root.children.Sort(m_comparer);
             }
@@ -140,6 +141,89 @@ namespace UGF.RuntimeTools.Editor.Tables
             Reload();
         }
 
+        public void GetChildrenSelectionIndexes(TableTreeViewItem item, ICollection<int> indexes)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+            if (indexes == null) throw new ArgumentNullException(nameof(indexes));
+
+            for (int i = 0; i < item.children.Count; i++)
+            {
+                var child = (TableTreeViewItem)item.children[i];
+
+                if (state.selectedIDs.Contains(child.id))
+                {
+                    indexes.Add(child.Index);
+                }
+            }
+        }
+
+        public void GetChildrenSelection(TableTreeViewItem item, ICollection<TableTreeViewItem> selection)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+            if (selection == null) throw new ArgumentNullException(nameof(selection));
+            if (!item.hasChildren) throw new ArgumentException("Table tree item must have children.");
+
+            for (int i = 0; i < item.children.Count; i++)
+            {
+                var child = (TableTreeViewItem)item.children[i];
+
+                if (state.selectedIDs.Contains(child.id))
+                {
+                    selection.Add(child);
+                }
+            }
+        }
+
+        public void GetSelectionIndexes(ICollection<int> indexes)
+        {
+            if (indexes == null) throw new ArgumentNullException(nameof(indexes));
+
+            for (int i = 0; i < state.selectedIDs.Count; i++)
+            {
+                int id = state.selectedIDs[i];
+
+                if (TryGetItem(id, out TableTreeViewItem item) && item.HasPropertyChildren)
+                {
+                    indexes.Add(item.Index);
+                }
+            }
+        }
+
+        public void GetChildrenParentSelection(ICollection<TableTreeViewItem> selection)
+        {
+            if (selection == null) throw new ArgumentNullException(nameof(selection));
+
+            for (int i = 0; i < state.selectedIDs.Count; i++)
+            {
+                int id = state.selectedIDs[i];
+
+                if (TryGetItem(id, out TableTreeViewItem item))
+                {
+                    if (!item.HasPropertyChildren)
+                    {
+                        var parent = (TableTreeViewItem)item.parent;
+
+                        selection.Add(parent);
+                    }
+                }
+            }
+        }
+
+        public void GetSelection(ICollection<TableTreeViewItem> selection)
+        {
+            if (selection == null) throw new ArgumentNullException(nameof(selection));
+
+            for (int i = 0; i < state.selectedIDs.Count; i++)
+            {
+                int id = state.selectedIDs[i];
+
+                if (TryGetItem(id, out TableTreeViewItem item) && item.HasPropertyChildren)
+                {
+                    selection.Add(item);
+                }
+            }
+        }
+
         public void ClearSelection()
         {
             SetSelection(ArraySegment<int>.Empty);
@@ -152,13 +236,13 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public bool TryGetItem(int id, out TableTreeViewItem item)
         {
-            if (rootItem.children != null)
+            if (rootItem.hasChildren)
             {
                 for (int i = 0; i < rootItem.children.Count; i++)
                 {
                     item = (TableTreeViewItem)rootItem.children[i];
 
-                    if (item.id == id)
+                    if (item.id == id || TryGetItem(item, id, out item))
                     {
                         return true;
                     }
@@ -166,6 +250,27 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             item = default;
+            return false;
+        }
+
+        public bool TryGetItem(TableTreeViewItem item, int id, out TableTreeViewItem child)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            if (item.hasChildren)
+            {
+                for (int i = 0; i < item.children.Count; i++)
+                {
+                    child = (TableTreeViewItem)item.children[i];
+
+                    if (child.id == id)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            child = default;
             return false;
         }
 
