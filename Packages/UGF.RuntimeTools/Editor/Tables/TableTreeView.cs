@@ -58,31 +58,25 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
 
-                if (OnCheckSearch(propertyElement))
+                var item = new TableTreeViewItem(indexer++, i, propertyElement, Options);
+
+                root.AddChild(item);
+
+                SerializedProperty propertyChildren = propertyElement.FindPropertyRelative(Options.PropertyChildrenName);
+
+                if (propertyChildren != null)
                 {
-                    var item = new TableTreeViewItem(indexer++, i, propertyElement, Options);
-
-                    root.AddChild(item);
-
-                    SerializedProperty propertyChildren = propertyElement.FindPropertyRelative(Options.PropertyChildrenName);
-
-                    if (propertyChildren != null)
+                    for (int c = 0; c < propertyChildren.arraySize; c++)
                     {
-                        for (int c = 0; c < propertyChildren.arraySize; c++)
+                        SerializedProperty propertyChild = propertyChildren.GetArrayElementAtIndex(c);
+
+                        item.AddChild(new TableTreeViewItem(indexer++, c, propertyChild, Options)
                         {
-                            SerializedProperty propertyChild = propertyChildren.GetArrayElementAtIndex(c);
-
-                            if (OnCheckSearch(propertyChild))
-                            {
-                                item.AddChild(new TableTreeViewItem(indexer++, c, propertyChild, Options)
-                                {
-                                    depth = 1
-                                });
-                            }
-                        }
-
-                        item.children?.Sort(m_comparer);
+                            depth = 1
+                        });
                     }
+
+                    item.children?.Sort(m_comparer);
                 }
             }
 
@@ -286,22 +280,19 @@ namespace UGF.RuntimeTools.Editor.Tables
             Reload();
         }
 
-        private bool OnCheckSearch(SerializedProperty serializedProperty)
+        protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
         {
-            if (hasSearch)
+            var view = (TableTreeViewItem)item;
+            TableTreeColumnOptions column = SearchColumn;
+
+            if (view.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
             {
-                TableTreeColumnOptions column = SearchColumn;
-                SerializedProperty propertyValue = serializedProperty.FindPropertyRelative(column.PropertyPath);
+                ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
 
-                if (propertyValue != null)
-                {
-                    ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
-
-                    return searcher.Check(propertyValue, searchString);
-                }
+                return searcher.Check(serializedProperty, search);
             }
 
-            return true;
+            return false;
         }
 
         protected override void KeyEvent()
