@@ -20,6 +20,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool SearchById { get; set; }
         public bool ShowIndexes { get; set; }
         public bool UnlockIds { get; set; }
+        public bool DisplayList { get; set; }
 
         public event TableDrawerEntryHandler Added;
         public event TableDrawerEntryHandler Removing;
@@ -30,6 +31,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event TableDrawerEntryHandler DrawingEntryHeader;
         public event TableDrawerEntryHandler DrawingEntryProperties;
 
+        private readonly ReorderableListKeyAndValueDrawer m_listEntries;
         private readonly DropdownSelection<DropdownItem<int>> m_selection = new DropdownSelection<DropdownItem<int>>();
         private int? m_selectedIndex;
         private SerializedProperty m_selectedPropertyId;
@@ -55,12 +57,23 @@ namespace UGF.RuntimeTools.Editor.Tables
             PropertyNameName = propertyNameName;
             PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
 
+            m_listEntries = new ReorderableListKeyAndValueDrawer(PropertyEntries, PropertyIdName, PropertyNameName);
+            m_selection.Dropdown.RootName = "Entries";
             m_selection.Dropdown.MinimumHeight = 300F;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            m_listEntries.Enable();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
+
+            m_listEntries.Disable();
 
             OnEntryDeselect();
         }
@@ -77,7 +90,14 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 EditorGUILayout.Space();
 
-                OnEntrySelectedDraw();
+                if (DisplayList)
+                {
+                    m_listEntries.DrawGUILayout();
+                }
+                else
+                {
+                    OnEntrySelectedDraw();
+                }
             }
         }
 
@@ -257,34 +277,46 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
-                GUIContent contentDropdown = m_styles.EntryNoneContent;
-
-                if (m_selectedPropertyName != null)
+                if (DisplayList)
                 {
-                    string entryName = m_selectedPropertyName.stringValue;
-
-                    contentDropdown = !string.IsNullOrEmpty(entryName) ? new GUIContent(entryName) : m_styles.EntryEmptyContent;
-                }
-
-                Rect rectDropdown = GUILayoutUtility.GetRect(contentDropdown, EditorStyles.toolbarDropDown);
-
-                if (DropdownEditorGUIUtility.Dropdown(rectDropdown, GUIContent.none, contentDropdown, m_selection, OnGetEntryKeyItems, out DropdownItem<int> selected, FocusType.Keyboard, EditorStyles.toolbarDropDown))
-                {
-                    OnEntrySelect(selected.Value);
-                }
-
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
-                {
-                    int index = m_selectedIndex ?? PropertyEntries.arraySize;
-
-                    OnEntryInsert(index);
-                }
-
-                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
-                {
-                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
+                    if (TableEditorGUIInternalUtility.DrawToolbarButton(new GUIContent("Back to selection"), 130F))
                     {
-                        OnEntryRemove(SelectedIndex);
+                        DisplayList = false;
+                    }
+
+                    GUILayout.FlexibleSpace();
+                }
+                else
+                {
+                    GUIContent contentDropdown = m_styles.EntryNoneContent;
+
+                    if (m_selectedPropertyName != null)
+                    {
+                        string entryName = m_selectedPropertyName.stringValue;
+
+                        contentDropdown = !string.IsNullOrEmpty(entryName) ? new GUIContent(entryName) : m_styles.EntryEmptyContent;
+                    }
+
+                    Rect rectDropdown = GUILayoutUtility.GetRect(contentDropdown, EditorStyles.toolbarDropDown);
+
+                    if (DropdownEditorGUIUtility.Dropdown(rectDropdown, GUIContent.none, contentDropdown, m_selection, OnGetEntryKeyItems, out DropdownItem<int> selected, FocusType.Keyboard, EditorStyles.toolbarDropDown))
+                    {
+                        OnEntrySelect(selected.Value);
+                    }
+
+                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
+                    {
+                        int index = m_selectedIndex ?? PropertyEntries.arraySize;
+
+                        OnEntryInsert(index);
+                    }
+
+                    using (new EditorGUI.DisabledScope(m_selectedIndex == null))
+                    {
+                        if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
+                        {
+                            OnEntryRemove(SelectedIndex);
+                        }
                     }
                 }
 
@@ -299,6 +331,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var menu = new GenericMenu();
 
+            menu.AddItem(new GUIContent("Display Entries"), DisplayList, () => DisplayList = !DisplayList);
             menu.AddItem(new GUIContent("Search by Id"), SearchById, () => SearchById = !SearchById);
             menu.AddItem(new GUIContent("Show Indexes"), ShowIndexes, () => ShowIndexes = !ShowIndexes);
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
