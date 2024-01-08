@@ -13,7 +13,27 @@ MonoBehaviour:
   m_Name: New Test Table Asset 1
   m_EditorClassIdentifier: 
   m_table:
-    m_entries: []
-  references:
-    version: 2
-    RefIds: []
+    m_entries:
+    - m_id:
+        m_first: 5378089786592331632
+        m_second: 7546177699687145402
+      m_name: Entry
+      m_text: 
+      m_bool: 0
+      m_int: 0
+      m_float: 0
+      m_range: -1.02
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 0
+        m_second: 0
+      m_children:
+      - m_childName: 1
+        m_childValue: 5
+        m_childBool: 0
+      - m_childName: 2
+        m_childValue: 10
+        m_childBool: 1
