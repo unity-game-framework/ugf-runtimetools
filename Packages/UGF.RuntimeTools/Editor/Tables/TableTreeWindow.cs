@@ -26,7 +26,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_drawer?.Disable();
             m_drawer = null;
-            m_serializedObject.Dispose();
+            m_serializedObject?.Dispose();
             m_serializedObject = null;
         }
 

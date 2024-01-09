@@ -12,11 +12,13 @@ namespace UGF.RuntimeTools.Editor.Tables
         public TableTreeOptions Options { get; }
         public SerializedProperty PropertyEntries { get; }
         public int SearchColumnIndex { get { return m_state.SearchColumnIndex; } set { m_state.SearchColumnIndex = value; } }
-        public TableTreeColumnOptions SearchColumn { get { return Options.Columns[SearchColumnIndex]; } }
+        public TableTreeColumnOptions SearchColumn { get { return HasSearchColumn ? Options.Columns[m_state.SearchColumnIndex] : throw new ArgumentException("Value not specified."); } }
+        public bool HasSearchColumn { get { return m_state.SearchColumnIndex >= 0 && m_state.SearchColumnIndex < Options.Columns.Count; } }
+        public TableTreeColumnOptions SortColumn { get { return HasSortColumn ? Options.Columns[multiColumnHeader.sortedColumnIndex] : throw new ArgumentException("Value not specified."); } }
+        public bool HasSortColumn { get { return multiColumnHeader.sortedColumnIndex >= 0 && multiColumnHeader.sortedColumnIndex < Options.Columns.Count; } }
         public int TotalCount { get { return m_items.Count; } }
         public int VisibleCount { get; private set; }
         public int VisibleEntryCount { get; private set; }
-        public bool HasSorting { get { return multiColumnHeader.sortedColumnIndex >= 0; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
@@ -42,7 +44,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2F;
             showAlternatingRowBackgrounds = true;
             enableItemHovering = true;
-
+            
             multiColumnHeader.sortingChanged += OnSortingChanged;
         }
 
@@ -57,7 +59,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
                 int id = TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options);
 
-                var item = new TableTreeViewItem(id, i, propertyElement, Options);
+                var item = new TableTreeViewItem(id, i, propertyElement, false, Options);
 
                 root.AddChild(item);
 
@@ -72,7 +74,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                         SerializedProperty propertyChild = propertyChildren.GetArrayElementAtIndex(c);
                         int childId = HashCode.Combine(id, c);
 
-                        var child = new TableTreeViewItem(childId, c, propertyChild, Options)
+                        var child = new TableTreeViewItem(childId, c, propertyChild, true, Options)
                         {
                             depth = 1
                         };
@@ -86,12 +88,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (root.hasChildren)
             {
-                if (HasSorting)
+                if (HasSortColumn)
                 {
-                    TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
                     MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
 
-                    m_comparer.SetColumn(column, columnState.sortedAscending);
+                    m_comparer.SetColumn(SortColumn, columnState.sortedAscending);
 
                     OnSort(root);
 
@@ -153,47 +154,39 @@ namespace UGF.RuntimeTools.Editor.Tables
             for (int i = 0; i < count; i++)
             {
                 int columnIndex = args.GetColumn(i);
-                TableTreeColumnOptions column = Options.Columns[columnIndex];
 
-                if (rowItem.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
+                if (columnIndex >= 0 && columnIndex < Options.Columns.Count)
                 {
-                    Rect position = args.GetCellRect(i);
+                    TableTreeColumnOptions column = Options.Columns[columnIndex];
 
-                    position.xMin += spacing;
-                    position.xMax -= spacing;
-                    position.yMin += spacing;
-                    position.yMax -= spacing;
+                    if (rowItem.ColumnProperties.TryGetValue(column, out SerializedProperty serializedProperty))
+                    {
+                        Rect position = args.GetCellRect(i);
 
-                    if (columnIndex == columnIndexForTreeFoldouts)
-                    {
-                        position.xMin += foldoutWidth + spacing * 2F;
-                    }
+                        position.yMin += spacing;
+                        position.yMax -= spacing;
 
-                    if (DrawRowCell != null)
-                    {
-                        DrawRowCell?.Invoke(position, rowItem, serializedProperty, column);
-                    }
-                    else
-                    {
-                        EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+                        if (columnIndex == columnIndexForTreeFoldouts)
+                        {
+                            if (Options.TryGetChildrenColumn(out _))
+                            {
+                                position.xMin += foldoutWidth + spacing * 3F;
+                            }
+
+                            position.xMax -= spacing;
+                        }
+
+                        if (DrawRowCell != null)
+                        {
+                            DrawRowCell?.Invoke(position, rowItem, serializedProperty, column);
+                        }
+                        else
+                        {
+                            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+                        }
                     }
                 }
             }
-        }
-
-        protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
-        {
-            var view = (TableTreeViewItem)item;
-            TableTreeColumnOptions column = SearchColumn;
-
-            if (view.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
-            {
-                ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
-
-                return searcher.Check(serializedProperty, search);
-            }
-
-            return false;
         }
 
         protected override void KeyEvent()
@@ -356,7 +349,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             TableTreeColumnOptions column = SearchColumn;
 
-            if (item.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
+            if (item.ColumnProperties.TryGetValue(column, out SerializedProperty serializedProperty))
             {
                 ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
 

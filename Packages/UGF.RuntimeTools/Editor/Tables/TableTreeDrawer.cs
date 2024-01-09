@@ -16,11 +16,11 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public SerializedObject SerializedObject { get; }
         public TableTreeOptions Options { get; }
+        public TableTreeView TreeView { get; }
         public bool UnlockIds { get; set; }
         public bool DisplayToolbar { get; set; } = true;
         public bool DisplayFooter { get; set; } = true;
 
-        private readonly TableTreeView m_treeView;
         private readonly TableTreeViewPreferences m_treeViewPreferences;
         private readonly Action<SerializedProperty> m_entryInitializeHandler;
         private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
@@ -64,8 +64,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             SerializedObject = serializedObject ?? throw new ArgumentNullException(nameof(serializedObject));
             Options = options ?? throw new ArgumentNullException(nameof(options));
 
-            m_treeView = new TableTreeView(SerializedObject.FindProperty("m_table"), options);
-            m_treeViewPreferences = new TableTreeViewPreferences(m_treeView, SerializedObject.targetObject);
+            TreeView = new TableTreeView(SerializedObject.FindProperty("m_table"), options);
+            m_treeViewPreferences = new TableTreeViewPreferences(TreeView, SerializedObject.targetObject);
             m_entryInitializeHandler = OnEntryInitialize;
             m_searchSelectionItemsHandler = OnGetSearchSelectionItems;
             m_searchSelection.Dropdown.RootName = "Search Column";
@@ -81,12 +81,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             m_clipboard.Read();
 
-            m_treeView.DrawRowCell += OnDrawRowCell;
-            m_treeView.KeyEventProcessing += OnKeyEventProcessing;
+            TreeView.DrawRowCell += OnDrawRowCell;
+            TreeView.KeyEventProcessing += OnKeyEventProcessing;
             m_treeViewPreferences.Read();
 
-            m_treeView.Reload();
-            m_treeView.multiColumnHeader.ResizeToFit();
+            TreeView.Reload();
+            TreeView.multiColumnHeader.ResizeToFit();
         }
 
         protected override void OnDisable()
@@ -97,8 +97,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
-            m_treeView.DrawRowCell -= OnDrawRowCell;
-            m_treeView.KeyEventProcessing -= OnKeyEventProcessing;
+            TreeView.DrawRowCell -= OnDrawRowCell;
+            TreeView.KeyEventProcessing -= OnKeyEventProcessing;
         }
 
         public void DrawGUILayout()
@@ -133,7 +133,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryAdd();
                 }
 
-                using (new EditorGUI.DisabledScope(!m_treeView.HasSelection()))
+                using (new EditorGUI.DisabledScope(!TreeView.HasSelection()))
                 {
                     if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
                     {
@@ -163,13 +163,13 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             using (new SerializedObjectUpdateScope(SerializedObject))
             {
-                m_treeView.OnGUI(position);
+                TreeView.OnGUI(position);
             }
         }
 
         protected virtual void OnDrawRowCell(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
-            if (serializedProperty.propertyType == SerializedPropertyType.Generic && serializedProperty.isArray)
+            if (serializedProperty.isArray && serializedProperty.propertyType == SerializedPropertyType.Generic)
             {
                 if (serializedProperty.name == Options.PropertyChildrenName)
                 {
@@ -221,10 +221,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             using (new EditorGUILayout.HorizontalScope(m_styles.Footer))
             {
                 string path = AssetDatabase.GetAssetPath(SerializedObject.targetObject);
-                int columnsVisible = m_treeView.multiColumnHeader.state.visibleColumns.Length;
-                int columnsTotal = m_treeView.multiColumnHeader.state.columns.Length;
-                int countVisible = m_treeView.VisibleEntryCount;
-                int countTotal = m_treeView.PropertyEntries.arraySize;
+                int columnsVisible = TreeView.multiColumnHeader.state.visibleColumns.Length;
+                int columnsTotal = TreeView.multiColumnHeader.state.columns.Length;
+                int countVisible = TreeView.VisibleEntryCount;
+                int countTotal = TreeView.PropertyEntries.arraySize;
 
                 GUILayout.Label($"Path: {path}", m_styles.FooterSection);
                 GUILayout.FlexibleSpace();
@@ -246,7 +246,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     GUILayout.Label(builder.ToString(), m_styles.FooterSection);
                 }
 
-                GUILayout.Label($"Search Column: {m_treeView.SearchColumn.DisplayName}", m_styles.FooterSection);
+                GUILayout.Label($"Search Column: {TreeView.SearchColumn.DisplayName}", m_styles.FooterSection);
 
                 GUILayout.Label(columnsVisible == columnsTotal
                     ? $"Columns: {columnsTotal}"
@@ -274,16 +274,16 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (DropdownEditorGUIUtility.Dropdown(rectButton, GUIContent.none, m_styles.SearchDropdownContent, m_searchSelection, m_searchSelectionItemsHandler, out DropdownItem<int> selected, FocusType.Keyboard, GUIStyle.none))
             {
-                m_treeView.SearchColumnIndex = selected.Value;
+                TreeView.SearchColumnIndex = selected.Value;
             }
 
-            m_treeView.searchString = m_search.OnGUI(position, m_treeView.searchString, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
+            TreeView.searchString = m_search.OnGUI(position, TreeView.searchString, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
 
-            if (string.IsNullOrEmpty(m_treeView.searchString) && !m_search.HasFocus())
+            if (string.IsNullOrEmpty(TreeView.searchString) && !m_search.HasFocus())
             {
                 using (new EditorGUI.DisabledScope(true))
                 {
-                    GUI.Label(rectLabel, m_treeView.SearchColumn.DisplayName, EditorStyles.miniLabel);
+                    GUI.Label(rectLabel, TreeView.SearchColumn.DisplayName, EditorStyles.miniLabel);
                 }
             }
         }
@@ -307,36 +307,36 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryAdd()
         {
-            m_treeView.GetChildrenParentSelection(m_selectedItems);
+            TreeView.GetChildrenParentSelection(m_selectedItems);
 
             foreach (TableTreeViewItem item in m_selectedItems)
             {
-                m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
+                TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
                 TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
 
-            m_treeView.GetSelectionIndexes(m_selectedIndexes);
+            TreeView.GetSelectionIndexes(m_selectedIndexes);
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
+                TableTreeDrawerEditorUtility.PropertyInsert(TreeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
             }
             else
             {
-                TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, m_treeView.PropertyEntries.arraySize, m_entryInitializeHandler);
+                TableTreeDrawerEditorUtility.PropertyInsert(TreeView.PropertyEntries, TreeView.PropertyEntries.arraySize, m_entryInitializeHandler);
             }
 
             m_selectedIndexes.Clear();
             m_selectedItems.Clear();
-            m_treeView.Apply();
+            TreeView.Apply();
         }
 
         private void OnEntryAddChildren(TableTreeViewItem item)
         {
-            m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
+            TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
             if (m_selectedIndexes.Count > 0)
             {
@@ -349,43 +349,43 @@ namespace UGF.RuntimeTools.Editor.Tables
                 TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize);
             }
 
-            m_treeView.Apply();
+            TreeView.Apply();
         }
 
         private void OnEntryRemove()
         {
-            m_treeView.GetChildrenParentSelection(m_selectedItems);
+            TreeView.GetChildrenParentSelection(m_selectedItems);
 
             foreach (TableTreeViewItem item in m_selectedItems)
             {
-                m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
+                TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
                 TableTreeDrawerEditorUtility.PropertyRemove(item.PropertyChildren, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
 
-            m_treeView.GetSelectionIndexes(m_selectedIndexes);
+            TreeView.GetSelectionIndexes(m_selectedIndexes);
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeDrawerEditorUtility.PropertyRemove(m_treeView.PropertyEntries, m_selectedIndexes);
+                TableTreeDrawerEditorUtility.PropertyRemove(TreeView.PropertyEntries, m_selectedIndexes);
             }
 
             m_selectedIndexes.Clear();
             m_selectedItems.Clear();
-            m_treeView.Apply();
+            TreeView.Apply();
         }
 
         private void OnEntryCopy()
         {
             m_clipboard.Clear();
-            m_treeView.GetSelection(m_selectedItems);
+            TreeView.GetSelection(m_selectedItems);
 
             m_clipboard.TryCopyEntries(m_selectedItems);
 
             m_selectedItems.Clear();
-            m_treeView.GetChildrenSelection(m_selectedItems);
+            TreeView.GetChildrenSelection(m_selectedItems);
 
             m_clipboard.TryCopyChildren(m_selectedItems);
 
@@ -402,17 +402,17 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (OnClipboardMatch())
             {
-                m_treeView.GetSelection(m_selectedItems);
+                TreeView.GetSelection(m_selectedItems);
 
-                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : m_treeView.PropertyEntries.arraySize;
+                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
 
                 foreach (object value in m_clipboard.Data.Entries)
                 {
-                    TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, index, m_entryInitializeHandler, value);
+                    TableTreeDrawerEditorUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
                 }
 
                 m_selectedItems.Clear();
-                m_treeView.GetChildrenSelection(m_selectedItems);
+                TreeView.GetChildrenSelection(m_selectedItems);
 
                 if (m_selectedItems.Count > 0)
                 {
@@ -426,7 +426,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
 
                 m_selectedItems.Clear();
-                m_treeView.Apply();
+                TreeView.Apply();
             }
         }
 
@@ -437,9 +437,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddItem(m_styles.MenuPingAsset, false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
             menu.AddItem(m_styles.MenuUnlockIds, UnlockIds, () => UnlockIds = !UnlockIds);
 
-            if (m_treeView.HasSorting)
+            if (TreeView.HasSortColumn)
             {
-                menu.AddItem(m_styles.MenuResetSorting, false, () => m_treeView.ClearSorting());
+                menu.AddItem(m_styles.MenuResetSorting, false, () => TreeView.ClearSorting());
             }
             else
             {
@@ -451,7 +451,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddItem(m_styles.MenuResetPreferences, false, () =>
                 {
                     m_treeViewPreferences.Reset();
-                    m_treeView.multiColumnHeader.ResizeToFit();
+                    TreeView.multiColumnHeader.ResizeToFit();
                 });
             }
             else
@@ -474,12 +474,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             menu.AddSeparator(string.Empty);
 
-            if (m_treeView != null && m_treeView.PropertyEntries.arraySize > 0)
+            if (TreeView != null && TreeView.PropertyEntries.arraySize > 0)
             {
                 menu.AddItem(m_styles.MenuClear, false, () =>
                 {
-                    m_treeView.PropertyEntries.ClearArray();
-                    m_treeView.Apply();
+                    TreeView.PropertyEntries.ClearArray();
+                    TreeView.Apply();
                 });
             }
             else
@@ -541,8 +541,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnUndoOrRedoPerformed()
         {
-            m_treeView.SerializedProperty.serializedObject.Update();
-            m_treeView.Reload();
+            TreeView.SerializedProperty.serializedObject.Update();
+            TreeView.Reload();
         }
 
         private void OnEntryInitialize(SerializedProperty serializedProperty)
@@ -558,11 +558,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private string OnGetUniqueName(string entryName)
         {
-            string[] names = new string[m_treeView.PropertyEntries.arraySize];
+            string[] names = new string[TreeView.PropertyEntries.arraySize];
 
-            for (int i = 0; i < m_treeView.PropertyEntries.arraySize; i++)
+            for (int i = 0; i < TreeView.PropertyEntries.arraySize; i++)
             {
-                SerializedProperty propertyEntry = m_treeView.PropertyEntries.GetArrayElementAtIndex(i);
+                SerializedProperty propertyEntry = TreeView.PropertyEntries.GetArrayElementAtIndex(i);
                 SerializedProperty propertyName = propertyEntry.FindPropertyRelative(Options.PropertyNameName);
 
                 names[i] = propertyName.stringValue;

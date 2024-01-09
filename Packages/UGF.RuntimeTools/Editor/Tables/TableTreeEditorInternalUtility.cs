@@ -11,6 +11,25 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal static class TableTreeEditorInternalUtility
     {
+        public static bool IsSingleFieldProperty(SerializedProperty serializedProperty)
+        {
+            switch (serializedProperty.propertyType)
+            {
+                case SerializedPropertyType.Integer:
+                case SerializedPropertyType.Boolean:
+                case SerializedPropertyType.Float:
+                case SerializedPropertyType.String:
+                case SerializedPropertyType.ObjectReference:
+                case SerializedPropertyType.LayerMask:
+                case SerializedPropertyType.Enum:
+                case SerializedPropertyType.Character:
+                case SerializedPropertyType.AnimationCurve:
+                case SerializedPropertyType.Gradient:
+                case SerializedPropertyType.ManagedReference: return true;
+                default: return false;
+            }
+        }
+
         public static int GetEntryId(SerializedProperty serializedProperty, TableTreeOptions options)
         {
             if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
@@ -52,9 +71,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             while (type != null)
             {
-                foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+                foreach (FieldInfo field in type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
                 {
-                    if (field.IsDefined(typeof(SerializeField)) || field.IsDefined(typeof(SerializeReference)))
+                    if (field.IsPublic || field.IsDefined(typeof(SerializeField)) || field.IsDefined(typeof(SerializeReference)))
                     {
                         fields.Add(field);
                     }

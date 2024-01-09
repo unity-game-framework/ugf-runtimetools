@@ -37,8 +37,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         private int OnCompare(TableTreeViewItem x, TableTreeViewItem y)
         {
             if (HasColumn
-                && x.ColumnProperties.TryGetValue(Column.PropertyPath, out SerializedProperty xProperty)
-                && y.ColumnProperties.TryGetValue(Column.PropertyPath, out SerializedProperty yProperty))
+                && x.ColumnProperties.TryGetValue(Column, out SerializedProperty xProperty)
+                && y.ColumnProperties.TryGetValue(Column, out SerializedProperty yProperty))
             {
                 IComparer<SerializedProperty> comparer = Column.Comparer ?? TableTreeColumnComparer.Default;
 
