@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
 using UGF.EditorTools.Editor.IMGUI.Scopes;
 using UGF.EditorTools.Runtime.Ids;
-using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -219,8 +217,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 string path = AssetDatabase.GetAssetPath(SerializedObject.targetObject);
                 int columnsVisible = m_treeView.multiColumnHeader.state.visibleColumns.Length;
                 int columnsTotal = m_treeView.multiColumnHeader.state.columns.Length;
-                int countVisible = m_treeView.Count;
-                int countTotal = ((TableAsset)SerializedObject.targetObject).Get().Entries.Count();
+                int countVisible = m_treeView.VisibleEntryCount;
+                int countTotal = m_treeView.PropertyEntries.arraySize;
 
                 GUILayout.Label($"Path: {path}", m_styles.FooterSection);
                 GUILayout.FlexibleSpace();
@@ -275,7 +273,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             m_treeView.searchString = m_search.OnGUI(position, m_treeView.searchString, m_styles.SearchField, m_styles.SearchButtonCancel, m_styles.SearchButtonCancelEmpty);
 
-            if (!m_search.HasFocus())
+            if (string.IsNullOrEmpty(m_treeView.searchString) && !m_search.HasFocus())
             {
                 using (new EditorGUI.DisabledScope(true))
                 {

@@ -6,14 +6,16 @@ using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    internal class TableTreeView : TreeView
+    public class TableTreeView : TreeView
     {
         public SerializedProperty SerializedProperty { get; }
         public TableTreeOptions Options { get; }
         public SerializedProperty PropertyEntries { get; }
         public int SearchColumnIndex { get { return m_state.SearchColumnIndex; } set { m_state.SearchColumnIndex = value; } }
         public TableTreeColumnOptions SearchColumn { get { return Options.Columns[SearchColumnIndex]; } }
-        public int Count { get { return rootItem.hasChildren ? rootItem.children.Count : 0; } }
+        public int TotalCount { get { return m_items.Count; } }
+        public int VisibleCount { get; private set; }
+        public int VisibleEntryCount { get; private set; }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
@@ -21,6 +23,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private readonly TableTreeViewState m_state;
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
         private readonly Dictionary<int, TableTreeViewItem> m_items = new Dictionary<int, TableTreeViewItem>();
+        private readonly List<TreeViewItem> m_rows = new List<TreeViewItem>();
 
         public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorInternalUtility.CreateState(options))
         {
@@ -102,7 +105,42 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
         {
-            return root.hasChildren ? base.BuildRows(root) : ArraySegment<TreeViewItem>.Empty;
+            m_rows.Clear();
+
+            IList<TreeViewItem> items;
+
+            if (root.hasChildren)
+            {
+                if (hasSearch)
+                {
+                    OnSearchRows(root, m_rows, searchString);
+
+                    items = m_rows;
+                }
+                else
+                {
+                    items = base.BuildRows(root);
+                }
+            }
+            else
+            {
+                items = ArraySegment<TreeViewItem>.Empty;
+            }
+
+            VisibleCount = items.Count;
+            VisibleEntryCount = 0;
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                var item = (TableTreeViewItem)items[i];
+
+                if (item.HasPropertyChildren)
+                {
+                    VisibleEntryCount++;
+                }
+            }
+
+            return items;
         }
 
         protected override void RowGUI(RowGUIArgs args)
@@ -275,6 +313,56 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool TryGetItem(int id, out TableTreeViewItem item)
         {
             return m_items.TryGetValue(id, out item);
+        }
+
+        private void OnSearchRows(TreeViewItem root, ICollection<TreeViewItem> rows, string search)
+        {
+            for (int i = 0; i < root.children.Count; i++)
+            {
+                var item = (TableTreeViewItem)root.children[i];
+                bool itemMatch = false;
+
+                if (OnSearch(item, search))
+                {
+                    rows.Add(item);
+                    itemMatch = true;
+                }
+
+                if (item.hasChildren)
+                {
+                    bool itemAdded = false;
+
+                    for (int c = 0; c < item.children.Count; c++)
+                    {
+                        var child = (TableTreeViewItem)item.children[c];
+
+                        if (itemMatch || OnSearch(child, search))
+                        {
+                            if (!itemMatch && !itemAdded)
+                            {
+                                rows.Add(item);
+                                itemAdded = true;
+                            }
+
+                            rows.Add(child);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool OnSearch(TableTreeViewItem item, string search)
+        {
+            TableTreeColumnOptions column = SearchColumn;
+
+            if (item.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
+            {
+                ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
+
+                return searcher.Check(serializedProperty, search);
+            }
+
+            return false;
         }
 
         private void OnSort(TreeViewItem item)

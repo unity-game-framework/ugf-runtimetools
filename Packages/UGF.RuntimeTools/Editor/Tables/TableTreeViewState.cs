@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UGF.RuntimeTools.Editor.Tables
 {
     [Serializable]
-    internal class TableTreeViewState : TreeViewState
+    public class TableTreeViewState : TreeViewState
     {
         [SerializeField] private int m_searchColumnIndex;
         [SerializeField] private MultiColumnHeaderState m_header;
