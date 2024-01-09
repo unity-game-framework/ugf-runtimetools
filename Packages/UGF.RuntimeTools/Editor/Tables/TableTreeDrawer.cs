@@ -291,24 +291,32 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_treeView.GetChildrenParentSelection(m_selectedItems);
 
-            foreach (TableTreeViewItem item in m_selectedItems)
+            if (m_selectedItems.Count > 0)
             {
-                if (item.hasChildren)
+                foreach (TableTreeViewItem item in m_selectedItems)
                 {
-                    m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
+                    if (item.hasChildren)
+                    {
+                        m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
-                    TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
+                        TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
 
-                    m_selectedIndexes.Clear();
+                        m_selectedIndexes.Clear();
+                    }
                 }
+
+                m_treeView.GetSelectionIndexes(m_selectedIndexes);
+
+                TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
+
+                m_selectedIndexes.Clear();
+                m_selectedItems.Clear();
+            }
+            else
+            {
+                TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, m_treeView.PropertyEntries.arraySize, m_entryInitializeHandler);
             }
 
-            m_treeView.GetSelectionIndexes(m_selectedIndexes);
-
-            TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
-
-            m_selectedIndexes.Clear();
-            m_selectedItems.Clear();
             m_treeView.Apply();
         }
 

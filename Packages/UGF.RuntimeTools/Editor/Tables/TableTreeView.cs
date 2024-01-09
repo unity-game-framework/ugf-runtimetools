@@ -163,13 +163,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (item == null) throw new ArgumentNullException(nameof(item));
             if (indexes == null) throw new ArgumentNullException(nameof(indexes));
 
-            for (int i = 0; i < item.children.Count; i++)
+            if (item.hasChildren)
             {
-                var child = (TableTreeViewItem)item.children[i];
-
-                if (state.selectedIDs.Contains(child.id))
+                for (int i = 0; i < item.children.Count; i++)
                 {
-                    indexes.Add(child.Index);
+                    var child = (TableTreeViewItem)item.children[i];
+
+                    if (state.selectedIDs.Contains(child.id))
+                    {
+                        indexes.Add(child.Index);
+                    }
                 }
             }
         }
@@ -180,13 +183,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (selection == null) throw new ArgumentNullException(nameof(selection));
             if (!item.hasChildren) throw new ArgumentException("Table tree item must have children.");
 
-            for (int i = 0; i < item.children.Count; i++)
+            if (item.hasChildren)
             {
-                var child = (TableTreeViewItem)item.children[i];
-
-                if (state.selectedIDs.Contains(child.id))
+                for (int i = 0; i < item.children.Count; i++)
                 {
-                    selection.Add(child);
+                    var child = (TableTreeViewItem)item.children[i];
+
+                    if (state.selectedIDs.Contains(child.id))
+                    {
+                        selection.Add(child);
+                    }
                 }
             }
         }
