@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UGF.EditorTools.Editor.Ids;
+using UGF.EditorTools.Runtime.Ids;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
@@ -8,6 +11,17 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     internal static class TableTreeEditorInternalUtility
     {
+        public static int GetEntryId(SerializedProperty serializedProperty, TableTreeOptions options)
+        {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            SerializedProperty propertyId = serializedProperty.FindPropertyRelative(options.PropertyIdName);
+            GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
+
+            return (int)id.First;
+        }
+
         public static TableTreeViewState CreateState(TableTreeOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));

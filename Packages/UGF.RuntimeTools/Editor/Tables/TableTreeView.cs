@@ -44,13 +44,13 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem(0, -1);
-            int indexer = 1;
 
             for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
+                int id = TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options);
 
-                var item = new TableTreeViewItem(indexer++, i, propertyElement, Options);
+                var item = new TableTreeViewItem(id, i, propertyElement, Options);
 
                 root.AddChild(item);
 
@@ -61,8 +61,9 @@ namespace UGF.RuntimeTools.Editor.Tables
                     for (int c = 0; c < propertyChildren.arraySize; c++)
                     {
                         SerializedProperty propertyChild = propertyChildren.GetArrayElementAtIndex(c);
+                        int childId = HashCode.Combine(id, c);
 
-                        item.AddChild(new TableTreeViewItem(indexer++, c, propertyChild, Options)
+                        item.AddChild(new TableTreeViewItem(childId, c, propertyChild, Options)
                         {
                             depth = 1
                         });
