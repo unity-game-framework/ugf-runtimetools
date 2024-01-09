@@ -431,7 +431,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddItem(new GUIContent("Ping Asset"), false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
             menu.AddItem(new GUIContent("Reset Sorting"), false, () => m_treeView.ClearSorting());
-            menu.AddItem(new GUIContent("Reset Preferences"), false, m_treeViewPreferences.Reset);
+
+            menu.AddItem(new GUIContent("Reset Preferences"), false, () =>
+            {
+                m_treeViewPreferences.Reset();
+                m_treeView.multiColumnHeader.ResizeToFit();
+            });
+
             menu.AddSeparator(string.Empty);
 
             if (m_treeView != null && m_treeView.PropertyEntries.arraySize > 0)
