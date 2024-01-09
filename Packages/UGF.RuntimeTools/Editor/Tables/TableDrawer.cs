@@ -57,6 +57,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             PropertyNameName = propertyNameName;
             PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
 
+            m_selection.Dropdown.RootName = "Entries";
             m_selection.Dropdown.MinimumHeight = 300F;
         }
 
