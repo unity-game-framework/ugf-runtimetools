@@ -46,14 +46,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             var root = new TreeViewItem(0, -1);
             int indexer = 1;
 
-            if (multiColumnHeader.sortedColumnIndex >= 0)
-            {
-                TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
-                MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
-
-                m_comparer.SetColumn(column, columnState.sortedAscending);
-            }
-
             for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
@@ -75,17 +67,20 @@ namespace UGF.RuntimeTools.Editor.Tables
                             depth = 1
                         });
                     }
-
-                    item.children?.Sort(m_comparer);
                 }
             }
 
-            if (root.hasChildren && multiColumnHeader.sortedColumnIndex >= 0)
+            if (multiColumnHeader.sortedColumnIndex >= 0)
             {
-                root.children.Sort(m_comparer);
-            }
+                TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
+                MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
 
-            m_comparer.ClearColumn();
+                m_comparer.SetColumn(column, columnState.sortedAscending);
+
+                OnSort(root);
+
+                m_comparer.ClearColumn();
+            }
 
             SetupDepthsFromParentsAndChildren(root);
 
@@ -127,6 +122,26 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
             }
+        }
+
+        protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
+        {
+            var view = (TableTreeViewItem)item;
+            TableTreeColumnOptions column = SearchColumn;
+
+            if (view.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
+            {
+                ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
+
+                return searcher.Check(serializedProperty, search);
+            }
+
+            return false;
+        }
+
+        protected override void KeyEvent()
+        {
+            KeyEventProcessing?.Invoke();
         }
 
         public void Apply()
@@ -275,29 +290,26 @@ namespace UGF.RuntimeTools.Editor.Tables
             return false;
         }
 
+        private void OnSort(TreeViewItem item)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            if (item.hasChildren)
+            {
+                item.children.Sort(m_comparer);
+
+                for (int i = 0; i < item.children.Count; i++)
+                {
+                    TreeViewItem child = item.children[i];
+
+                    OnSort(child);
+                }
+            }
+        }
+
         private void OnSortingChanged(MultiColumnHeader header)
         {
             Reload();
-        }
-
-        protected override bool DoesItemMatchSearch(TreeViewItem item, string search)
-        {
-            var view = (TableTreeViewItem)item;
-            TableTreeColumnOptions column = SearchColumn;
-
-            if (view.ColumnProperties.TryGetValue(column.PropertyPath, out SerializedProperty serializedProperty))
-            {
-                ITableTreeColumnSearcher searcher = column.Searcher ?? TableTreeColumnSearcher.Default;
-
-                return searcher.Check(serializedProperty, search);
-            }
-
-            return false;
-        }
-
-        protected override void KeyEvent()
-        {
-            KeyEventProcessing?.Invoke();
         }
     }
 }
