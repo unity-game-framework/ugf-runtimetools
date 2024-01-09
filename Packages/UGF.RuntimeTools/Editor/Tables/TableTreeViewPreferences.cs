@@ -21,6 +21,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_defaultData = EditorJsonUtility.ToJson(treeView.state);
         }
 
+        public bool HasData()
+        {
+            return EditorPrefs.HasKey(Key);
+        }
+
         public void Read()
         {
             if (EditorPrefs.HasKey(Key))
@@ -41,6 +46,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public void Reset()
         {
             EditorJsonUtility.FromJsonOverwrite(m_defaultData, TreeView.state);
+            EditorPrefs.DeleteKey(Key);
         }
     }
 }

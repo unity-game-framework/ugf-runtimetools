@@ -44,6 +44,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
+            public GUIContent MenuPingAsset { get; } = new GUIContent("Ping");
+            public GUIContent MenuUnlockIds { get; } = new GUIContent("Unlock Ids");
+            public GUIContent MenuResetSorting { get; } = new GUIContent("Reset Sorting");
+            public GUIContent MenuResetPreferences { get; } = new GUIContent("Reset Preferences");
+            public GUIContent MenuResetClipboard { get; } = new GUIContent("Reset Clipboard");
+            public GUIContent MenuClear { get; } = new GUIContent("Clear");
             public GUIContent AddButtonChildrenContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected children.");
 
             public GUILayoutOption[] TableLayoutOptions { get; } =
@@ -428,34 +434,60 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var menu = new GenericMenu();
 
-            menu.AddItem(new GUIContent("Ping Asset"), false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
-            menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
-            menu.AddItem(new GUIContent("Reset Sorting"), false, () => m_treeView.ClearSorting());
+            menu.AddItem(m_styles.MenuPingAsset, false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
+            menu.AddItem(m_styles.MenuUnlockIds, UnlockIds, () => UnlockIds = !UnlockIds);
 
-            menu.AddItem(new GUIContent("Reset Preferences"), false, () =>
+            if (m_treeView.HasSorting)
             {
-                m_treeViewPreferences.Reset();
-                m_treeView.multiColumnHeader.ResizeToFit();
-            });
+                menu.AddItem(m_styles.MenuResetSorting, false, () => m_treeView.ClearSorting());
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetSorting);
+            }
+
+            if (m_treeViewPreferences.HasData())
+            {
+                menu.AddItem(m_styles.MenuResetPreferences, false, () =>
+                {
+                    m_treeViewPreferences.Reset();
+                    m_treeView.multiColumnHeader.ResizeToFit();
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetPreferences);
+            }
+
+            if (m_clipboard.HasAny())
+            {
+                menu.AddItem(m_styles.MenuResetClipboard, false, () =>
+                {
+                    m_clipboard.Clear();
+                    m_clipboard.Write();
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetClipboard);
+            }
 
             menu.AddSeparator(string.Empty);
 
             if (m_treeView != null && m_treeView.PropertyEntries.arraySize > 0)
             {
-                menu.AddItem(new GUIContent("Clear"), false, OnMenuClear);
+                menu.AddItem(m_styles.MenuClear, false, () =>
+                {
+                    m_treeView.PropertyEntries.ClearArray();
+                    m_treeView.Apply();
+                });
             }
             else
             {
-                menu.AddDisabledItem(new GUIContent("Clear"));
+                menu.AddDisabledItem(m_styles.MenuClear);
             }
 
             menu.DropDown(position);
-        }
-
-        private void OnMenuClear()
-        {
-            m_treeView.PropertyEntries.ClearArray();
-            m_treeView.Apply();
         }
 
         private void OnKeyEventProcessing()

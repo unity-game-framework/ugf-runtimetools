@@ -16,6 +16,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public int TotalCount { get { return m_items.Count; } }
         public int VisibleCount { get; private set; }
         public int VisibleEntryCount { get; private set; }
+        public bool HasSorting { get { return multiColumnHeader.sortedColumnIndex >= 0; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
@@ -85,7 +86,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (root.hasChildren)
             {
-                if (multiColumnHeader.sortedColumnIndex >= 0)
+                if (HasSorting)
                 {
                     TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
                     MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
