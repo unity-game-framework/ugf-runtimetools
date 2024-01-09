@@ -70,21 +70,29 @@ namespace UGF.RuntimeTools.Editor.Tables
                 }
             }
 
-            if (multiColumnHeader.sortedColumnIndex >= 0)
+            if (root.hasChildren)
             {
-                TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
-                MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
+                if (multiColumnHeader.sortedColumnIndex >= 0)
+                {
+                    TableTreeColumnOptions column = Options.Columns[multiColumnHeader.sortedColumnIndex];
+                    MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
 
-                m_comparer.SetColumn(column, columnState.sortedAscending);
+                    m_comparer.SetColumn(column, columnState.sortedAscending);
 
-                OnSort(root);
+                    OnSort(root);
 
-                m_comparer.ClearColumn();
+                    m_comparer.ClearColumn();
+                }
+
+                SetupDepthsFromParentsAndChildren(root);
             }
 
-            SetupDepthsFromParentsAndChildren(root);
-
             return root;
+        }
+
+        protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
+        {
+            return root.hasChildren ? base.BuildRows(root) : ArraySegment<TreeViewItem>.Empty;
         }
 
         protected override void RowGUI(RowGUIArgs args)
@@ -114,7 +122,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     if (DrawRowCell != null)
                     {
-                        DrawRowCell?.Invoke(position, serializedProperty, column);
+                        DrawRowCell?.Invoke(position, rowItem, serializedProperty, column);
                     }
                     else
                     {
@@ -212,7 +220,10 @@ namespace UGF.RuntimeTools.Editor.Tables
                     {
                         var parent = (TableTreeViewItem)item.parent;
 
-                        selection.Add(parent);
+                        if (!selection.Contains(parent))
+                        {
+                            selection.Add(parent);
+                        }
                     }
                 }
             }

@@ -5,7 +5,7 @@ using UnityEditor.IMGUI.Controls;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    internal class TableTreeViewItem : TreeViewItem
+    public class TableTreeViewItem : TreeViewItem
     {
         public int Index { get; }
         public SerializedProperty SerializedProperty { get; }

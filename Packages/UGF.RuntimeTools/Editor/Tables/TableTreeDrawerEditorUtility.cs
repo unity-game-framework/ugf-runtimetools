@@ -25,7 +25,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public static void PropertyInsert(SerializedProperty serializedProperty, int index, Action<SerializedProperty> initializeHandler, object value = null)
+        public static void PropertyInsert(SerializedProperty serializedProperty, int index, Action<SerializedProperty> initializeHandler = null, object value = null)
         {
             if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
 

@@ -27,7 +27,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
         private readonly Action<SerializedProperty> m_entryInitializeHandler;
         private readonly List<int> m_selectedIndexes = new List<int>();
-        private readonly List<TableTreeViewItem> m_selectedItems = new List<TableTreeViewItem>();
+        private readonly HashSet<TableTreeViewItem> m_selectedItems = new HashSet<TableTreeViewItem>();
         private SearchField m_search;
         private Styles m_styles;
 
@@ -45,6 +45,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
+            public GUIContent AddButtonChildrenContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected children.");
 
             public GUILayoutOption[] TableLayoutOptions { get; } =
             {
@@ -160,13 +161,17 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        protected virtual void OnDrawRowCell(Rect position, SerializedProperty serializedProperty, TableTreeColumnOptions column)
+        protected virtual void OnDrawRowCell(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
             if (serializedProperty.propertyType == SerializedPropertyType.Generic && serializedProperty.isArray)
             {
-                using (new EditorGUI.DisabledScope(true))
+                if (serializedProperty.name == Options.PropertyChildrenName)
                 {
-                    EditorGUI.IntField(position, GUIContent.none, serializedProperty.arraySize);
+                    OnDrawRowCellChildren(position, item, serializedProperty, column);
+                }
+                else
+                {
+                    OnDrawRowCellArray(position, item, serializedProperty, column);
                 }
             }
             else
@@ -175,6 +180,33 @@ namespace UGF.RuntimeTools.Editor.Tables
                 {
                     EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
                 }
+            }
+        }
+
+        protected virtual void OnDrawRowCellArray(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
+        {
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUI.IntField(position, GUIContent.none, serializedProperty.arraySize);
+            }
+        }
+
+        protected virtual void OnDrawRowCellChildren(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            float space = EditorGUIUtility.standardVerticalSpacing;
+
+            var rectField = new Rect(position.x, position.y, position.width - height - space, position.height);
+            var rectButton = new Rect(rectField.xMax + space, position.y, height, height);
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUI.IntField(rectField, GUIContent.none, serializedProperty.arraySize);
+            }
+
+            if (GUI.Button(rectButton, m_styles.AddButtonChildrenContent, EditorStyles.iconButton))
+            {
+                OnEntryAddChildren(item);
             }
         }
 
@@ -277,6 +309,24 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             m_selectedIndexes.Clear();
             m_selectedItems.Clear();
+            m_treeView.Apply();
+        }
+
+        private void OnEntryAddChildren(TableTreeViewItem item)
+        {
+            m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
+
+            if (m_selectedIndexes.Count > 0)
+            {
+                TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
+
+                m_selectedIndexes.Clear();
+            }
+            else
+            {
+                TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize);
+            }
+
             m_treeView.Apply();
         }
 
@@ -387,6 +437,14 @@ namespace UGF.RuntimeTools.Editor.Tables
             Event current = Event.current;
 
             if (current.type == EventType.ValidateCommand)
+            {
+                if (current.commandName is "SoftDelete" or "Copy" or "Paste" or "Duplicate")
+                {
+                    current.Use();
+                }
+            }
+
+            if (current.type == EventType.ExecuteCommand)
             {
                 if (current.commandName == "SoftDelete")
                 {
