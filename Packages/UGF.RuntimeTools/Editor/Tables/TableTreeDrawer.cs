@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
@@ -22,22 +23,22 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool DisplayFooter { get; set; } = true;
 
         private readonly TableTreeView m_treeView;
-        private readonly string m_treeViewStateDefaultData;
-        private readonly DropdownSelection<DropdownItem<int>> m_searchSelection = new DropdownSelection<DropdownItem<int>>();
-        private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
+        private readonly TableTreeViewPreferences m_treeViewPreferences;
         private readonly Action<SerializedProperty> m_entryInitializeHandler;
+        private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
+        private readonly DropdownSelection<DropdownItem<int>> m_searchSelection = new DropdownSelection<DropdownItem<int>>();
         private readonly List<int> m_selectedIndexes = new List<int>();
-        private readonly HashSet<TableTreeViewItem> m_selectedItems = new HashSet<TableTreeViewItem>();
+        private readonly List<TableTreeViewItem> m_selectedItems = new List<TableTreeViewItem>();
         private SearchField m_search;
         private Styles m_styles;
 
-        private static readonly HashSet<object> m_clipboardEntries = new HashSet<object>();
-        private static Type m_clipboardTableType;
+        private static readonly TableTreeDrawerClipboard m_clipboard = new TableTreeDrawerClipboard();
 
         private class Styles
         {
             public GUIStyle Toolbar { get; } = EditorStyles.toolbar;
             public GUIStyle Footer { get; } = new GUIStyle("IN Footer");
+            public GUIStyle FooterSection { get; } = EditorStyles.toolbarButton;
             public GUIStyle SearchField { get; } = new GUIStyle("ToolbarSearchTextFieldPopup");
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
@@ -60,12 +61,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             Options = options ?? throw new ArgumentNullException(nameof(options));
 
             m_treeView = new TableTreeView(SerializedObject.FindProperty("m_table"), options);
-            m_treeViewStateDefaultData = EditorJsonUtility.ToJson(m_treeView.state);
+            m_treeViewPreferences = new TableTreeViewPreferences(m_treeView, SerializedObject.targetObject);
+            m_entryInitializeHandler = OnEntryInitialize;
+            m_searchSelectionItemsHandler = OnGetSearchSelectionItems;
             m_searchSelection.Dropdown.RootName = "Search Column";
             m_searchSelection.Dropdown.MinimumWidth = 300F;
             m_searchSelection.Dropdown.MinimumHeight = 300F;
-            m_searchSelectionItemsHandler = OnGetSearchSelectionItems;
-            m_entryInitializeHandler = OnEntryInitialize;
         }
 
         protected override void OnEnable()
@@ -74,10 +75,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             Undo.undoRedoPerformed += OnUndoOrRedoPerformed;
 
+            m_clipboard.Read();
+
             m_treeView.DrawRowCell += OnDrawRowCell;
             m_treeView.KeyEventProcessing += OnKeyEventProcessing;
-
-            OnPreferenceRead();
+            m_treeViewPreferences.Read();
 
             m_treeView.Reload();
             m_treeView.multiColumnHeader.ResizeToFit();
@@ -87,7 +89,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             base.OnDisable();
 
-            OnPreferenceWrite();
+            m_treeViewPreferences.Write();
 
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
@@ -114,7 +116,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (GUI.changed)
             {
-                OnPreferenceWrite();
+                m_treeViewPreferences.Write();
             }
         }
 
@@ -220,23 +222,35 @@ namespace UGF.RuntimeTools.Editor.Tables
                 int countVisible = m_treeView.Count;
                 int countTotal = ((TableAsset)SerializedObject.targetObject).Get().Entries.Count();
 
-                GUILayout.Label($"Path: {path}");
+                GUILayout.Label($"Path: {path}", m_styles.FooterSection);
                 GUILayout.FlexibleSpace();
 
-                if (OnHasClipboard())
+                if (OnClipboardMatch())
                 {
-                    GUILayout.Label($"Clipboard Entries: {m_clipboardEntries.Count}");
+                    var builder = new StringBuilder("Clipboard:");
+
+                    if (m_clipboard.Data.Entries.Count > 0)
+                    {
+                        builder.Append($" Entries {m_clipboard.Data.Entries.Count}");
+                    }
+
+                    if (m_clipboard.Data.Children.Count > 0)
+                    {
+                        builder.Append($" Children {m_clipboard.Data.Children.Count}");
+                    }
+
+                    GUILayout.Label(builder.ToString(), m_styles.FooterSection);
                 }
 
-                GUILayout.Label($"Search Column: {m_treeView.SearchColumn.DisplayName}");
+                GUILayout.Label($"Search Column: {m_treeView.SearchColumn.DisplayName}", m_styles.FooterSection);
 
                 GUILayout.Label(columnsVisible == columnsTotal
                     ? $"Columns: {columnsTotal}"
-                    : $"Columns: {columnsVisible}/{columnsTotal}");
+                    : $"Columns: {columnsVisible}/{columnsTotal}", m_styles.FooterSection);
 
                 GUILayout.Label(countVisible == countTotal
                     ? $"Entries: {countTotal}"
-                    : $"Entries: {countVisible}/{countTotal}");
+                    : $"Entries: {countVisible}/{countTotal}", m_styles.FooterSection);
             }
         }
 
@@ -340,14 +354,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             foreach (TableTreeViewItem item in m_selectedItems)
             {
-                if (item.hasChildren)
-                {
-                    m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
+                m_treeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
-                    TableTreeDrawerEditorUtility.PropertyRemove(item.PropertyChildren, m_selectedIndexes);
+                TableTreeDrawerEditorUtility.PropertyRemove(item.PropertyChildren, m_selectedIndexes);
 
-                    m_selectedIndexes.Clear();
-                }
+                m_selectedIndexes.Clear();
             }
 
             m_treeView.GetSelectionIndexes(m_selectedIndexes);
@@ -364,49 +375,53 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryCopy()
         {
-            if (m_treeView.HasSelection())
+            m_clipboard.Clear();
+            m_treeView.GetSelection(m_selectedItems);
+
+            m_clipboard.TryCopyEntries(m_selectedItems);
+
+            m_selectedItems.Clear();
+            m_treeView.GetChildrenSelection(m_selectedItems);
+
+            m_clipboard.TryCopyChildren(m_selectedItems);
+
+            m_selectedItems.Clear();
+
+            if (m_clipboard.HasAny())
             {
-                IList<int> selection = m_treeView.GetSelection();
-
-                for (int i = 0; i < selection.Count; i++)
-                {
-                    int id = selection[i];
-
-                    if (m_treeView.TryGetItem(id, out TableTreeViewItem item))
-                    {
-                        object value;
-
-                        try
-                        {
-                            value = item.SerializedProperty.boxedValue;
-                        }
-                        catch (Exception exception)
-                        {
-                            Debug.LogWarning($"Table entry can not be copied.\n{exception}");
-                            break;
-                        }
-
-                        m_clipboardEntries.Add(value);
-                    }
-                }
-
-                if (m_clipboardEntries.Count > 0)
-                {
-                    m_clipboardTableType = SerializedObject.targetObject.GetType();
-                }
+                m_clipboard.CopyType(SerializedObject.targetObject.GetType());
+                m_clipboard.Write();
             }
         }
 
         private void OnEntryPaste()
         {
-            if (OnHasClipboard())
+            if (OnClipboardMatch())
             {
-                foreach (object value in m_clipboardEntries)
+                m_treeView.GetSelection(m_selectedItems);
+
+                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : m_treeView.PropertyEntries.arraySize;
+
+                foreach (object value in m_clipboard.Data.Entries)
                 {
-                    TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, m_treeView.PropertyEntries.arraySize, m_entryInitializeHandler, value);
+                    TableTreeDrawerEditorUtility.PropertyInsert(m_treeView.PropertyEntries, index, m_entryInitializeHandler, value);
                 }
 
-                m_clipboardEntries.Clear();
+                m_selectedItems.Clear();
+                m_treeView.GetChildrenSelection(m_selectedItems);
+
+                if (m_selectedItems.Count > 0)
+                {
+                    TableTreeViewItem item = m_selectedItems[^1];
+                    var parent = (TableTreeViewItem)item.parent;
+
+                    foreach (object value in m_clipboard.Data.Children)
+                    {
+                        TableTreeDrawerEditorUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
+                    }
+                }
+
+                m_selectedItems.Clear();
                 m_treeView.Apply();
             }
         }
@@ -418,7 +433,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddItem(new GUIContent("Ping Asset"), false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
             menu.AddItem(new GUIContent("Reset Sorting"), false, () => m_treeView.ClearSorting());
-            menu.AddItem(new GUIContent("Reset Preferences"), false, OnPreferenceReset);
+            menu.AddItem(new GUIContent("Reset Preferences"), false, m_treeViewPreferences.Reset);
             menu.AddSeparator(string.Empty);
 
             if (m_treeView != null && m_treeView.PropertyEntries.arraySize > 0)
@@ -483,53 +498,15 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        private string OnPreferencePath()
+        private bool OnClipboardMatch()
         {
-            string name = SerializedObject.targetObject.GetType().FullName;
-
-            return $"{nameof(TableTreeDrawer)}:{name}";
-        }
-
-        private void OnPreferenceWrite()
-        {
-            string path = OnPreferencePath();
-            string data = EditorJsonUtility.ToJson(m_treeView.state);
-
-            EditorPrefs.SetString(path, data);
-        }
-
-        private void OnPreferenceRead()
-        {
-            string path = OnPreferencePath();
-
-            if (EditorPrefs.HasKey(path))
-            {
-                string data = EditorPrefs.GetString(path);
-
-                EditorJsonUtility.FromJsonOverwrite(data, m_treeView.state);
-            }
-        }
-
-        private void OnPreferenceReset()
-        {
-            EditorJsonUtility.FromJsonOverwrite(m_treeViewStateDefaultData, m_treeView.state);
-
-            m_treeView.multiColumnHeader.ResizeToFit();
-
-            OnPreferenceWrite();
+            return m_clipboard.HasAny() && m_clipboard.TryMatch(SerializedObject.targetObject.GetType());
         }
 
         private void OnUndoOrRedoPerformed()
         {
             m_treeView.SerializedProperty.serializedObject.Update();
             m_treeView.Reload();
-        }
-
-        private bool OnHasClipboard()
-        {
-            return m_clipboardTableType != null
-                   && m_clipboardTableType == SerializedObject.targetObject.GetType()
-                   && m_clipboardEntries.Count > 0;
         }
 
         private void OnEntryInitialize(SerializedProperty serializedProperty)

@@ -20,6 +20,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private readonly TableTreeViewState m_state;
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
+        private readonly Dictionary<int, TableTreeViewItem> m_items = new Dictionary<int, TableTreeViewItem>();
 
         public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorInternalUtility.CreateState(options))
         {
@@ -43,6 +44,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected override TreeViewItem BuildRoot()
         {
+            m_items.Clear();
+
             var root = new TreeViewItem(0, -1);
 
             for (int i = 0; i < PropertyEntries.arraySize; i++)
@@ -54,6 +57,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 root.AddChild(item);
 
+                m_items.Add(item.id, item);
+
                 SerializedProperty propertyChildren = propertyElement.FindPropertyRelative(Options.PropertyChildrenName);
 
                 if (propertyChildren != null)
@@ -63,10 +68,14 @@ namespace UGF.RuntimeTools.Editor.Tables
                         SerializedProperty propertyChild = propertyChildren.GetArrayElementAtIndex(c);
                         int childId = HashCode.Combine(id, c);
 
-                        item.AddChild(new TableTreeViewItem(childId, c, propertyChild, Options)
+                        var child = new TableTreeViewItem(childId, c, propertyChild, Options)
                         {
                             depth = 1
-                        });
+                        };
+
+                        item.AddChild(child);
+
+                        m_items.Add(child.id, child);
                     }
                 }
             }
@@ -178,26 +187,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public void GetChildrenSelection(TableTreeViewItem item, ICollection<TableTreeViewItem> selection)
-        {
-            if (item == null) throw new ArgumentNullException(nameof(item));
-            if (selection == null) throw new ArgumentNullException(nameof(selection));
-            if (!item.hasChildren) throw new ArgumentException("Table tree item must have children.");
-
-            if (item.hasChildren)
-            {
-                for (int i = 0; i < item.children.Count; i++)
-                {
-                    var child = (TableTreeViewItem)item.children[i];
-
-                    if (state.selectedIDs.Contains(child.id))
-                    {
-                        selection.Add(child);
-                    }
-                }
-            }
-        }
-
         public void GetSelectionIndexes(ICollection<int> indexes)
         {
             if (indexes == null) throw new ArgumentNullException(nameof(indexes));
@@ -236,6 +225,21 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        public void GetChildrenSelection(ICollection<TableTreeViewItem> selection)
+        {
+            if (selection == null) throw new ArgumentNullException(nameof(selection));
+
+            for (int i = 0; i < state.selectedIDs.Count; i++)
+            {
+                int id = state.selectedIDs[i];
+
+                if (TryGetItem(id, out TableTreeViewItem item) && !item.HasPropertyChildren)
+                {
+                    selection.Add(item);
+                }
+            }
+        }
+
         public void GetSelection(ICollection<TableTreeViewItem> selection)
         {
             if (selection == null) throw new ArgumentNullException(nameof(selection));
@@ -270,42 +274,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public bool TryGetItem(int id, out TableTreeViewItem item)
         {
-            if (rootItem.hasChildren)
-            {
-                for (int i = 0; i < rootItem.children.Count; i++)
-                {
-                    item = (TableTreeViewItem)rootItem.children[i];
-
-                    if (item.id == id || TryGetItem(item, id, out item))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            item = default;
-            return false;
-        }
-
-        public bool TryGetItem(TableTreeViewItem item, int id, out TableTreeViewItem child)
-        {
-            if (item == null) throw new ArgumentNullException(nameof(item));
-
-            if (item.hasChildren)
-            {
-                for (int i = 0; i < item.children.Count; i++)
-                {
-                    child = (TableTreeViewItem)item.children[i];
-
-                    if (child.id == id)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            child = default;
-            return false;
+            return m_items.TryGetValue(id, out item);
         }
 
         private void OnSort(TreeViewItem item)
