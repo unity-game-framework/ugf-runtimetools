@@ -17,7 +17,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         public SerializedObject SerializedObject { get; }
         public TableTreeOptions Options { get; }
         public TableTreeView TreeView { get; }
-        public bool UnlockIds { get; set; }
         public bool DisplayToolbar { get; set; } = true;
         public bool DisplayFooter { get; set; } = true;
 
@@ -48,7 +47,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
-            public GUIContent MenuUnlockIds { get; } = new GUIContent("Unlock Ids");
             public GUIContent MenuResetSorting { get; } = new GUIContent("Reset Sorting");
             public GUIContent MenuResetPreferences { get; } = new GUIContent("Reset Preferences");
             public GUIContent MenuResetClipboard { get; } = new GUIContent("Reset Clipboard");
@@ -294,11 +292,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
             else
             {
-                using (new EditorGUI.DisabledScope(!UnlockIds && serializedProperty.name == Options.PropertyIdName))
-                {
-                    EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
-                }
+                OnDrawRowCellValue(position, item, serializedProperty, column);
             }
+        }
+
+        protected virtual void OnDrawRowCellValue(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
+        {
+            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
         }
 
         protected virtual void OnDrawRowCellArray(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
@@ -383,7 +383,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
-                TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
+                TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
@@ -392,11 +392,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeDrawerEditorUtility.PropertyInsert(TreeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
+                TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
             }
             else
             {
-                TableTreeDrawerEditorUtility.PropertyInsert(TreeView.PropertyEntries, TreeView.PropertyEntries.arraySize, m_entryInitializeHandler);
+                TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, TreeView.PropertyEntries.arraySize, m_entryInitializeHandler);
             }
 
             m_selectedIndexes.Clear();
@@ -410,13 +410,13 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
+                TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
             else
             {
-                TableTreeDrawerEditorUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize);
+                TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize);
             }
 
             TreeView.Apply();
@@ -430,7 +430,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
-                TableTreeDrawerEditorUtility.PropertyRemove(item.PropertyChildren, m_selectedIndexes);
+                TableTreeEditorInternalUtility.PropertyRemove(item.PropertyChildren, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
@@ -439,7 +439,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeDrawerEditorUtility.PropertyRemove(TreeView.PropertyEntries, m_selectedIndexes);
+                TableTreeEditorInternalUtility.PropertyRemove(TreeView.PropertyEntries, m_selectedIndexes);
             }
 
             m_selectedIndexes.Clear();
@@ -478,7 +478,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 foreach (object value in m_clipboard.Data.Entries)
                 {
-                    TableTreeDrawerEditorUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
+                    TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
                 }
 
                 m_selectedItems.Clear();
@@ -491,7 +491,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     foreach (object value in m_clipboard.Data.Children)
                     {
-                        TableTreeDrawerEditorUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
+                        TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
                     }
                 }
 
@@ -503,8 +503,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         private void OnMenuOpen(Rect position)
         {
             var menu = new GenericMenu();
-
-            menu.AddItem(m_styles.MenuUnlockIds, UnlockIds, () => UnlockIds = !UnlockIds);
 
             if (TreeView.HasSortColumn)
             {

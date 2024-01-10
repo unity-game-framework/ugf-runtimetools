@@ -20,7 +20,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         public int SelectedIndex { get { return m_selectedIndex ?? throw new ArgumentException("Value not specified."); } }
         public bool SearchById { get; set; }
         public bool ShowIndexes { get; set; }
-        public bool UnlockIds { get; set; }
 
         public event TableDrawerEntryHandler Added;
         public event TableDrawerEntryHandler Removing;
@@ -153,11 +152,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
 
-                using (new EditorGUI.DisabledScope(!UnlockIds))
-                {
-                    EditorGUILayout.PropertyField(m_selectedPropertyId);
-                }
-
+                EditorGUILayout.PropertyField(m_selectedPropertyId);
                 EditorGUILayout.PropertyField(m_selectedPropertyName);
             }
         }
@@ -331,7 +326,6 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             menu.AddItem(new GUIContent("Search by Id"), SearchById, () => SearchById = !SearchById);
             menu.AddItem(new GUIContent("Show Indexes"), ShowIndexes, () => ShowIndexes = !ShowIndexes);
-            menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
             menu.AddSeparator(string.Empty);
 
             if (PropertyEntries.arraySize > 0)
