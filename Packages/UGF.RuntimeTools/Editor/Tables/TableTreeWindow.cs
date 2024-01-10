@@ -9,6 +9,9 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         [SerializeField] private string m_assetId;
 
+        public SerializedObject SerializedObject { get { return m_serializedObject ?? throw new ArgumentException("Value not specified."); } }
+        public bool HasSerializedObject { get { return m_serializedObject != null; } }
+
         private SerializedObject m_serializedObject;
         private TableTreeDrawer m_drawer;
 

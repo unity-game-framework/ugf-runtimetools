@@ -53,6 +53,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent MenuResetClipboard { get; } = new GUIContent("Reset Clipboard");
             public GUIContent MenuClear { get; } = new GUIContent("Clear");
             public GUIContent AddButtonChildrenContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected children.");
+            public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
+            public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };
 
             public GUILayoutOption[] TableLayoutOptions { get; } =
             {
@@ -130,14 +132,14 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             using (new EditorGUILayout.HorizontalScope(m_styles.Toolbar))
             {
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
+                if (GUILayout.Button(m_styles.AddButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
                 {
                     OnEntryAdd();
                 }
 
                 using (new EditorGUI.DisabledScope(!TreeView.HasSelected()))
                 {
-                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
+                    if (GUILayout.Button(m_styles.RemoveButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
                     {
                         OnEntryRemove();
                     }
@@ -147,7 +149,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 OnDrawSearch();
 
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
+                Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonSmallOptions);
+
+                if (GUI.Button(rectMenu, m_styles.MenuButtonContent, EditorStyles.toolbarButton))
                 {
                     OnMenuOpen(rectMenu);
                 }

@@ -44,7 +44,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent EntryEmptyContent { get; } = new GUIContent("Untitled");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
+            public GUIContent OpenWindowContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("HorizontalLayoutGroup Icon"), "Open table in window.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
+            public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
+            public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };
         }
 
         public TableDrawer(SerializedProperty serializedProperty, string propertyIdName = "m_id", string propertyNameName = "m_name")
@@ -104,7 +107,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
         }
 
-        protected virtual void OnTable()
+        protected virtual void OnTableOpen()
         {
             if (TableOpening != null)
             {
@@ -293,7 +296,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntrySelect(selected.Value);
                 }
 
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.AddButtonContent))
+                if (GUILayout.Button(m_styles.AddButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
                 {
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
 
@@ -302,29 +305,30 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 using (new EditorGUI.DisabledScope(m_selectedIndex == null))
                 {
-                    if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
+                    if (GUILayout.Button(m_styles.RemoveButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
                     {
                         OnEntryRemove(SelectedIndex);
                     }
                 }
 
-                if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.MenuButtonContent, out Rect rectMenu, 25F))
+                if (GUILayout.Button(m_styles.OpenWindowContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonSmallOptions))
+                {
+                    OnTableOpen();
+                }
+
+                Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonSmallOptions);
+
+                if (GUI.Button(rectMenu, m_styles.MenuButtonContent, EditorStyles.toolbarButton))
                 {
                     OnMenuOpen(rectMenu);
                 }
             }
         }
 
-        private void OnTableOpen()
-        {
-            OnTable();
-        }
-
         private void OnMenuOpen(Rect position)
         {
             var menu = new GenericMenu();
 
-            menu.AddItem(new GUIContent("Open Window"), false, OnTableOpen);
             menu.AddItem(new GUIContent("Search by Id"), SearchById, () => SearchById = !SearchById);
             menu.AddItem(new GUIContent("Show Indexes"), ShowIndexes, () => ShowIndexes = !ShowIndexes);
             menu.AddItem(new GUIContent("Unlock Ids"), UnlockIds, () => UnlockIds = !UnlockIds);
