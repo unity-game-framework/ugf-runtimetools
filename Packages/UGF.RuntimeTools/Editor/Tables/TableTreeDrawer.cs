@@ -38,6 +38,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIStyle Footer { get; } = new GUIStyle("IN Footer");
             public GUIStyle FooterSection { get; } = EditorStyles.toolbarButton;
             public GUIContent FooterClipboardResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Reset clipboard.");
+            public GUIContent FooterSortingResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Reset sorting.");
+            public GUIContent FooterSelectionResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Clear selection.");
             public GUIStyle SearchField { get; } = new GUIStyle("ToolbarSearchTextFieldPopup");
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
@@ -133,7 +135,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryAdd();
                 }
 
-                using (new EditorGUI.DisabledScope(!TreeView.HasSelectionAll()))
+                using (new EditorGUI.DisabledScope(!TreeView.HasSelected()))
                 {
                     if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
                     {
@@ -164,6 +166,100 @@ namespace UGF.RuntimeTools.Editor.Tables
             using (new SerializedObjectUpdateScope(SerializedObject))
             {
                 TreeView.OnGUI(position);
+            }
+        }
+
+        protected void DrawFooter()
+        {
+            using (new EditorGUILayout.HorizontalScope(m_styles.Footer))
+            {
+                string path = AssetDatabase.GetAssetPath(SerializedObject.targetObject);
+                int columnsVisible = TreeView.multiColumnHeader.state.visibleColumns.Length;
+                int columnsTotal = TreeView.multiColumnHeader.state.columns.Length;
+                int countVisible = TreeView.VisibleEntryCount;
+                int countTotal = TreeView.PropertyEntries.arraySize;
+
+                if (GUILayout.Button($"Path: {path}", m_styles.FooterSection))
+                {
+                    EditorGUIUtility.PingObject(SerializedObject.targetObject);
+                }
+
+                GUILayout.FlexibleSpace();
+
+                if (OnClipboardMatch())
+                {
+                    var builder = new StringBuilder("Clipboard:");
+
+                    if (m_clipboard.Data.Entries.Count > 0)
+                    {
+                        builder.Append($" Entries {m_clipboard.Data.Entries.Count}");
+                    }
+
+                    if (m_clipboard.Data.Children.Count > 0)
+                    {
+                        builder.Append($" Children {m_clipboard.Data.Children.Count}");
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
+                    {
+                        GUILayout.Label(builder.ToString());
+
+                        if (GUILayout.Button(m_styles.FooterClipboardResetButton, EditorStyles.iconButton))
+                        {
+                            m_clipboard.Clear();
+                            m_clipboard.Write();
+                        }
+                    }
+                }
+
+                if (TreeView.HasSortColumn)
+                {
+                    using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
+                    {
+                        GUILayout.Label($"Sorting Column: {TreeView.SortColumn.DisplayName}");
+
+                        if (GUILayout.Button(m_styles.FooterSortingResetButton, EditorStyles.iconButton))
+                        {
+                            TreeView.ClearSorting();
+                        }
+                    }
+                }
+
+                if (TreeView.HasSelected())
+                {
+                    int entryCount = TreeView.GetSelectedCount(TableTreeEntryType.Entry);
+                    int childCount = TreeView.GetSelectedCount(TableTreeEntryType.Child);
+
+                    var builder = new StringBuilder("Selected:");
+
+                    if (entryCount > 0)
+                    {
+                        builder.Append($" Entries {entryCount}");
+                    }
+
+                    if (childCount > 0)
+                    {
+                        builder.Append($" Children: {childCount}");
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
+                    {
+                        GUILayout.Label(builder.ToString());
+
+                        if (GUILayout.Button(m_styles.FooterSelectionResetButton, EditorStyles.iconButton))
+                        {
+                            TreeView.ClearSelection();
+                        }
+                    }
+                }
+
+                GUILayout.Label(columnsVisible == columnsTotal
+                    ? $"Columns: {columnsTotal}"
+                    : $"Columns: {columnsVisible}/{columnsTotal}", m_styles.FooterSection);
+
+                GUILayout.Label(countVisible == countTotal
+                    ? $"Entries: {countTotal}"
+                    : $"Entries: {countVisible}/{countTotal}", m_styles.FooterSection);
             }
         }
 
@@ -213,59 +309,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (GUI.Button(rectButton, m_styles.AddButtonChildrenContent, EditorStyles.iconButton))
             {
                 OnEntryAddChildren(item);
-            }
-        }
-
-        protected void DrawFooter()
-        {
-            using (new EditorGUILayout.HorizontalScope(m_styles.Footer))
-            {
-                string path = AssetDatabase.GetAssetPath(SerializedObject.targetObject);
-                int columnsVisible = TreeView.multiColumnHeader.state.visibleColumns.Length;
-                int columnsTotal = TreeView.multiColumnHeader.state.columns.Length;
-                int countVisible = TreeView.VisibleEntryCount;
-                int countTotal = TreeView.PropertyEntries.arraySize;
-
-                if (GUILayout.Button($"Path: {path}", m_styles.FooterSection))
-                {
-                    EditorGUIUtility.PingObject(SerializedObject.targetObject);
-                }
-
-                GUILayout.FlexibleSpace();
-
-                if (OnClipboardMatch())
-                {
-                    var builder = new StringBuilder("Clipboard:");
-
-                    if (m_clipboard.Data.Entries.Count > 0)
-                    {
-                        builder.Append($" Entries {m_clipboard.Data.Entries.Count}");
-                    }
-
-                    if (m_clipboard.Data.Children.Count > 0)
-                    {
-                        builder.Append($" Children {m_clipboard.Data.Children.Count}");
-                    }
-
-                    using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
-                    {
-                        GUILayout.Label(builder.ToString());
-
-                        if (GUILayout.Button(m_styles.FooterClipboardResetButton, EditorStyles.iconButton))
-                        {
-                            m_clipboard.Clear();
-                            m_clipboard.Write();
-                        }
-                    }
-                }
-
-                GUILayout.Label(columnsVisible == columnsTotal
-                    ? $"Columns: {columnsTotal}"
-                    : $"Columns: {columnsVisible}/{columnsTotal}", m_styles.FooterSection);
-
-                GUILayout.Label(countVisible == countTotal
-                    ? $"Entries: {countTotal}"
-                    : $"Entries: {countVisible}/{countTotal}", m_styles.FooterSection);
             }
         }
 

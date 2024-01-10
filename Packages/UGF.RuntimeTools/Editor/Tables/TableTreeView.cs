@@ -200,7 +200,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             Reload();
         }
 
-        public bool HasSelectionAll()
+        public bool HasSelected()
         {
             for (int i = 0; i < state.selectedIDs.Count; i++)
             {
@@ -213,6 +213,23 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return false;
+        }
+
+        public int GetSelectedCount(TableTreeEntryType entryType)
+        {
+            int count = 0;
+
+            for (int i = 0; i < state.selectedIDs.Count; i++)
+            {
+                int id = state.selectedIDs[i];
+
+                if (TryGetItem(id, out TableTreeViewItem item) && item.EntryType == entryType)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         public void GetChildrenSelectionIndexes(TableTreeViewItem item, ICollection<int> indexes)
