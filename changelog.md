@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.2](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.2) - 2024-01-10  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/27?closed=1)  
+    
+
+### Added
+
+- Add table tree children array size change ([#95](https://github.com/unity-game-framework/ugf-runtimetools/issues/95))  
+    - Add `TableTreeDrawer.DrawRowCellValue` event which can be used override cell value drawing.
+    - Add `TableTreeOptions.` property to setup row height.
+    - Add `TableTreeViewItem.PropertyChildrenSize` property to access to the children array size property.
+    - Change `TableTreeDrawer.OnDrawRowCellChildren()` method to allow array size editing.
+
+### Removed
+
+- Remove table tree locked ids ([#97](https://github.com/unity-game-framework/ugf-runtimetools/issues/97))  
+    - Remove `TableDrawer.UnlockIds` and `TableTreeDrawer.UnlockIds` properties and updated GUI.
+
 ## [3.0.0-preview.1](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.1) - 2024-01-10  
 
 ### Release Notes
