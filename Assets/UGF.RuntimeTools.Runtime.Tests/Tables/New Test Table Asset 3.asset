@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 01daa596caab49859cccd5375b5015eb, type: 3}
-  m_Name: New Test Table Asset 2
+  m_Name: New Test Table Asset 3
   m_EditorClassIdentifier: 
   m_table:
     m_entries:
@@ -120,9 +120,26 @@ MonoBehaviour:
         m_childValue: 0
         m_childBool: 0
     - m_id:
-        m_first: 4626437968892095072
-        m_second: 17954986411006592951
-      m_name: TEST
+        m_first: 4809611121856135904
+        m_second: 11587452976250113457
+      m_name: TEST_1
+      m_text: 
+      m_bool: 0
+      m_int: 0
+      m_float: 0
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 0
+        m_second: 0
+      m_children: []
+    - m_id:
+        m_first: 5388834289690601566
+        m_second: 18196600625291016357
+      m_name: TEST_2
       m_text: 
       m_bool: 0
       m_int: 0
