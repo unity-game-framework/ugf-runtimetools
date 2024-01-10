@@ -37,6 +37,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIStyle Toolbar { get; } = EditorStyles.toolbar;
             public GUIStyle Footer { get; } = new GUIStyle("IN Footer");
             public GUIStyle FooterSection { get; } = EditorStyles.toolbarButton;
+            public GUIContent FooterClipboardResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Reset clipboard.");
             public GUIStyle SearchField { get; } = new GUIStyle("ToolbarSearchTextFieldPopup");
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
@@ -44,7 +45,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
-            public GUIContent MenuPingAsset { get; } = new GUIContent("Ping");
             public GUIContent MenuUnlockIds { get; } = new GUIContent("Unlock Ids");
             public GUIContent MenuResetSorting { get; } = new GUIContent("Reset Sorting");
             public GUIContent MenuResetPreferences { get; } = new GUIContent("Reset Preferences");
@@ -133,7 +133,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntryAdd();
                 }
 
-                using (new EditorGUI.DisabledScope(!TreeView.HasSelection()))
+                using (new EditorGUI.DisabledScope(!TreeView.HasSelectionAll()))
                 {
                     if (TableEditorGUIInternalUtility.DrawToolbarButton(m_styles.RemoveButtonContent))
                     {
@@ -226,7 +226,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                 int countVisible = TreeView.VisibleEntryCount;
                 int countTotal = TreeView.PropertyEntries.arraySize;
 
-                GUILayout.Label($"Path: {path}", m_styles.FooterSection);
+                if (GUILayout.Button($"Path: {path}", m_styles.FooterSection))
+                {
+                    EditorGUIUtility.PingObject(SerializedObject.targetObject);
+                }
+
                 GUILayout.FlexibleSpace();
 
                 if (OnClipboardMatch())
@@ -243,10 +247,17 @@ namespace UGF.RuntimeTools.Editor.Tables
                         builder.Append($" Children {m_clipboard.Data.Children.Count}");
                     }
 
-                    GUILayout.Label(builder.ToString(), m_styles.FooterSection);
-                }
+                    using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
+                    {
+                        GUILayout.Label(builder.ToString());
 
-                GUILayout.Label($"Search Column: {TreeView.SearchColumn.DisplayName}", m_styles.FooterSection);
+                        if (GUILayout.Button(m_styles.FooterClipboardResetButton, EditorStyles.iconButton))
+                        {
+                            m_clipboard.Clear();
+                            m_clipboard.Write();
+                        }
+                    }
+                }
 
                 GUILayout.Label(columnsVisible == columnsTotal
                     ? $"Columns: {columnsTotal}"
@@ -434,7 +445,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var menu = new GenericMenu();
 
-            menu.AddItem(m_styles.MenuPingAsset, false, () => EditorGUIUtility.PingObject(SerializedObject.targetObject));
             menu.AddItem(m_styles.MenuUnlockIds, UnlockIds, () => UnlockIds = !UnlockIds);
 
             if (TreeView.HasSortColumn)

@@ -68,20 +68,20 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 string displayName = ObjectNames.NicifyVariableName(field.Name);
 
-                columns.Add(new TableTreeColumnOptions(field.Name, displayName));
+                columns.Add(new TableTreeColumnOptions(field.Name, displayName, TableTreeEntryType.Entry));
 
                 if (field.Name == childrenPropertyName)
                 {
                     Type type = TableTreeEditorInternalUtility.GetTableEntryChildrenType(field.FieldType);
 
-                    CreateColumnOptionsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type), true);
+                    CreateColumnOptionsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type), TableTreeEntryType.Child);
                 }
             }
 
             return columns;
         }
 
-        public static void CreateColumnOptionsFromFields(ICollection<TableTreeColumnOptions> columns, IReadOnlyList<FieldInfo> fields, bool isChild)
+        public static void CreateColumnOptionsFromFields(ICollection<TableTreeColumnOptions> columns, IReadOnlyList<FieldInfo> fields, TableTreeEntryType entryType)
         {
             if (columns == null) throw new ArgumentNullException(nameof(columns));
             if (fields == null) throw new ArgumentNullException(nameof(fields));
@@ -92,10 +92,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 string displayName = ObjectNames.NicifyVariableName(field.Name);
 
-                columns.Add(new TableTreeColumnOptions(field.Name, displayName)
-                {
-                    IsChild = isChild
-                });
+                columns.Add(new TableTreeColumnOptions(field.Name, displayName, entryType));
             }
         }
 
