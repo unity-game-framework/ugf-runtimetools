@@ -9,16 +9,16 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public static class TableTreeEditorUtility
     {
-        public static void ShowWindow(TableAsset asset)
+        public static TableTreeWindow ShowWindow(TableAsset asset)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
 
             TableTreeOptions options = CreateOptions(asset.Get().GetType());
 
-            ShowWindow(asset, options);
+            return ShowWindow(asset, options);
         }
 
-        public static void ShowWindow(TableAsset asset, TableTreeOptions options)
+        public static TableTreeWindow ShowWindow(TableAsset asset, TableTreeOptions options)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -32,6 +32,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             window.SetTarget(asset, options);
             window.Show();
             window.Focus();
+
+            return window;
         }
 
         public static bool TryGetWindow(TableAsset asset, out TableTreeWindow window)
