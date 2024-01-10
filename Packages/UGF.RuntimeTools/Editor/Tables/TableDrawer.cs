@@ -5,6 +5,7 @@ using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
 using UGF.EditorTools.Editor.Serialized;
 using UGF.EditorTools.Runtime.Ids;
+using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEngine;
 
@@ -29,6 +30,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event TableDrawerEntryHandler DrawingEntry;
         public event TableDrawerEntryHandler DrawingEntryHeader;
         public event TableDrawerEntryHandler DrawingEntryProperties;
+        public event Action TableOpening;
 
         private readonly DropdownSelection<DropdownItem<int>> m_selection = new DropdownSelection<DropdownItem<int>>();
         private int? m_selectedIndex;
@@ -42,7 +44,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent EntryEmptyContent { get; } = new GUIContent("Untitled");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
+            public GUIContent OpenWindowContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("HorizontalLayoutGroup Icon"), "Open table in window.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
+            public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
+            public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };
         }
 
         public TableDrawer(SerializedProperty serializedProperty, string propertyIdName = "m_id", string propertyNameName = "m_name")
@@ -53,9 +58,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
             PropertyIdName = propertyIdName;
             PropertyNameName = propertyNameName;
-
-            m_selection.Dropdown.MinimumHeight = 300F;
             PropertyEntries = SerializedProperty.FindPropertyRelative("m_entries");
+
+            m_selection.Dropdown.RootName = "Entries";
+            m_selection.Dropdown.MinimumHeight = 300F;
         }
 
         protected override void OnDisable()
@@ -99,6 +105,18 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual void OnMenu(GenericMenu menu)
         {
+        }
+
+        protected virtual void OnTableOpen()
+        {
+            if (TableOpening != null)
+            {
+                TableOpening?.Invoke();
+            }
+            else
+            {
+                OpenTable();
+            }
         }
 
         protected virtual void OnDraw(int index, SerializedProperty propertyEntry)
@@ -160,6 +178,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
             }
+        }
+
+        protected void OpenTable()
+        {
+            TableTreeEditorUtility.ShowWindow((TableAsset)SerializedProperty.serializedObject.targetObject);
         }
 
         private void OnEntrySelect(int index)
@@ -273,22 +296,27 @@ namespace UGF.RuntimeTools.Editor.Tables
                     OnEntrySelect(selected.Value);
                 }
 
-                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
-                {
-                    if (OnDrawToolbarButton(m_styles.RemoveButtonContent))
-                    {
-                        OnEntryRemove(SelectedIndex);
-                    }
-                }
-
-                if (OnDrawToolbarButton(m_styles.AddButtonContent))
+                if (GUILayout.Button(m_styles.AddButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
                 {
                     int index = m_selectedIndex ?? PropertyEntries.arraySize;
 
                     OnEntryInsert(index);
                 }
 
-                Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, GUILayout.Width(25F));
+                using (new EditorGUI.DisabledScope(m_selectedIndex == null))
+                {
+                    if (GUILayout.Button(m_styles.RemoveButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
+                    {
+                        OnEntryRemove(SelectedIndex);
+                    }
+                }
+
+                if (GUILayout.Button(m_styles.OpenWindowContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonSmallOptions))
+                {
+                    OnTableOpen();
+                }
+
+                Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonSmallOptions);
 
                 if (GUI.Button(rectMenu, m_styles.MenuButtonContent, EditorStyles.toolbarButton))
                 {
@@ -362,11 +390,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return items;
-        }
-
-        private bool OnDrawToolbarButton(GUIContent content, float width = 50F)
-        {
-            return GUILayout.Button(content, EditorStyles.toolbarButton, GUILayout.Width(width));
         }
 
         private string OnGetUniqueName(string entryName)
