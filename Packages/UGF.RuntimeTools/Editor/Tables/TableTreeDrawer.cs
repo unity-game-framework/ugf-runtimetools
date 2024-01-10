@@ -438,6 +438,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             TreeView.Apply();
+            TreeView.SetExpanded(item.id, true);
         }
 
         private void OnEntryRemove()
