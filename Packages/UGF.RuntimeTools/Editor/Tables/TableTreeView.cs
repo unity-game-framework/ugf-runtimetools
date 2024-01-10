@@ -43,7 +43,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_state = state;
 
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
-            rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing * 2F;
+            rowHeight = options.RowHeight;
             showAlternatingRowBackgrounds = true;
             enableItemHovering = true;
 
