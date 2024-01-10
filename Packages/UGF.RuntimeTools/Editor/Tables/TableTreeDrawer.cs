@@ -20,6 +20,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool DisplayToolbar { get; set; } = true;
         public bool DisplayFooter { get; set; } = true;
 
+        public event TableTreeViewDrawRowCellHandler DrawRowCellValue;
+
         private readonly TableTreeViewPreferences m_treeViewPreferences;
         private readonly Action<SerializedProperty> m_entryInitializeHandler;
         private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
@@ -298,11 +300,22 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual void OnDrawRowCellValue(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
-            EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+            if (DrawRowCellValue != null)
+            {
+                DrawRowCellValue.Invoke(position, item, serializedProperty, column);
+            }
+            else
+            {
+                position.height = EditorGUIUtility.singleLineHeight;
+
+                EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+            }
         }
 
         protected virtual void OnDrawRowCellArray(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
+            position.height = EditorGUIUtility.singleLineHeight;
+
             using (new EditorGUI.DisabledScope(true))
             {
                 EditorGUI.IntField(position, GUIContent.none, serializedProperty.arraySize);
@@ -314,7 +327,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             float height = EditorGUIUtility.singleLineHeight;
             float space = EditorGUIUtility.standardVerticalSpacing;
 
-            var rectField = new Rect(position.x, position.y, position.width - height - space, position.height);
+            var rectField = new Rect(position.x, position.y, position.width - height - space, height);
             var rectButton = new Rect(rectField.xMax + space, position.y + 1F, height, height);
 
             int count = item.PropertyChildrenSize.intValue;
