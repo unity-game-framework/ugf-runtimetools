@@ -315,11 +315,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             float space = EditorGUIUtility.standardVerticalSpacing;
 
             var rectField = new Rect(position.x, position.y, position.width - height - space, position.height);
-            var rectButton = new Rect(rectField.xMax + space, position.y, height, height);
+            var rectButton = new Rect(rectField.xMax + space, position.y + 1F, height, height);
 
-            using (new EditorGUI.DisabledScope(true))
+            int count = item.PropertyChildrenSize.intValue;
+
+            EditorGUI.PropertyField(rectField, item.PropertyChildrenSize, GUIContent.none);
+
+            if (count != item.PropertyChildrenSize.intValue)
             {
-                EditorGUI.IntField(rectField, GUIContent.none, serializedProperty.arraySize);
+                TreeView.Reload();
+                GUIUtility.ExitGUI();
             }
 
             if (GUI.Button(rectButton, m_styles.AddButtonChildrenContent, EditorStyles.iconButton))
