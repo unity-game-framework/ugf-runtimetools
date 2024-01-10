@@ -40,6 +40,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent FooterClipboardResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Reset clipboard.");
             public GUIContent FooterSortingResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Reset sorting.");
             public GUIContent FooterSelectionResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Clear selection.");
+            public GUIContent FooterColumnsResetButton { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Reset columns.");
             public GUIStyle SearchField { get; } = new GUIStyle("ToolbarSearchTextFieldPopup");
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
@@ -257,9 +258,20 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
 
-                GUILayout.Label(columnsVisible == columnsTotal
-                    ? $"Columns: {columnsTotal}"
-                    : $"Columns: {columnsVisible}/{columnsTotal}", m_styles.FooterSection);
+                using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
+                {
+                    GUILayout.Label(columnsVisible == columnsTotal
+                        ? $"Columns: {columnsTotal}"
+                        : $"Columns: {columnsVisible}/{columnsTotal}");
+
+                    if (columnsVisible != columnsTotal)
+                    {
+                        if (GUILayout.Button(m_styles.FooterColumnsResetButton, EditorStyles.iconButton))
+                        {
+                            TreeView.ResetColumns();
+                        }
+                    }
+                }
 
                 GUILayout.Label(countVisible == countTotal
                     ? $"Entries: {countTotal}"

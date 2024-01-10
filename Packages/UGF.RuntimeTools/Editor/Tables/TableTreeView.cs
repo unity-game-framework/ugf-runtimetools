@@ -16,9 +16,11 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool HasSearchColumn { get { return m_state.SearchColumnIndex >= 0 && m_state.SearchColumnIndex < Options.Columns.Count; } }
         public TableTreeColumnOptions SortColumn { get { return HasSortColumn ? Options.Columns[multiColumnHeader.sortedColumnIndex] : throw new ArgumentException("Value not specified."); } }
         public bool HasSortColumn { get { return multiColumnHeader.sortedColumnIndex >= 0 && multiColumnHeader.sortedColumnIndex < Options.Columns.Count; } }
-        public int TotalCount { get { return m_items.Count; } }
+        public int ItemsCount { get { return m_items.Count; } }
         public int VisibleCount { get; private set; }
         public int VisibleEntryCount { get; private set; }
+        public int ColumnCount { get { return multiColumnHeader.state.columns.Length; } }
+        public int ColumnVisibleCount { get { return multiColumnHeader.state.visibleColumns.Length; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
@@ -329,6 +331,18 @@ namespace UGF.RuntimeTools.Editor.Tables
             multiColumnHeader.sortedColumnIndex = -1;
 
             Reload();
+        }
+
+        public void ResetColumns()
+        {
+            int[] columns = new int[multiColumnHeader.state.columns.Length];
+
+            for (int i = 0; i < columns.Length; i++)
+            {
+                columns[i] = i;
+            }
+
+            multiColumnHeader.state.visibleColumns = columns;
         }
 
         public TableTreeViewItem GetItem(int id)
