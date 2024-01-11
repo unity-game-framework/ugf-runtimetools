@@ -9,7 +9,17 @@ namespace UGF.RuntimeTools.Editor.Tables
     [InitializeOnLoad]
     internal static class TableEntryCache
     {
-        private static readonly Dictionary<GlobalId, string> m_names = new Dictionary<GlobalId, string>();
+        private static readonly Dictionary<GUID, TableEntryCollection> m_entries = new Dictionary<GUID, TableEntryCollection>();
+        private static readonly Dictionary<GlobalId, EntryNameCollection> m_names = new Dictionary<GlobalId, EntryNameCollection>();
+
+        public class TableEntryCollection : HashSet<GlobalId>
+        {
+            public string TableName { get; set; }
+        }
+
+        public class EntryNameCollection : Dictionary<GUID, HashSet<string>>
+        {
+        }
 
         static TableEntryCache()
         {
@@ -18,39 +28,121 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public static void Update()
         {
-            Clear();
-            Update(TableEditorUtility.FindTableAssetAll(typeof(TableAsset)));
+            Update(typeof(TableAsset));
         }
 
-        public static void Update(IReadOnlyList<TableAsset> tables)
+        public static void Update(Type type)
         {
-            if (tables == null) throw new ArgumentNullException(nameof(tables));
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
-            for (int i = 0; i < tables.Count; i++)
+            Clear();
+
+            string[] guids = AssetDatabase.FindAssets($"t:{type.Name}");
+
+            for (int i = 0; i < guids.Length; i++)
             {
-                TableAsset tableAsset = tables[i];
-                ITable table = tableAsset.Get();
+                string guid = guids[i];
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                GUID id = AssetDatabase.GUIDFromAssetPath(path);
 
-                foreach (ITableEntry entry in table.Entries)
+                var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(path);
+
+                Update(id, asset);
+            }
+        }
+
+        public static void Update(GUID guid, TableAsset asset)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            ITable table = asset.Get();
+
+            Remove(guid);
+
+            if (table.Entries.Count > 0)
+            {
+                Add(guid, asset);
+            }
+        }
+
+        public static void Add(GUID guid, TableAsset asset)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            ITable table = asset.Get();
+
+            if (table.Entries.Count > 0)
+            {
+                var entryCollection = new TableEntryCollection
                 {
-                    if (entry.Id.IsValid())
+                    TableName = asset.name
+                };
+
+                m_entries.Add(guid, entryCollection);
+
+                for (int i = 0; i < table.Entries.Count; i++)
+                {
+                    ITableEntry entry = table.Entries[i];
+
+                    if (!m_names.TryGetValue(entry.Id, out EntryNameCollection nameCollection))
                     {
-                        m_names[entry.Id] = entry.Name;
+                        nameCollection = new EntryNameCollection();
+
+                        m_names.Add(entry.Id, nameCollection);
                     }
+
+                    if (!nameCollection.TryGetValue(guid, out HashSet<string> names))
+                    {
+                        names = new HashSet<string>();
+
+                        nameCollection.Add(guid, names);
+                    }
+
+                    names.Add(entry.Name);
+                    entryCollection.Add(entry.Id);
                 }
             }
         }
 
+        public static bool Remove(GUID guid)
+        {
+            if (m_entries.Remove(guid, out TableEntryCollection entryCollection))
+            {
+                foreach (GlobalId id in entryCollection)
+                {
+                    if (m_names.TryGetValue(id, out EntryNameCollection nameCollection))
+                    {
+                        nameCollection.Remove(guid);
+
+                        if (nameCollection.Count == 0)
+                        {
+                            m_names.Remove(id);
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         public static void Clear()
         {
+            m_entries.Clear();
             m_names.Clear();
         }
 
-        public static bool TryGetName(GlobalId id, out string name)
+        public static string GetTableName(GUID guid)
+        {
+            return m_entries[guid].TableName;
+        }
+
+        public static bool TryGetNameCollection(GlobalId id, out EntryNameCollection nameCollection)
         {
             if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
 
-            return m_names.TryGetValue(id, out name);
+            return m_names.TryGetValue(id, out nameCollection);
         }
     }
 }

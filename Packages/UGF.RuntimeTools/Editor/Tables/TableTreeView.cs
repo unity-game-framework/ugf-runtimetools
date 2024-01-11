@@ -59,7 +59,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
-                int id = TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options);
+                int id = HashCode.Combine(TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options), i);
 
                 var item = new TableTreeViewItem(id, TableTreeEntryType.Entry, i, propertyElement, Options);
 

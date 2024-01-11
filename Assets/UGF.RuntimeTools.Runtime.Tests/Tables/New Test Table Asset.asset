@@ -17,7 +17,7 @@ MonoBehaviour:
     - m_id:
         m_first: 4989261895982915254
         m_second: 6157247676228133822
-      m_name: Entry
+      m_name: B
       m_text: Copy
       m_bool: 1
       m_int: 5
@@ -5372,35 +5372,6 @@ MonoBehaviour:
         m_first: 4989261895982915254
         m_second: 6157247676228133822
       m_children: []
-    - m_id:
-        m_first: 5405359239326690691
-        m_second: 5482698163888416648
-      m_name: A
-      m_text: Copy
-      m_bool: 1
-      m_int: 10
-      m_float: 0
-      m_range: 0
-      m_enum: 0
-      m_asset:
-        m_first: 0
-        m_second: 0
-      m_tableEntry:
-        m_first: 4989261895982915254
-        m_second: 6157247676228133822
-      m_children:
-      - m_childName: a
-        m_childValue: 2
-        m_childBool: 1
-      - m_childName: a
-        m_childValue: 2
-        m_childBool: 1
-      - m_childName: a
-        m_childValue: 2
-        m_childBool: 1
-      - m_childName: a
-        m_childValue: 2
-        m_childBool: 1
     - m_id:
         m_first: 5023761190283178082
         m_second: 14155978263114825913

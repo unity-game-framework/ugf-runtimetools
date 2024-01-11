@@ -17,8 +17,8 @@ MonoBehaviour:
     - m_id:
         m_first: 4720808723136278670
         m_second: 17394508623636605631
-      m_name: Entry
-      m_text: a
+      m_name: A
+      m_text: B
       m_bool: 0
       m_int: 0
       m_float: 0
@@ -28,8 +28,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 0
-        m_second: 0
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
       m_children: []
     - m_id:
         m_first: 5641022231527337269
@@ -45,8 +45,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 0
-        m_second: 0
+        m_first: 4989261895982915254
+        m_second: 6157247676228133822
       m_children:
       - m_childName: 
         m_childValue: 0
@@ -95,7 +95,7 @@ MonoBehaviour:
     - m_id:
         m_first: 4776603122296565468
         m_second: 13897223173796809356
-      m_name: Entry_3
+      m_name: WW
       m_text: b
       m_bool: 0
       m_int: 1
@@ -106,8 +106,25 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 5588017318792250261
+        m_second: 5105742835500902057
+      m_name: Entry_9
+      m_text: b
+      m_bool: 0
+      m_int: 1
+      m_float: 3
+      m_range: 0
+      m_enum: 0
+      m_asset:
         m_first: 0
         m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
       m_children: []
     - m_id:
         m_first: 5651325075048615848
@@ -149,6 +166,40 @@ MonoBehaviour:
       m_name: Entry_5
       m_text: 
       m_bool: 0
+      m_int: 0
+      m_float: 0
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_name: Entry_7
+      m_text: 
+      m_bool: 0
+      m_int: 0
+      m_float: 0
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4776603122296565468
+        m_second: 13897223173796809356
+      m_children: []
+    - m_id:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_name: Entry_89
+      m_text: 
+      m_bool: 1
       m_int: 0
       m_float: 0
       m_range: 0
