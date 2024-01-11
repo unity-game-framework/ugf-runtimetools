@@ -4,13 +4,14 @@ UGF.RuntimeTools
 
 ## Information
 
-- **Version**: `3.0.0-preview.3`
+- **Version**: `3.0.0-preview.4`
 - **Unity**: `2023.2`
 - **API Compatibility Level**: `.NET Standard 2.1`
 
 ### Dependencies
 
 - `com.ugf.editortools`: `3.0.0-preview`
+- `com.ugf.customsettings`: `3.4.1`
 
 
 ### Description

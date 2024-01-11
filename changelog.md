@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.4](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.4) - 2024-01-11  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/29?closed=1)  
+    
+
+### Added
+
+- Add table tree drawer preference saving inside of user settings ([#96](https://github.com/unity-game-framework/ugf-runtimetools/issues/96))  
+    - Update dependencies: add `com.ugf.customsettings` of `3.4.1` version.
+    - Add _Table Tree Settings_ user preference file for state and clipboard data.
+    - Add `TableTreeEditorUtility.CreateState()` method to create state from table tree options.
+    - Add `TableTreeView.State` property to get access to the tree view state.
+
+### Fixed
+
+- Fix item deletion without children ([#104](https://github.com/unity-game-framework/ugf-runtimetools/issues/104))  
+    - Fix `TableTreeView.GetChildrenParentSelection()` method to property check for entry type.
+
 ## [3.0.0-preview.3](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.3) - 2024-01-11  
 
 ### Release Notes
