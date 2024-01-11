@@ -58,13 +58,18 @@ namespace UGF.RuntimeTools.Editor.Tables
             for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
-                int id = HashCode.Combine(TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options), i);
+                int id = TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options);
 
                 var item = new TableTreeViewItem(id, TableTreeEntryType.Entry, i, propertyElement, Options);
 
                 root.AddChild(item);
 
-                m_items.Add(item.id, item);
+                if (!m_items.TryAdd(item.id, item))
+                {
+                    item.id = HashCode.Combine(item.id, i);
+
+                    m_items.Add(item.id, item);
+                }
 
                 SerializedProperty propertyChildren = propertyElement.FindPropertyRelative(Options.PropertyChildrenName);
 
