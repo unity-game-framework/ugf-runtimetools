@@ -4,7 +4,6 @@ using System.Text;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
-using UGF.EditorTools.Editor.IMGUI.Scopes;
 using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -22,7 +21,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public event TableTreeViewDrawRowCellHandler DrawRowCellValue;
 
-        private readonly TableTreeViewPreferences m_treeViewPreferences;
+        private readonly Type m_targetType;
         private readonly Action<SerializedProperty> m_entryInitializeHandler;
         private readonly Func<IEnumerable<DropdownItem<int>>> m_searchSelectionItemsHandler;
         private readonly DropdownSelection<DropdownItem<int>> m_searchSelection = new DropdownSelection<DropdownItem<int>>();
@@ -30,8 +29,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         private readonly List<TableTreeViewItem> m_selectedItems = new List<TableTreeViewItem>();
         private SearchField m_search;
         private Styles m_styles;
-
-        private static readonly TableTreeDrawerClipboard m_clipboard = new TableTreeDrawerClipboard();
 
         private class Styles
         {
@@ -68,9 +65,9 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             SerializedObject = serializedObject ?? throw new ArgumentNullException(nameof(serializedObject));
             Options = options ?? throw new ArgumentNullException(nameof(options));
-
             TreeView = new TableTreeView(SerializedObject.FindProperty("m_table"), options);
-            m_treeViewPreferences = new TableTreeViewPreferences(TreeView, SerializedObject.targetObject);
+
+            m_targetType = SerializedObject.targetObject.GetType();
             m_entryInitializeHandler = OnEntryInitialize;
             m_searchSelectionItemsHandler = OnGetSearchSelectionItems;
             m_searchSelection.Dropdown.RootName = "Search Column";
@@ -84,11 +81,10 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             Undo.undoRedoPerformed += OnUndoOrRedoPerformed;
 
-            m_clipboard.Read();
+            TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
 
             TreeView.DrawRowCell += OnDrawRowCell;
             TreeView.KeyEventProcessing += OnKeyEventProcessing;
-            m_treeViewPreferences.Read();
 
             TreeView.Reload();
             TreeView.multiColumnHeader.ResizeToFit();
@@ -98,7 +94,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             base.OnDisable();
 
-            m_treeViewPreferences.Write();
+            TableTreeSettings.StateWrite(m_targetType, TreeView.State);
+            TableTreeSettings.Save();
 
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
@@ -110,6 +107,11 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             m_styles ??= new Styles();
             m_search ??= new SearchField();
+
+            if (SerializedObject.UpdateIfRequiredOrScript())
+            {
+                TreeView.Reload();
+            }
 
             if (DisplayToolbar)
             {
@@ -123,9 +125,12 @@ namespace UGF.RuntimeTools.Editor.Tables
                 DrawFooter();
             }
 
+            SerializedObject.ApplyModifiedProperties();
+
             if (GUI.changed)
             {
-                m_treeViewPreferences.Write();
+                TableTreeSettings.StateWrite(m_targetType, TreeView.State);
+                TableTreeSettings.Save();
             }
         }
 
@@ -168,10 +173,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 position = scope.rect;
             }
 
-            using (new SerializedObjectUpdateScope(SerializedObject))
-            {
-                TreeView.OnGUI(position);
-            }
+            TreeView.OnGUI(position);
         }
 
         protected void DrawFooter()
@@ -191,18 +193,18 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 GUILayout.FlexibleSpace();
 
-                if (OnClipboardMatch())
+                if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
                 {
                     var builder = new StringBuilder("Clipboard:");
 
-                    if (m_clipboard.Data.Entries.Count > 0)
+                    if (TableTreeSettings.ClipboardEntriesCount > 0)
                     {
-                        builder.Append($" Entries {m_clipboard.Data.Entries.Count}");
+                        builder.Append($" Entries {TableTreeSettings.ClipboardEntriesCount}");
                     }
 
-                    if (m_clipboard.Data.Children.Count > 0)
+                    if (TableTreeSettings.ClipboardChildrenCount > 0)
                     {
-                        builder.Append($" Children {m_clipboard.Data.Children.Count}");
+                        builder.Append($" Children {TableTreeSettings.ClipboardChildrenCount}");
                     }
 
                     using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
@@ -211,8 +213,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                         if (GUILayout.Button(m_styles.FooterClipboardResetButton, EditorStyles.iconButton))
                         {
-                            m_clipboard.Clear();
-                            m_clipboard.Write();
+                            TableTreeSettings.ClipboardClear();
+                            TableTreeSettings.Save();
                         }
                     }
                 }
@@ -468,53 +470,81 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryCopy()
         {
-            m_clipboard.Clear();
+            TableTreeSettings.ClipboardClear();
+
             TreeView.GetSelection(m_selectedItems);
 
-            m_clipboard.TryCopyEntries(m_selectedItems);
+            TableTreeSettings.TryClipboardCopyEntries(m_selectedItems);
 
             m_selectedItems.Clear();
+
             TreeView.GetChildrenSelection(m_selectedItems);
 
-            m_clipboard.TryCopyChildren(m_selectedItems);
+            TableTreeSettings.TryClipboardCopyChildren(m_selectedItems);
 
             m_selectedItems.Clear();
 
-            if (m_clipboard.HasAny())
+            if (TableTreeSettings.ClipboardHasAny())
             {
-                m_clipboard.CopyType(SerializedObject.targetObject.GetType());
-                m_clipboard.Write();
+                TableTreeSettings.ClipboardCopyType(m_targetType);
+                TableTreeSettings.Save();
             }
         }
 
         private void OnEntryPaste()
         {
-            if (OnClipboardMatch())
+            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
             {
-                TreeView.GetSelection(m_selectedItems);
+                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
 
-                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
-
-                foreach (object value in m_clipboard.Data.Entries)
+                if (clipboard.Children.Count > 0)
                 {
-                    TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
-                }
+                    TreeView.GetChildrenSelection(m_selectedItems);
 
-                m_selectedItems.Clear();
-                TreeView.GetChildrenSelection(m_selectedItems);
-
-                if (m_selectedItems.Count > 0)
-                {
-                    TableTreeViewItem item = m_selectedItems[^1];
-                    var parent = (TableTreeViewItem)item.parent;
-
-                    foreach (object value in m_clipboard.Data.Children)
+                    if (m_selectedItems.Count > 0)
                     {
-                        TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
+                        TableTreeViewItem item = m_selectedItems[^1];
+                        var parent = (TableTreeViewItem)item.parent;
+
+                        foreach (object value in clipboard.Children)
+                        {
+                            TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
+                        }
+
+                        m_selectedItems.Clear();
+                    }
+
+                    TreeView.GetSelection(m_selectedItems);
+
+                    if (m_selectedItems.Count > 0)
+                    {
+                        TableTreeViewItem item = m_selectedItems[^1];
+
+                        foreach (object value in clipboard.Children)
+                        {
+                            TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize, value);
+                        }
+
+                        m_selectedItems.Clear();
+
+                        TreeView.SetExpanded(item.id, true);
                     }
                 }
 
-                m_selectedItems.Clear();
+                if (clipboard.Entries.Count > 0)
+                {
+                    TreeView.GetSelection(m_selectedItems);
+
+                    int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
+
+                    foreach (object value in clipboard.Entries)
+                    {
+                        TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
+                    }
+
+                    m_selectedItems.Clear();
+                }
+
                 TreeView.Apply();
             }
         }
@@ -532,11 +562,14 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddDisabledItem(m_styles.MenuResetSorting);
             }
 
-            if (m_treeViewPreferences.HasData())
+            if (TableTreeSettings.HasState(m_targetType))
             {
                 menu.AddItem(m_styles.MenuResetPreferences, false, () =>
                 {
-                    m_treeViewPreferences.Reset();
+                    TableTreeSettings.TryStateReset(m_targetType, Options);
+                    TableTreeSettings.Save();
+                    TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
+
                     TreeView.multiColumnHeader.ResizeToFit();
                 });
             }
@@ -545,12 +578,12 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddDisabledItem(m_styles.MenuResetPreferences);
             }
 
-            if (m_clipboard.HasAny())
+            if (TableTreeSettings.ClipboardHasAny())
             {
                 menu.AddItem(m_styles.MenuResetClipboard, false, () =>
                 {
-                    m_clipboard.Clear();
-                    m_clipboard.Write();
+                    TableTreeSettings.ClipboardClear();
+                    TableTreeSettings.Save();
                 });
             }
             else
@@ -618,11 +651,6 @@ namespace UGF.RuntimeTools.Editor.Tables
                     current.Use();
                 }
             }
-        }
-
-        private bool OnClipboardMatch()
-        {
-            return m_clipboard.HasAny() && m_clipboard.TryMatch(SerializedObject.targetObject.GetType());
         }
 
         private void OnUndoOrRedoPerformed()

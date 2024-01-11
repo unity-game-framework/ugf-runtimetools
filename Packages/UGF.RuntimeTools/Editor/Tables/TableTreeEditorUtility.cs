@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
@@ -54,6 +55,28 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             window = default;
             return false;
+        }
+
+        public static TableTreeViewState CreateState(TableTreeOptions options)
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            var columns = new MultiColumnHeaderState.Column[options.Columns.Count];
+
+            for (int i = 0; i < options.Columns.Count; i++)
+            {
+                TableTreeColumnOptions column = options.Columns[i];
+
+                columns[i] = new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent(column.DisplayName)
+                };
+            }
+
+            return new TableTreeViewState
+            {
+                Header = new MultiColumnHeaderState(columns)
+            };
         }
 
         public static TableTreeOptions CreateOptions(Type tableType)

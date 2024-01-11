@@ -11,9 +11,10 @@ namespace UGF.RuntimeTools.Editor.Tables
         public SerializedProperty SerializedProperty { get; }
         public TableTreeOptions Options { get; }
         public SerializedProperty PropertyEntries { get; }
-        public int SearchColumnIndex { get { return m_state.SearchColumnIndex; } set { m_state.SearchColumnIndex = value; } }
-        public TableTreeColumnOptions SearchColumn { get { return HasSearchColumn ? Options.Columns[m_state.SearchColumnIndex] : throw new ArgumentException("Value not specified."); } }
-        public bool HasSearchColumn { get { return m_state.SearchColumnIndex >= 0 && m_state.SearchColumnIndex < Options.Columns.Count; } }
+        public TableTreeViewState State { get; }
+        public int SearchColumnIndex { get { return State.SearchColumnIndex; } set { State.SearchColumnIndex = value; } }
+        public TableTreeColumnOptions SearchColumn { get { return HasSearchColumn ? Options.Columns[State.SearchColumnIndex] : throw new ArgumentException("Value not specified."); } }
+        public bool HasSearchColumn { get { return State.SearchColumnIndex >= 0 && State.SearchColumnIndex < Options.Columns.Count; } }
         public TableTreeColumnOptions SortColumn { get { return HasSortColumn ? Options.Columns[multiColumnHeader.sortedColumnIndex] : throw new ArgumentException("Value not specified."); } }
         public bool HasSortColumn { get { return multiColumnHeader.sortedColumnIndex >= 0 && multiColumnHeader.sortedColumnIndex < Options.Columns.Count; } }
         public int ItemsCount { get { return m_items.Count; } }
@@ -25,12 +26,11 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action KeyEventProcessing;
 
-        private readonly TableTreeViewState m_state;
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
         private readonly Dictionary<int, TableTreeViewItem> m_items = new Dictionary<int, TableTreeViewItem>();
         private readonly List<TreeViewItem> m_rows = new List<TreeViewItem>();
 
-        public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorInternalUtility.CreateState(options))
+        public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorUtility.CreateState(options))
         {
         }
 
@@ -39,8 +39,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
             Options = options ?? throw new ArgumentNullException(nameof(options));
             PropertyEntries = SerializedProperty.FindPropertyRelative(Options.PropertyEntriesName);
-
-            m_state = state;
+            State = state;
 
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
             rowHeight = options.RowHeight;
@@ -59,13 +58,18 @@ namespace UGF.RuntimeTools.Editor.Tables
             for (int i = 0; i < PropertyEntries.arraySize; i++)
             {
                 SerializedProperty propertyElement = PropertyEntries.GetArrayElementAtIndex(i);
-                int id = HashCode.Combine(TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options), i);
+                int id = TableTreeEditorInternalUtility.GetEntryId(propertyElement, Options);
 
                 var item = new TableTreeViewItem(id, TableTreeEntryType.Entry, i, propertyElement, Options);
 
                 root.AddChild(item);
 
-                m_items.Add(item.id, item);
+                if (!m_items.TryAdd(item.id, item))
+                {
+                    item.id = HashCode.Combine(item.id, i);
+
+                    m_items.Add(item.id, item);
+                }
 
                 SerializedProperty propertyChildren = propertyElement.FindPropertyRelative(Options.PropertyChildrenName);
 
