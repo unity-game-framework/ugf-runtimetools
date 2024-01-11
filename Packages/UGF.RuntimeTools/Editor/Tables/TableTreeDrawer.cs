@@ -4,7 +4,6 @@ using System.Text;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
-using UGF.EditorTools.Editor.IMGUI.Scopes;
 using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -109,6 +108,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_styles ??= new Styles();
             m_search ??= new SearchField();
 
+            if (SerializedObject.UpdateIfRequiredOrScript())
+            {
+                TreeView.Reload();
+            }
+
             if (DisplayToolbar)
             {
                 DrawToolbar();
@@ -120,6 +124,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 DrawFooter();
             }
+
+            SerializedObject.ApplyModifiedProperties();
 
             if (GUI.changed)
             {
@@ -167,10 +173,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 position = scope.rect;
             }
 
-            using (new SerializedObjectUpdateScope(SerializedObject))
-            {
-                TreeView.OnGUI(position);
-            }
+            TreeView.OnGUI(position);
         }
 
         protected void DrawFooter()
