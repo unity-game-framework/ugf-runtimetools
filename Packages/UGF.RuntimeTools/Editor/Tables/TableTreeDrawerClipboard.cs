@@ -24,6 +24,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             public List<object> Children { get { return m_children; } }
         }
 
+        public void Copy()
+        {
+            Write();
+            Read();
+        }
+
         public void Read()
         {
             if (EditorPrefs.HasKey(Key))
