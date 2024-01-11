@@ -65,8 +65,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (table == null) throw new ArgumentNullException(nameof(table));
             if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
 
-            foreach (ITableEntry entry in table.Entries)
+            for (int i = 0; i < table.Entries.Count; i++)
             {
+                ITableEntry entry = table.Entries[i];
+
                 if (entry.Id == id)
                 {
                     name = entry.Name;

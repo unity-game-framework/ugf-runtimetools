@@ -12,7 +12,7 @@ namespace UGF.RuntimeTools.Runtime.Tables
 
         public List<TEntry> Entries { get { return m_entries; } }
 
-        IEnumerable<ITableEntry> ITable.Entries { get { return Entries; } }
+        IReadOnlyList<ITableEntry> ITable.Entries { get { return Entries; } }
 
         public T GetByName<T>(string name) where T : ITableEntry
         {

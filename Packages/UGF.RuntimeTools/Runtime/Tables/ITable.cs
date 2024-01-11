@@ -5,7 +5,7 @@ namespace UGF.RuntimeTools.Runtime.Tables
 {
     public interface ITable
     {
-        IEnumerable<ITableEntry> Entries { get; }
+        IReadOnlyList<ITableEntry> Entries { get; }
 
         T GetByName<T>(string name) where T : ITableEntry;
         ITableEntry GetByName(string name);
