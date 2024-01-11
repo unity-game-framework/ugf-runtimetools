@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
 using UGF.EditorTools.Editor.IMGUI.PropertyDrawers;
@@ -15,6 +16,7 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         private readonly DropdownSelection<DropdownItem<GlobalId>> m_selection = new DropdownSelection<DropdownItem<GlobalId>>();
         private readonly Func<IEnumerable<DropdownItem<GlobalId>>> m_itemsHandler;
+        private readonly StringBuilder m_builder = new StringBuilder();
         private Styles m_styles;
 
         private class Styles
@@ -40,13 +42,46 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (id != GlobalId.Empty)
             {
-                if (TableEditorUtility.TryGetEntryNameFromCache(id, out string name))
+                if (TableEntryCache.TryGetNameCollection(id, out TableEntryCache.EntryNameCollection nameCollection))
                 {
-                    content = !string.IsNullOrEmpty(name) ? new GUIContent(name) : m_styles.UntitledContent;
+                    string contentText = string.Empty;
+
+                    m_builder.Clear();
+
+                    foreach ((GUID tableGuid, HashSet<string> names) in nameCollection)
+                    {
+                        string tableName = TableEntryCache.GetTableName(tableGuid);
+
+                        m_builder.Append(tableName);
+                        m_builder.Append(": ");
+
+                        int index = 0;
+
+                        foreach (string name in names)
+                        {
+                            if (string.IsNullOrEmpty(contentText))
+                            {
+                                contentText = nameCollection.Count > 1 ? $"{name} ({nameCollection.Count})" : name;
+                            }
+
+                            m_builder.Append(name);
+
+                            if (index++ < names.Count - 1)
+                            {
+                                m_builder.Append(", ");
+                            }
+                        }
+
+                        m_builder.AppendLine();
+                    }
+
+                    content = !string.IsNullOrEmpty(contentText) ? new GUIContent(contentText) : m_styles.UntitledContent;
+                    content.tooltip = m_builder.ToString();
                 }
                 else
                 {
                     content = m_styles.MissingContent;
+                    content.tooltip = $"Entry name not found by specified id: '{id}'.";
                 }
             }
 
@@ -56,12 +91,15 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        public override float GetPropertyHeight(SerializedProperty serializedProperty, GUIContent label)
+        {
+            return EditorGUIUtility.singleLineHeight;
+        }
+
         private IEnumerable<DropdownItem<GlobalId>> GetItems()
         {
             var items = new List<DropdownItem<GlobalId>>();
             IReadOnlyList<TableAsset> tables = TableEditorUtility.FindTableAssetAll(Attribute.TableType);
-
-            TableEntryCache.Update(tables);
 
             items.Add(new DropdownItem<GlobalId>("None", GlobalId.Empty)
             {
@@ -85,11 +123,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return items;
-        }
-
-        public override float GetPropertyHeight(SerializedProperty serializedProperty, GUIContent label)
-        {
-            return EditorGUIUtility.singleLineHeight;
         }
     }
 }
