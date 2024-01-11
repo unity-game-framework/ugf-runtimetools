@@ -477,6 +477,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             TableTreeSettings.TryClipboardCopyEntries(m_selectedItems);
 
             m_selectedItems.Clear();
+
             TreeView.GetChildrenSelection(m_selectedItems);
 
             TableTreeSettings.TryClipboardCopyChildren(m_selectedItems);
@@ -496,31 +497,54 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
 
-                TreeView.GetChildrenSelection(m_selectedItems);
-
-                if (m_selectedItems.Count > 0)
+                if (clipboard.Children.Count > 0)
                 {
-                    TableTreeViewItem item = m_selectedItems[^1];
-                    var parent = (TableTreeViewItem)item.parent;
+                    TreeView.GetChildrenSelection(m_selectedItems);
 
-                    foreach (object value in clipboard.Children)
+                    if (m_selectedItems.Count > 0)
                     {
-                        TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
+                        TableTreeViewItem item = m_selectedItems[^1];
+                        var parent = (TableTreeViewItem)item.parent;
+
+                        foreach (object value in clipboard.Children)
+                        {
+                            TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
+                        }
+
+                        m_selectedItems.Clear();
+                    }
+
+                    TreeView.GetSelection(m_selectedItems);
+
+                    if (m_selectedItems.Count > 0)
+                    {
+                        TableTreeViewItem item = m_selectedItems[^1];
+
+                        foreach (object value in clipboard.Children)
+                        {
+                            TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize, value);
+                        }
+
+                        m_selectedItems.Clear();
+
+                        TreeView.SetExpanded(item.id, true);
                     }
                 }
 
-                m_selectedItems.Clear();
-
-                TreeView.GetSelection(m_selectedItems);
-
-                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
-
-                foreach (object value in clipboard.Entries)
+                if (clipboard.Entries.Count > 0)
                 {
-                    TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
+                    TreeView.GetSelection(m_selectedItems);
+
+                    int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
+
+                    foreach (object value in clipboard.Entries)
+                    {
+                        TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
+                    }
+
+                    m_selectedItems.Clear();
                 }
 
-                m_selectedItems.Clear();
                 TreeView.Apply();
             }
         }
