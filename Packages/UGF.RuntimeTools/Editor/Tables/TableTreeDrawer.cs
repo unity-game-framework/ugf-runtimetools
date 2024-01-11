@@ -493,16 +493,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
 
-                TreeView.GetSelection(m_selectedItems);
-
-                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
-
-                foreach (object value in clipboard.Entries)
-                {
-                    TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
-                }
-
-                m_selectedItems.Clear();
                 TreeView.GetChildrenSelection(m_selectedItems);
 
                 if (m_selectedItems.Count > 0)
@@ -514,6 +504,17 @@ namespace UGF.RuntimeTools.Editor.Tables
                     {
                         TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
                     }
+                }
+
+                m_selectedItems.Clear();
+
+                TreeView.GetSelection(m_selectedItems);
+
+                int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
+
+                foreach (object value in clipboard.Entries)
+                {
+                    TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
                 }
 
                 m_selectedItems.Clear();
