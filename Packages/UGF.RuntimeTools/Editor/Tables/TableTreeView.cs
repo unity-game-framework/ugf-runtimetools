@@ -276,16 +276,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 int id = state.selectedIDs[i];
 
-                if (TryGetItem(id, out TableTreeViewItem item))
+                if (TryGetItem(id, out TableTreeViewItem item) && item.EntryType == TableTreeEntryType.Child)
                 {
-                    if (!item.HasPropertyChildren)
-                    {
-                        var parent = (TableTreeViewItem)item.parent;
+                    var parent = (TableTreeViewItem)item.parent;
 
-                        if (!selection.Contains(parent))
-                        {
-                            selection.Add(parent);
-                        }
+                    if (!selection.Contains(parent))
+                    {
+                        selection.Add(parent);
                     }
                 }
             }
