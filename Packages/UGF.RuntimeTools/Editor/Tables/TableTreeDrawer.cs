@@ -483,7 +483,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (m_clipboard.HasAny())
             {
                 m_clipboard.CopyType(SerializedObject.targetObject.GetType());
-                m_clipboard.Write();
+                m_clipboard.Copy();
             }
         }
 
