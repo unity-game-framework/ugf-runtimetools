@@ -29,8 +29,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event Action KeyEventProcessing;
 
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
-        private readonly Dictionary<int, TableTreeViewItem> m_items = new Dictionary<int, TableTreeViewItem>();
-        private readonly List<TreeViewItem> m_rows = new List<TreeViewItem>();
+        private readonly Dictionary<int, TableTreeViewItem> m_items;
+        private readonly List<TreeViewItem> m_rows;
 
         public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorUtility.CreateState(options))
         {
@@ -42,6 +42,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             Options = options ?? throw new ArgumentNullException(nameof(options));
             PropertyEntries = SerializedProperty.FindPropertyRelative(Options.PropertyEntriesName);
             State = state;
+
+            m_items = new Dictionary<int, TableTreeViewItem>(PropertyEntries.arraySize);
+            m_rows = new List<TreeViewItem>(PropertyEntries.arraySize);
 
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
             rowHeight = options.RowHeight;
