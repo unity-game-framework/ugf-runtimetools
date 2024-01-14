@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using UGF.EditorTools.Editor.Ids;
+using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
 using UGF.EditorTools.Editor.IMGUI.PropertyDrawers;
 using UGF.EditorTools.Runtime.Ids;
@@ -16,21 +16,42 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         private readonly DropdownSelection<DropdownItem<GlobalId>> m_selection = new DropdownSelection<DropdownItem<GlobalId>>();
         private readonly Func<IEnumerable<DropdownItem<GlobalId>>> m_itemsHandler;
-        private readonly StringBuilder m_builder = new StringBuilder();
+        private readonly List<string> m_names = new List<string>();
+        private readonly DropdownSelection<DropdownItem<TableName>> m_namesSelection = new DropdownSelection<DropdownItem<TableName>>();
         private Styles m_styles;
 
         private class Styles
         {
+            public GUIContent NameContent { get; } = new GUIContent();
             public GUIContent NoneContent { get; } = new GUIContent("None");
             public GUIContent MissingContent { get; } = new GUIContent("Missing");
             public GUIContent UntitledContent { get; } = new GUIContent("Untitled");
+            public GUIContent OpenWindowContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("HorizontalLayoutGroup Icon"), "Open table window.");
+        }
+
+        private struct TableName
+        {
+            public TableAsset Asset { get; }
+            public GlobalId EntryId { get; }
+
+            public TableName(TableAsset asset, GlobalId entryId)
+            {
+                if (asset == null) throw new ArgumentNullException(nameof(asset));
+                if (!entryId.IsValid()) throw new ArgumentException("Value should be valid.", nameof(entryId));
+
+                Asset = asset;
+                EntryId = entryId;
+            }
         }
 
         public TableEntryDropdownPropertyDrawer() : base(SerializedPropertyType.Generic)
         {
             m_selection.Dropdown.RootName = "Entries";
             m_selection.Dropdown.MinimumHeight = 300F;
-            m_itemsHandler = GetItems;
+            m_itemsHandler = OnGetItems;
+            m_namesSelection.Dropdown.RootName = "Tables and Names";
+            m_namesSelection.Dropdown.MinimumWidth = 200F;
+            m_namesSelection.Dropdown.MinimumHeight = 300F;
         }
 
         protected override void OnDrawProperty(Rect position, SerializedProperty serializedProperty, GUIContent label)
@@ -42,52 +63,58 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (id != GlobalId.Empty)
             {
-                if (TableEntryCache.TryGetNameCollection(id, out TableEntryCache.EntryNameCollection nameCollection))
+                TableEditorUtility.TryGetEntryNameFromCache(id, m_names);
+
+                if (m_names.Count > 0)
                 {
-                    string contentText = string.Empty;
+                    string name = m_names[0];
 
-                    m_builder.Clear();
-
-                    foreach ((GUID tableGuid, HashSet<string> names) in nameCollection)
+                    if (!string.IsNullOrEmpty(name))
                     {
-                        string tableName = TableEntryCache.GetTableName(tableGuid);
+                        content = m_styles.NameContent;
 
-                        m_builder.Append(tableName);
-                        m_builder.Append(": ");
-
-                        int index = 0;
-
-                        foreach (string name in names)
-                        {
-                            if (string.IsNullOrEmpty(contentText))
-                            {
-                                contentText = nameCollection.Count > 1 ? $"{name} ({nameCollection.Count})" : name;
-                            }
-
-                            m_builder.Append(name);
-
-                            if (index++ < names.Count - 1)
-                            {
-                                m_builder.Append(", ");
-                            }
-                        }
-
-                        m_builder.AppendLine();
+                        content.text = m_names.Count > 1
+                            ? $"{name} ({m_names.Count})"
+                            : name;
                     }
-
-                    content = !string.IsNullOrEmpty(contentText) ? new GUIContent(contentText) : m_styles.UntitledContent;
-                    content.tooltip = m_builder.ToString();
+                    else
+                    {
+                        content = m_styles.UntitledContent;
+                    }
                 }
                 else
                 {
                     content = m_styles.MissingContent;
-                    content.tooltip = $"Entry name not found by specified id: '{id}'.";
                 }
+
+                m_names.Clear();
             }
 
-            if (DropdownEditorGUIUtility.Dropdown(position, label, content, m_selection, m_itemsHandler, out DropdownItem<GlobalId> selected))
+            float height = EditorGUIUtility.singleLineHeight;
+            float space = EditorGUIUtility.standardVerticalSpacing;
+
+            var rectDropdown = new Rect(position.x, position.y, position.width - height - space, position.height);
+            var rectTable = new Rect(rectDropdown.xMax + space, position.y + 1F, height, position.height);
+
+            if (DropdownEditorGUIUtility.Dropdown(rectDropdown, label, content, m_selection, m_itemsHandler, out DropdownItem<GlobalId> selected))
             {
                 GlobalIdEditorUtility.SetGlobalIdToProperty(serializedProperty, selected.Value);
+            }
+
+            using (new EditorGUI.DisabledScope(!id.IsValid()))
+            {
+                bool result = GUI.Button(rectTable, m_styles.OpenWindowContent, EditorStyles.iconButton);
+                int controlId = EditorIMGUIUtility.GetLastControlId();
+
+                if (result)
+                {
+                    DropdownEditorGUIUtility.ShowDropdown(controlId, rectTable, m_namesSelection, OnGetNames(id));
+                }
+
+                if (DropdownEditorGUIUtility.CheckDropdown(controlId, m_namesSelection, out DropdownItem<TableName> selectedTable))
+                {
+                    TableTreeEditorUtility.ShowWindow(selectedTable.Value.Asset, id);
+                }
             }
         }
 
@@ -96,7 +123,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             return EditorGUIUtility.singleLineHeight;
         }
 
-        private IEnumerable<DropdownItem<GlobalId>> GetItems()
+        private IEnumerable<DropdownItem<GlobalId>> OnGetItems()
         {
             var items = new List<DropdownItem<GlobalId>>();
             IReadOnlyList<TableAsset> tables = TableEditorUtility.FindTableAssetAll(Attribute.TableType);
@@ -119,6 +146,32 @@ namespace UGF.RuntimeTools.Editor.Tables
                     {
                         Path = asset.name
                     });
+                }
+            }
+
+            return items;
+        }
+
+        private IEnumerable<DropdownItem<TableName>> OnGetNames(GlobalId id)
+        {
+            if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
+
+            var items = new List<DropdownItem<TableName>>();
+
+            if (TableEntryCache.TryGetNameCollection(id, out TableEntryCache.EntryNameCollection nameCollection))
+            {
+                foreach ((GUID tableId, HashSet<string> names) in nameCollection)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(tableId);
+                    var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(path);
+
+                    if (asset != null)
+                    {
+                        foreach (string name in names)
+                        {
+                            items.Add(new DropdownItem<TableName>($"{asset.name}: {name}", new TableName(asset, id)));
+                        }
+                    }
                 }
             }
 
