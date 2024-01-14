@@ -43,7 +43,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent EntryEmptyContent { get; } = new GUIContent("Untitled");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new entry.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete current entry.");
-            public GUIContent OpenWindowContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("HorizontalLayoutGroup Icon"), "Open table in window.");
+            public GUIContent OpenWindowContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("HorizontalLayoutGroup Icon"), "Open table window.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
             public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
             public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };

@@ -11,6 +11,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public SerializedObject SerializedObject { get { return m_serializedObject ?? throw new ArgumentException("Value not specified."); } }
         public bool HasSerializedObject { get { return m_serializedObject != null; } }
+        public TableTreeDrawer Drawer { get { return m_drawer ?? throw new ArgumentException("Value not specified."); } }
 
         private SerializedObject m_serializedObject;
         private TableTreeDrawer m_drawer;

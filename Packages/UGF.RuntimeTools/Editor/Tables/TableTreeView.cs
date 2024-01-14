@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UGF.EditorTools.Editor.Ids;
+using UGF.EditorTools.Runtime.Ids;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -27,8 +29,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event Action KeyEventProcessing;
 
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
-        private readonly Dictionary<int, TableTreeViewItem> m_items = new Dictionary<int, TableTreeViewItem>();
-        private readonly List<TreeViewItem> m_rows = new List<TreeViewItem>();
+        private readonly Dictionary<int, TableTreeViewItem> m_items;
+        private readonly List<TreeViewItem> m_rows;
 
         public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options) : this(serializedProperty, options, TableTreeEditorUtility.CreateState(options))
         {
@@ -40,6 +42,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             Options = options ?? throw new ArgumentNullException(nameof(options));
             PropertyEntries = SerializedProperty.FindPropertyRelative(Options.PropertyEntriesName);
             State = state;
+
+            m_items = new Dictionary<int, TableTreeViewItem>(PropertyEntries.arraySize);
+            m_rows = new List<TreeViewItem>(PropertyEntries.arraySize);
 
             cellMargin = EditorGUIUtility.standardVerticalSpacing;
             rowHeight = options.RowHeight;
@@ -346,6 +351,22 @@ namespace UGF.RuntimeTools.Editor.Tables
             multiColumnHeader.state.visibleColumns = columns;
         }
 
+        public bool TryFocusAtItem(GlobalId entryId)
+        {
+            if (!entryId.IsValid()) throw new ArgumentException("Value should be valid.", nameof(entryId));
+
+            if (TryGetItemByEntryId(entryId, out TableTreeViewItem item))
+            {
+                state.selectedIDs.Clear();
+                state.selectedIDs.Add(item.id);
+
+                SetSelection(state.selectedIDs, TreeViewSelectionOptions.RevealAndFrame);
+                return true;
+            }
+
+            return false;
+        }
+
         public TableTreeViewItem GetItem(int id)
         {
             return TryGetItem(id, out TableTreeViewItem item) ? item : throw new ArgumentException($"Table tree view item not found by the specified id: '{id}'.");
@@ -354,6 +375,29 @@ namespace UGF.RuntimeTools.Editor.Tables
         public bool TryGetItem(int id, out TableTreeViewItem item)
         {
             return m_items.TryGetValue(id, out item);
+        }
+
+        public bool TryGetItemByEntryId(GlobalId id, out TableTreeViewItem item)
+        {
+            if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
+
+            foreach ((_, TableTreeViewItem value) in m_items)
+            {
+                if (value.EntryType == TableTreeEntryType.Entry)
+                {
+                    SerializedProperty propertyId = value.SerializedProperty.FindPropertyRelative(Options.PropertyIdName);
+                    GlobalId entryId = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
+
+                    if (entryId == id)
+                    {
+                        item = value;
+                        return true;
+                    }
+                }
+            }
+
+            item = default;
+            return false;
         }
 
         private void OnSearchRows(TreeViewItem root, ICollection<TreeViewItem> rows, string search)
