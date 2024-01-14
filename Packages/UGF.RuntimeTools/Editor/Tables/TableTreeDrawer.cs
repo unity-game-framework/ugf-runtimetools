@@ -108,11 +108,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_styles ??= new Styles();
             m_search ??= new SearchField();
 
-            if (SerializedObject.UpdateIfRequiredOrScript())
-            {
-                TreeView.Reload();
-            }
-
             if (DisplayToolbar)
             {
                 DrawToolbar();
