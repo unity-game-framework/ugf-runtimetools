@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.5](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.5) - 2024-01-14  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/30?closed=1)  
+    
+
+### Added
+
+- Add table entry dropdown open table window button ([#109](https://github.com/unity-game-framework/ugf-runtimetools/issues/109))  
+    - Add `TableTreeEditorUtility.ShowWindow()` method argument to focus specific item after window opened.
+    - Add `TableTreeView.TryGetItemByEntryId()` method to find item by entry id.
+    - Add `TableTreeView.TryFocusAtItem()` method to focus item by entry id.
+    - Change `TableEntryDropdownAttribute` attribute drawing to display table selection dropdown which can be used to open specific table.
+
 ## [3.0.0-preview.4](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.4) - 2024-01-11  
 
 ### Release Notes
