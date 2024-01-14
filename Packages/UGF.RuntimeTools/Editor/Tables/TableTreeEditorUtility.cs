@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UGF.EditorTools.Runtime.Ids;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -10,16 +11,16 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public static class TableTreeEditorUtility
     {
-        public static TableTreeWindow ShowWindow(TableAsset asset)
+        public static TableTreeWindow ShowWindow(TableAsset asset, GlobalId focusItemId = default)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
 
             TableTreeOptions options = CreateOptions(asset.Get().GetType());
 
-            return ShowWindow(asset, options);
+            return ShowWindow(asset, options, focusItemId);
         }
 
-        public static TableTreeWindow ShowWindow(TableAsset asset, TableTreeOptions options)
+        public static TableTreeWindow ShowWindow(TableAsset asset, TableTreeOptions options, GlobalId focusItemId = default)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -32,7 +33,14 @@ namespace UGF.RuntimeTools.Editor.Tables
             window.minSize = new Vector2(500F, 500F);
             window.SetTarget(asset, options);
             window.Show();
+
+            if (focusItemId.IsValid())
+            {
+                window.Drawer.TreeView.TryFocusAtItem(focusItemId);
+            }
+
             window.Focus();
+            window.Drawer.TreeView.SetFocusAndEnsureSelectedItem();
 
             return window;
         }
