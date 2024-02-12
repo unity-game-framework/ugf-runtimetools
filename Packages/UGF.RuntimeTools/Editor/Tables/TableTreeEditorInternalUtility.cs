@@ -47,12 +47,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public static void PropertyInsert(SerializedProperty serializedProperty, int index, object value)
+        public static SerializedProperty PropertyInsert(SerializedProperty serializedProperty, int index, object value)
         {
-            PropertyInsert(serializedProperty, index, null, value);
+            return PropertyInsert(serializedProperty, index, null, value);
         }
 
-        public static void PropertyInsert(SerializedProperty serializedProperty, int index, Action<SerializedProperty> initializeHandler = null, object value = null)
+        public static SerializedProperty PropertyInsert(SerializedProperty serializedProperty, int index, Action<SerializedProperty> initializeHandler = null, object value = null)
         {
             if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
 
@@ -68,6 +68,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             initializeHandler?.Invoke(propertyElement);
+
+            return propertyElement;
         }
 
         public static void PropertyRemove(SerializedProperty serializedProperty, IReadOnlyList<int> indexes)
