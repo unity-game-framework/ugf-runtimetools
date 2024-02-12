@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.ugf.csv": {
+      "version": "1.0.2",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://api.upmhub.org/registries/unity-game-framework"
+    },
     "com.ugf.customsettings": {
       "version": "3.4.1",
       "depth": 1,
@@ -23,7 +30,8 @@
       "source": "embedded",
       "dependencies": {
         "com.ugf.editortools": "3.0.0-preview.2",
-        "com.ugf.customsettings": "3.4.1"
+        "com.ugf.customsettings": "3.4.1",
+        "com.ugf.csv": "1.0.2"
       }
     },
     "com.unity.ext.nunit": {
