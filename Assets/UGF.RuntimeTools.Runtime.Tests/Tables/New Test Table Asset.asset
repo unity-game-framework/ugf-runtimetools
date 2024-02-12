@@ -417,8 +417,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 5332706398828489564
-        m_second: 767393369072790427
+        m_first: 0
+        m_second: 0
       m_children: []
     - m_id:
         m_first: 5113695980971119507
@@ -434,8 +434,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 5641022231527337269
-        m_second: 3779731157630487463
+        m_first: 0
+        m_second: 0
       m_children: []
     - m_id:
         m_first: 5181566219916842733
