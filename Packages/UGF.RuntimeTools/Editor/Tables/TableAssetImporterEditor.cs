@@ -7,34 +7,32 @@ using UnityEngine;
 namespace UGF.RuntimeTools.Editor.Tables
 {
     [CustomEditor(typeof(TableAssetImporter), true)]
-    internal class TableAssetImporterEditor : ScriptedImporterEditor
+    public class TableAssetImporterEditor : ScriptedImporterEditor
     {
         public override bool showImportedObject { get; } = false;
 
-        private SerializedProperty m_propertyTablePropertyName;
         private SerializedProperty m_propertyTable;
-        private EditorObjectReferenceDrawer m_tableDrawer;
+        private EditorObjectReferenceDrawer m_drawerTable;
 
         public override void OnEnable()
         {
             base.OnEnable();
 
-            m_propertyTablePropertyName = serializedObject.FindProperty("m_tablePropertyName");
             m_propertyTable = serializedObject.FindProperty("m_table");
 
-            m_tableDrawer = new EditorObjectReferenceDrawer(serializedObject.FindProperty("m_table"))
+            m_drawerTable = new EditorObjectReferenceDrawer(serializedObject.FindProperty("m_table"))
             {
                 Drawer = { DisplayTitlebar = true }
             };
 
-            m_tableDrawer.Enable();
+            m_drawerTable.Enable();
         }
 
         public override void OnDisable()
         {
             base.OnDisable();
 
-            m_tableDrawer.Disable();
+            m_drawerTable.Disable();
         }
 
         public override void OnInspectorGUI()
@@ -43,15 +41,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 EditorIMGUIUtility.DrawScriptProperty(serializedObject);
 
-                EditorGUILayout.PropertyField(m_propertyTablePropertyName);
                 EditorGUILayout.PropertyField(m_propertyTable);
+
+                OnDrawProperties();
             }
 
             ApplyRevertGUI();
 
             EditorGUILayout.Space();
 
-            m_tableDrawer.DrawGUILayout();
+            m_drawerTable.DrawGUILayout();
         }
 
         protected override bool OnApplyRevertGUI()
@@ -78,6 +77,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return base.OnApplyRevertGUI();
+        }
+
+        protected virtual void OnDrawProperties()
+        {
         }
     }
 }
