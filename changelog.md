@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.6](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.6) - 2024-02-12  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/31?closed=1)  
+    
+
+### Added
+
+- Add table entry dropdown available assets menu ([#112](https://github.com/unity-game-framework/ugf-runtimetools/issues/112))  
+    - Update dependencies: `com.ugf.editortools` to `3.0.0-preview.2` version.
+    - Add `TableEntryDropdownDrawer` class as drawer for table entry dropdown.
+    - Add `TableEntryDropdownDrawer` class table button to display available tables when no entry selected.
+- Add table importer ([#90](https://github.com/unity-game-framework/ugf-runtimetools/issues/90))  
+    - Add `TableAssetImporter` and `TableAssetImporter<T>` abstract classes as default asset importer implementation.
+    - Add `TableAssetImporterEditor` class to implement table importer inspector editor.
+
 ## [3.0.0-preview.5](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.5) - 2024-01-14  
 
 ### Release Notes
