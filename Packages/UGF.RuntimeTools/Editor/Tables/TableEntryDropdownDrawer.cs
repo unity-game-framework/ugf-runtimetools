@@ -146,7 +146,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (DropdownEditorGUIUtility.CheckDropdown(controlId, m_namesSelection, out DropdownItem<TableName> selectedTable))
                 {
-                    TableTreeEditorUtility.ShowWindow(selectedTable.Value.Asset, id);
+                    TableTreeEditorUtility.ShowWindow(selectedTable.Value.Asset, selectedTable.Value.EntryId);
                 }
             }
         }
