@@ -17,6 +17,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         private readonly DropdownSelection<DropdownItem<GlobalId>> m_itemsSelection = new DropdownSelection<DropdownItem<GlobalId>>();
         private readonly Func<IEnumerable<DropdownItem<GlobalId>>> m_itemsHandler;
         private readonly DropdownSelection<DropdownItem<TableName>> m_namesSelection = new DropdownSelection<DropdownItem<TableName>>();
+        private readonly DropdownSelection<DropdownItem<TableAsset>> m_tablesSelection = new DropdownSelection<DropdownItem<TableAsset>>();
+        private readonly Func<IEnumerable<DropdownItem<TableAsset>>> m_tablesHandler;
         private readonly List<string> m_names = new List<string>();
         private Type m_tableType;
         private Styles m_styles;
@@ -53,6 +55,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_namesSelection.Dropdown.RootName = "Tables and Names";
             m_namesSelection.Dropdown.MinimumWidth = 200F;
             m_namesSelection.Dropdown.MinimumHeight = 300F;
+            m_tablesSelection.Dropdown.RootName = "Tables";
+            m_tablesSelection.Dropdown.MinimumWidth = 200F;
+            m_tablesSelection.Dropdown.MinimumHeight = 300F;
+            m_tablesHandler = OnGetTables;
         }
 
         public void SetTableType(Type type)
@@ -134,7 +140,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 GlobalIdEditorUtility.SetGlobalIdToProperty(serializedProperty, selected.Value);
             }
 
-            using (new EditorGUI.DisabledScope(!id.IsValid()))
+            if (id.IsValid())
             {
                 bool result = GUI.Button(rectTable, m_styles.OpenWindowContent, EditorStyles.iconButton);
                 int controlId = EditorIMGUIUtility.GetLastControlId();
@@ -147,6 +153,13 @@ namespace UGF.RuntimeTools.Editor.Tables
                 if (DropdownEditorGUIUtility.CheckDropdown(controlId, m_namesSelection, out DropdownItem<TableName> selectedTable))
                 {
                     TableTreeEditorUtility.ShowWindow(selectedTable.Value.Asset, selectedTable.Value.EntryId);
+                }
+            }
+            else
+            {
+                if (DropdownEditorGUIUtility.Dropdown(rectTable, GUIContent.none, m_styles.OpenWindowContent, m_tablesSelection, m_tablesHandler, out DropdownItem<TableAsset> selectedTable, FocusType.Keyboard, EditorStyles.iconButton))
+                {
+                    TableTreeEditorUtility.ShowWindow(selectedTable.Value);
                 }
             }
         }
@@ -201,6 +214,21 @@ namespace UGF.RuntimeTools.Editor.Tables
                         }
                     }
                 }
+            }
+
+            return items;
+        }
+
+        private IEnumerable<DropdownItem<TableAsset>> OnGetTables()
+        {
+            var items = new List<DropdownItem<TableAsset>>();
+            IReadOnlyList<TableAsset> tables = TableEditorUtility.FindTableAssetAll(TableType);
+
+            for (int i = 0; i < tables.Count; i++)
+            {
+                TableAsset asset = tables[i];
+
+                items.Add(new DropdownItem<TableAsset>(asset.name, asset));
             }
 
             return items;
