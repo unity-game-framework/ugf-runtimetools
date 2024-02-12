@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
+using UGF.EditorTools.Editor.Serialized;
 using UGF.EditorTools.Runtime.Ids;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
@@ -167,6 +169,138 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             propertyName = default;
             return false;
+        }
+
+        public static void SetData(TableAsset asset, string tablePropertyName, DataTable data)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (string.IsNullOrEmpty(tablePropertyName)) throw new ArgumentException("Value cannot be null or empty.", nameof(tablePropertyName));
+
+            using var serializedObject = new SerializedObject(asset);
+
+            SerializedProperty propertyTable = serializedObject.FindProperty(tablePropertyName);
+            TableTreeOptions options = CreateOptions(asset.Get().GetType());
+
+            SetData(propertyTable, data, options);
+        }
+
+        public static void SetData(SerializedProperty serializedProperty, DataTable data, TableTreeOptions options)
+        {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+            if (data == null) throw new ArgumentNullException(nameof(data));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            SerializedProperty propertyEntries = serializedProperty.FindPropertyRelative(options.PropertyEntriesName);
+
+            propertyEntries.ClearArray();
+
+            for (int i = 0; i < data.Rows.Count; i++)
+            {
+                DataRow row = data.Rows[i];
+
+                SerializedProperty propertyEntry = TableTreeEditorInternalUtility.PropertyInsert(propertyEntries, propertyEntries.arraySize);
+
+                foreach (SerializedProperty entryProperty in SerializedPropertyEditorUtility.GetChildren(propertyEntry))
+                {
+                    if (entryProperty.name != options.PropertyChildrenName)
+                    {
+                        entryProperty.boxedValue = row[entryProperty.name];
+                    }
+                    else
+                    {
+                        object value = row[entryProperty.name];
+                        int count = Convert.ToInt32(value);
+
+                        for (int c = 0; c < count; c++)
+                        {
+                            row = data.Rows[++i];
+
+                            SerializedProperty propertyChild = TableTreeEditorInternalUtility.PropertyInsert(entryProperty, entryProperty.arraySize);
+
+                            foreach (SerializedProperty childProperty in SerializedPropertyEditorUtility.GetChildren(propertyChild))
+                            {
+                                childProperty.boxedValue = row[childProperty.name];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static DataTable GetData(TableAsset asset, string tablePropertyName)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (string.IsNullOrEmpty(tablePropertyName)) throw new ArgumentException("Value cannot be null or empty.", nameof(tablePropertyName));
+
+            using var serializedObject = new SerializedObject(asset);
+
+            SerializedProperty propertyTable = serializedObject.FindProperty(tablePropertyName);
+            TableTreeOptions options = CreateOptions(asset.Get().GetType());
+
+            return GetData(propertyTable, options);
+        }
+
+        public static DataTable GetData(SerializedProperty serializedProperty, TableTreeOptions options)
+        {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            var data = new DataTable();
+
+            for (int i = 0; i < options.Columns.Count; i++)
+            {
+                TableTreeColumnOptions column = options.Columns[i];
+
+                data.Columns.Add(column.PropertyName);
+            }
+
+            SerializedProperty propertyEntries = serializedProperty.FindPropertyRelative(options.PropertyEntriesName);
+
+            for (int i = 0; i < propertyEntries.arraySize; i++)
+            {
+                SerializedProperty propertyEntry = propertyEntries.GetArrayElementAtIndex(i);
+                DataRow row = data.NewRow();
+
+                int childrenCount = 0;
+
+                foreach (SerializedProperty entryProperty in SerializedPropertyEditorUtility.GetChildren(propertyEntry))
+                {
+                    if (entryProperty.name != options.PropertyChildrenName)
+                    {
+                        row[entryProperty.name] = entryProperty.boxedValue;
+                    }
+                    else
+                    {
+                        row[entryProperty.name] = entryProperty.arraySize;
+
+                        childrenCount = entryProperty.arraySize;
+
+                        for (int c = 0; c < entryProperty.arraySize; c++)
+                        {
+                            SerializedProperty propertyChild = entryProperty.GetArrayElementAtIndex(c);
+                            DataRow childRow = data.NewRow();
+
+                            foreach (SerializedProperty childProperty in SerializedPropertyEditorUtility.GetChildren(propertyChild))
+                            {
+                                childRow[childProperty.name] = childProperty.boxedValue;
+                            }
+
+                            data.Rows.Add(childRow);
+                        }
+                    }
+                }
+
+                if (childrenCount > 0)
+                {
+                    data.Rows.InsertAt(row, data.Rows.Count - childrenCount);
+                }
+                else
+                {
+                    data.Rows.Add(row);
+                }
+            }
+
+            return data;
         }
     }
 }
