@@ -409,13 +409,14 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
             }
-            else
+            else if (!TreeView.HasSelected())
             {
                 TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, TreeView.PropertyEntries.arraySize, m_entryInitializeHandler);
             }
 
             m_selectedIndexes.Clear();
             m_selectedItems.Clear();
+
             TreeView.Apply();
         }
 
@@ -460,6 +461,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             m_selectedIndexes.Clear();
             m_selectedItems.Clear();
+
             TreeView.Apply();
         }
 
