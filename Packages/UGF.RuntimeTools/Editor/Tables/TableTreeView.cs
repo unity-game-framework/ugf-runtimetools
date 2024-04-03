@@ -17,13 +17,14 @@ namespace UGF.RuntimeTools.Editor.Tables
         public int SearchColumnIndex { get { return State.SearchColumnIndex; } set { State.SearchColumnIndex = value; } }
         public TableTreeColumnOptions SearchColumn { get { return HasSearchColumn ? Options.Columns[State.SearchColumnIndex] : throw new ArgumentException("Value not specified."); } }
         public bool HasSearchColumn { get { return State.SearchColumnIndex >= 0 && State.SearchColumnIndex < Options.Columns.Count; } }
-        public TableTreeColumnOptions SortColumn { get { return HasSortColumn ? Options.Columns[multiColumnHeader.sortedColumnIndex] : throw new ArgumentException("Value not specified."); } }
-        public bool HasSortColumn { get { return multiColumnHeader.sortedColumnIndex >= 0 && multiColumnHeader.sortedColumnIndex < Options.Columns.Count; } }
+        public TableTreeColumnOptions SortColumn { get { return HasSortColumn ? Options.Columns[Header.sortedColumnIndex] : throw new ArgumentException("Value not specified."); } }
+        public bool HasSortColumn { get { return Header.sortedColumnIndex >= 0 && Header.sortedColumnIndex < Options.Columns.Count; } }
         public int ItemsCount { get { return m_items.Count; } }
         public int VisibleCount { get; private set; }
         public int VisibleEntryCount { get; private set; }
-        public int ColumnCount { get { return multiColumnHeader.state.columns.Length; } }
-        public int ColumnVisibleCount { get { return multiColumnHeader.state.visibleColumns.Length; } }
+        public int ColumnCount { get { return Header.state.columns.Length; } }
+        public int ColumnVisibleCount { get { return Header.state.visibleColumns.Length; } }
+        public TableTreeViewHeader Header { get { return (TableTreeViewHeader)multiColumnHeader; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
         public event Action DrawRowsBefore;
@@ -40,7 +41,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
         }
 
-        public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options, TableTreeViewState state) : base(state, new MultiColumnHeader(state.Header))
+        public TableTreeView(SerializedProperty serializedProperty, TableTreeOptions options, TableTreeViewState state) : base(state, new TableTreeViewHeader(state.Header, options))
         {
             SerializedProperty = serializedProperty ?? throw new ArgumentNullException(nameof(serializedProperty));
             Options = options ?? throw new ArgumentNullException(nameof(options));
@@ -55,7 +56,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             showAlternatingRowBackgrounds = true;
             enableItemHovering = true;
 
-            multiColumnHeader.sortingChanged += OnSortingChanged;
+            Header.sortingChanged += OnSortingChanged;
         }
 
         protected override TreeViewItem BuildRoot()
@@ -105,7 +106,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 if (HasSortColumn)
                 {
-                    MultiColumnHeaderState.Column columnState = multiColumnHeader.GetColumn(multiColumnHeader.sortedColumnIndex);
+                    MultiColumnHeaderState.Column columnState = Header.GetColumn(Header.sortedColumnIndex);
 
                     m_comparer.SetColumn(SortColumn, columnState.sortedAscending);
 
@@ -331,7 +332,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public void GetChildrenSelection(ICollection<TableTreeViewItem> selection)
+        public void GetSelection(ICollection<TableTreeViewItem> selection, TableTreeEntryType type)
         {
             if (selection == null) throw new ArgumentNullException(nameof(selection));
 
@@ -339,22 +340,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 int id = state.selectedIDs[i];
 
-                if (TryGetItem(id, out TableTreeViewItem item) && item.EntryType == TableTreeEntryType.Child)
-                {
-                    selection.Add(item);
-                }
-            }
-        }
-
-        public void GetSelection(ICollection<TableTreeViewItem> selection)
-        {
-            if (selection == null) throw new ArgumentNullException(nameof(selection));
-
-            for (int i = 0; i < state.selectedIDs.Count; i++)
-            {
-                int id = state.selectedIDs[i];
-
-                if (TryGetItem(id, out TableTreeViewItem item) && item.EntryType == TableTreeEntryType.Entry)
+                if (TryGetItem(id, out TableTreeViewItem item) && item.EntryType == type)
                 {
                     selection.Add(item);
                 }
@@ -368,21 +354,21 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         public void ClearSorting()
         {
-            multiColumnHeader.sortedColumnIndex = -1;
+            Header.sortedColumnIndex = -1;
 
             Reload();
         }
 
         public void ResetColumns()
         {
-            int[] columns = new int[multiColumnHeader.state.columns.Length];
+            int[] columns = new int[Header.state.columns.Length];
 
             for (int i = 0; i < columns.Length; i++)
             {
                 columns[i] = i;
             }
 
-            multiColumnHeader.state.visibleColumns = columns;
+            Header.state.visibleColumns = columns;
         }
 
         public bool TryFocusAtItem(GlobalId entryId)
@@ -432,6 +418,19 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             item = default;
             return false;
+        }
+
+        public void GetItems(ICollection<TableTreeViewItem> items, TableTreeEntryType type)
+        {
+            if (items == null) throw new ArgumentNullException(nameof(items));
+
+            foreach ((_, TableTreeViewItem item) in m_items)
+            {
+                if (item.EntryType == type)
+                {
+                    items.Add(item);
+                }
+            }
         }
 
         private void OnSearchRows(TreeViewItem root, ICollection<TreeViewItem> rows, string search)

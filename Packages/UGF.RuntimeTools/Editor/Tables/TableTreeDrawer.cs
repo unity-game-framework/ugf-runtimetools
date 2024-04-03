@@ -5,6 +5,7 @@ using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
 using UGF.EditorTools.Runtime.Ids;
+using UGF.RuntimeTools.Runtime.Options;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -53,6 +54,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent MenuClear { get; } = new GUIContent("Clear");
             public GUIContent MenuContextCopy { get; } = new GUIContent("Copy");
             public GUIContent MenuContextPaste { get; } = new GUIContent("Paste");
+            public GUIContent MenuContextColumnCopy { get; } = new GUIContent("Copy Values");
+            public GUIContent MenuContextColumnPaste { get; } = new GUIContent("Paste Values");
             public GUIContent AddButtonChildrenContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected children.");
             public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
             public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };
@@ -89,6 +92,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             TreeView.DrawRowCell += OnDrawRowCell;
             TreeView.KeyEventProcessing += OnKeyEventProcessing;
             TreeView.ContextMenuClicked += OnContextMenuClicked;
+            TreeView.Header.ContextMenuCreating += OnContextMenuHeader;
 
             TreeView.Reload();
             TreeView.multiColumnHeader.ResizeToFit();
@@ -106,6 +110,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             TreeView.DrawRowCell -= OnDrawRowCell;
             TreeView.KeyEventProcessing -= OnKeyEventProcessing;
             TreeView.ContextMenuClicked -= OnContextMenuClicked;
+            TreeView.Header.ContextMenuCreating -= OnContextMenuHeader;
         }
 
         public void DrawGUILayout()
@@ -474,13 +479,13 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             TableTreeSettings.ClipboardClear();
 
-            TreeView.GetSelection(m_selectedItems);
+            TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Entry);
 
             TableTreeSettings.TryClipboardCopyEntries(m_selectedItems);
 
             m_selectedItems.Clear();
 
-            TreeView.GetChildrenSelection(m_selectedItems);
+            TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Child);
 
             TableTreeSettings.TryClipboardCopyChildren(m_selectedItems);
 
@@ -501,7 +506,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (clipboard.Children.Count > 0)
                 {
-                    TreeView.GetChildrenSelection(m_selectedItems);
+                    TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Child);
 
                     if (m_selectedItems.Count > 0)
                     {
@@ -516,7 +521,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                         m_selectedItems.Clear();
                     }
 
-                    TreeView.GetSelection(m_selectedItems);
+                    TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Entry);
 
                     if (m_selectedItems.Count > 0)
                     {
@@ -535,13 +540,53 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (clipboard.Entries.Count > 0)
                 {
-                    TreeView.GetSelection(m_selectedItems);
+                    TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Entry);
 
                     int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
 
                     foreach (object value in clipboard.Entries)
                     {
                         TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
+                    }
+
+                    m_selectedItems.Clear();
+                }
+
+                TreeView.Apply();
+            }
+        }
+
+        private void OnEntryPasteValues(TableTreeColumnOptions column)
+        {
+            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            {
+                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+
+                List<object> entries = column.EntryType switch
+                {
+                    TableTreeEntryType.Entry => clipboard.Entries,
+                    TableTreeEntryType.Child => clipboard.Children,
+                    _ => throw new ArgumentOutOfRangeException(nameof(column.EntryType), column.EntryType, "Table tree column entry type is unknown.")
+                };
+
+                if (entries.Count > 0)
+                {
+                    if (TreeView.HasSelected())
+                    {
+                        TreeView.GetSelection(m_selectedItems, column.EntryType);
+                    }
+                    else
+                    {
+                        TreeView.GetItems(m_selectedItems, column.EntryType);
+                    }
+
+                    for (int i = 0; i < m_selectedItems.Count; i++)
+                    {
+                        TableTreeViewItem item = m_selectedItems[i];
+
+                        object entry = i < entries.Count ? entries[i] : entries[^1];
+
+                        TableTreeSettings.TryClipboardSetEntryPropertyValue(item.ColumnProperties[column], entry);
                     }
 
                     m_selectedItems.Clear();
@@ -639,6 +684,48 @@ namespace UGF.RuntimeTools.Editor.Tables
             OnMenuClearSetup(menu);
 
             menu.ShowAsContext();
+        }
+
+        private void OnContextMenuHeader(GenericMenu menu, Optional<TableTreeColumnOptions> column)
+        {
+            menu.AddSeparator(string.Empty);
+
+            if (TreeView.HasSelected())
+            {
+                menu.AddItem(m_styles.MenuContextColumnCopy, false, OnEntryCopy);
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuContextColumnCopy);
+            }
+
+            if (column.HasValue
+                && column.Value.PropertyName != Options.PropertyIdName
+                && TableTreeSettings.ClipboardHasAny()
+                && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            {
+                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+
+                bool hasEntries = column.Value.EntryType switch
+                {
+                    TableTreeEntryType.Entry => clipboard.Entries.Count > 0,
+                    TableTreeEntryType.Child => clipboard.Children.Count > 0,
+                    _ => throw new ArgumentOutOfRangeException(nameof(column.Value.EntryType), column.Value.EntryType, "Table tree column entry type is unknown.")
+                };
+
+                if (hasEntries)
+                {
+                    menu.AddItem(m_styles.MenuContextColumnPaste, false, () => OnEntryPasteValues(column));
+                }
+                else
+                {
+                    menu.AddDisabledItem(m_styles.MenuContextColumnPaste);
+                }
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuContextColumnPaste);
+            }
         }
 
         private void OnUndoOrRedoPerformed()

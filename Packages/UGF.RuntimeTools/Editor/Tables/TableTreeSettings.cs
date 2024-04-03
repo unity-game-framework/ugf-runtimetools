@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UGF.CustomSettings.Editor;
 using UGF.EditorTools.Runtime.IMGUI.Types;
 using UnityEditor;
@@ -173,6 +174,42 @@ namespace UGF.RuntimeTools.Editor.Tables
             data.Clipboard.Type.Clear();
             data.Clipboard.Entries.Clear();
             data.Clipboard.Children.Clear();
+        }
+
+        public static bool TryClipboardGetEntryFieldValue(object entry, string name, out object value)
+        {
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+
+            if (TableTreeEditorInternalUtility.TryGetSerializedField(entry.GetType(), name, out FieldInfo field))
+            {
+                value = field.GetValue(entry);
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        public static bool TryClipboardSetEntryPropertyValue(SerializedProperty serializedProperty, object entry)
+        {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+
+            if (TryClipboardGetEntryFieldValue(entry, serializedProperty.name, out object value))
+            {
+                if (!TableTreeEditorInternalUtility.TryPropertySetBoxedValue(serializedProperty, value, out Exception error))
+                {
+                    Debug.LogWarning($"Table entry property can not be set.\n{error}");
+                    return false;
+                }
+
+                return true;
+            }
+
+            Debug.LogWarning($"Table entry property can not be set: name:'{serializedProperty.name}'.");
+
+            return false;
         }
 
         private static bool OnTryClipboardCopy(IReadOnlyList<TableTreeViewItem> items, ICollection<object> values)
