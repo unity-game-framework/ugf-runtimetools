@@ -49,14 +49,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent MenuResetSorting { get; } = new GUIContent("Reset Sorting");
             public GUIContent MenuResetPreferences { get; } = new GUIContent("Reset Preferences");
             public GUIContent MenuResetClipboard { get; } = new GUIContent("Reset Clipboard");
+            public GUIContent MenuResetSelection { get; } = new GUIContent("Reset Selection");
             public GUIContent MenuClear { get; } = new GUIContent("Clear");
+            public GUIContent MenuContextCopy { get; } = new GUIContent("Copy");
+            public GUIContent MenuContextPaste { get; } = new GUIContent("Paste");
             public GUIContent AddButtonChildrenContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected children.");
             public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
             public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };
-            public GUIContent CopySelectionAddContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add cell of the column to selection.");
-            public GUIContent CopySelectionRemoveContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Remove cell of the column to selection.");
-            public GUIStyle CopySelectionIcon { get; } = new GUIStyle("TV InsertionRelativeToSibling");
-            public GUIStyle CopySelection { get; } = new GUIStyle("TV Selection");
 
             public GUILayoutOption[] TableLayoutOptions { get; } =
             {
@@ -88,9 +87,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
 
             TreeView.DrawRowCell += OnDrawRowCell;
-            TreeView.DrawRowsBefore += OnDrawRowsBefore;
-            TreeView.DrawRowsAfter += OnDrawRowsAfter;
             TreeView.KeyEventProcessing += OnKeyEventProcessing;
+            TreeView.ContextMenuClicked += OnContextMenuClicked;
 
             TreeView.Reload();
             TreeView.multiColumnHeader.ResizeToFit();
@@ -106,9 +104,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
             TreeView.DrawRowCell -= OnDrawRowCell;
-            TreeView.DrawRowsBefore -= OnDrawRowsBefore;
-            TreeView.DrawRowsAfter -= OnDrawRowsAfter;
             TreeView.KeyEventProcessing -= OnKeyEventProcessing;
+            TreeView.ContextMenuClicked -= OnContextMenuClicked;
         }
 
         public void DrawGUILayout()
@@ -284,99 +281,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        private Rect? m_copySelectionPosition;
-        private int? m_copySelectionItemId;
-        private TableTreeColumnOptions m_copySelectionColumn;
-        private TableTreeColumnOptions m_copySelectionColumnEdit;
-        private readonly HashSet<int> m_copySelection = new HashSet<int>();
-
-        private void OnCopySelectionProcess()
-        {
-            if (m_copySelectionPosition.HasValue
-                && m_copySelectionItemId.HasValue
-                && (m_copySelectionColumnEdit == null || m_copySelectionColumnEdit == m_copySelectionColumn))
-            {
-                Rect position = m_copySelectionPosition.Value;
-                int id = m_copySelectionItemId.Value;
-
-                float height = EditorGUIUtility.singleLineHeight;
-
-                var rectButton = new Rect(position.xMax - height * 0.5F, position.yMax - height * 0.5F, height, height);
-
-                if (GUI.Button(rectButton, GUIContent.none, GUIStyle.none))
-                {
-                    m_copySelectionColumnEdit ??= m_copySelectionColumn;
-
-                    if (!m_copySelection.Add(id))
-                    {
-                        m_copySelection.Remove(id);
-                    }
-
-                    if (m_copySelection.Count == 0)
-                    {
-                        m_copySelectionColumnEdit = default;
-                    }
-                }
-            }
-
-            m_copySelectionPosition = default;
-            m_copySelectionItemId = default;
-            m_copySelectionColumn = default;
-        }
-
-        private void OnCopySelectionDraw()
-        {
-            if (Event.current.type == EventType.Repaint
-                && m_copySelectionPosition.HasValue
-                && m_copySelectionItemId.HasValue
-                && (m_copySelectionColumnEdit == null || m_copySelectionColumnEdit == m_copySelectionColumn))
-            {
-                Rect position = m_copySelectionPosition.Value;
-                int id = m_copySelectionItemId.Value;
-                bool contains = m_copySelection.Contains(id);
-
-                float height = EditorGUIUtility.singleLineHeight;
-
-                var rectButton = new Rect(position.xMax - height * 0.5F, position.yMax - height * 0.5F, height, height);
-
-                GUIContent content = contains ? m_styles.CopySelectionRemoveContent : m_styles.CopySelectionAddContent;
-
-                GUI.Button(rectButton, content, EditorStyles.iconButton);
-            }
-        }
-
-        protected virtual void OnDrawCopySelection(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
-        {
-            float height = EditorGUIUtility.singleLineHeight;
-            float space = EditorGUIUtility.standardVerticalSpacing;
-
-            var rectHover = new Rect(position.x, position.y, position.width + space, position.height);
-            var rectButton = new Rect(position.xMax - height * 0.5F, position.yMax - height * 0.5F, height, height);
-
-            Vector2 mousePosition = Event.current.mousePosition;
-
-            if (rectHover.Contains(mousePosition) || rectButton.Contains(mousePosition))
-            {
-                m_copySelectionPosition = position;
-                m_copySelectionItemId = item.id;
-                m_copySelectionColumn = column;
-            }
-
-            if (Event.current.type == EventType.Repaint && m_copySelectionColumnEdit == column && m_copySelection.Contains(item.id))
-            {
-                position.xMin -= space;
-                position.xMax += space;
-                position.yMin -= space;
-                position.yMax += space;
-
-                m_styles.CopySelection.Draw(position, false, false, true, true);
-            }
-        }
-
         protected virtual void OnDrawRowCell(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
-            OnDrawCopySelection(position, item, serializedProperty, column);
-
             if (serializedProperty.isArray && serializedProperty.propertyType == SerializedPropertyType.Generic)
             {
                 if (serializedProperty.name == Options.PropertyChildrenName)
@@ -440,16 +346,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 OnEntryAddChildren(item);
             }
-        }
-
-        private void OnDrawRowsBefore()
-        {
-            OnCopySelectionProcess();
-        }
-
-        private void OnDrawRowsAfter()
-        {
-            OnCopySelectionDraw();
         }
 
         private void OnDrawSearch()
@@ -659,58 +555,11 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var menu = new GenericMenu();
 
-            if (TreeView.HasSortColumn)
-            {
-                menu.AddItem(m_styles.MenuResetSorting, false, () => TreeView.ClearSorting());
-            }
-            else
-            {
-                menu.AddDisabledItem(m_styles.MenuResetSorting);
-            }
-
-            if (TableTreeSettings.HasState(m_targetType))
-            {
-                menu.AddItem(m_styles.MenuResetPreferences, false, () =>
-                {
-                    TableTreeSettings.TryStateReset(m_targetType, Options);
-                    TableTreeSettings.Save();
-                    TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
-
-                    TreeView.multiColumnHeader.ResizeToFit();
-                });
-            }
-            else
-            {
-                menu.AddDisabledItem(m_styles.MenuResetPreferences);
-            }
-
-            if (TableTreeSettings.ClipboardHasAny())
-            {
-                menu.AddItem(m_styles.MenuResetClipboard, false, () =>
-                {
-                    TableTreeSettings.ClipboardClear();
-                    TableTreeSettings.Save();
-                });
-            }
-            else
-            {
-                menu.AddDisabledItem(m_styles.MenuResetClipboard);
-            }
+            OnMenuResetSetup(menu);
 
             menu.AddSeparator(string.Empty);
 
-            if (TreeView != null && TreeView.PropertyEntries.arraySize > 0)
-            {
-                menu.AddItem(m_styles.MenuClear, false, () =>
-                {
-                    TreeView.PropertyEntries.ClearArray();
-                    TreeView.Apply();
-                });
-            }
-            else
-            {
-                menu.AddDisabledItem(m_styles.MenuClear);
-            }
+            OnMenuClearSetup(menu);
 
             menu.DropDown(position);
         }
@@ -759,6 +608,39 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        private void OnContextMenuClicked()
+        {
+            var menu = new GenericMenu();
+
+            if (TreeView.HasSelected())
+            {
+                menu.AddItem(m_styles.MenuContextCopy, false, OnEntryCopy);
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuContextCopy);
+            }
+
+            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            {
+                menu.AddItem(m_styles.MenuContextPaste, false, OnEntryPaste);
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuContextPaste);
+            }
+
+            menu.AddSeparator(string.Empty);
+
+            OnMenuResetSetup(menu);
+
+            menu.AddSeparator(string.Empty);
+
+            OnMenuClearSetup(menu);
+
+            menu.ShowAsContext();
+        }
+
         private void OnUndoOrRedoPerformed()
         {
             TreeView.SerializedProperty.serializedObject.Update();
@@ -789,6 +671,72 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             return ObjectNames.GetUniqueName(names, entryName);
+        }
+
+        private void OnMenuResetSetup(GenericMenu menu)
+        {
+            if (TreeView.HasSelected())
+            {
+                menu.AddItem(m_styles.MenuResetSelection, false, TreeView.ClearSelection);
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetSelection);
+            }
+
+            if (TreeView.HasSortColumn)
+            {
+                menu.AddItem(m_styles.MenuResetSorting, false, TreeView.ClearSorting);
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetSorting);
+            }
+
+            if (TableTreeSettings.HasState(m_targetType))
+            {
+                menu.AddItem(m_styles.MenuResetPreferences, false, () =>
+                {
+                    TableTreeSettings.TryStateReset(m_targetType, Options);
+                    TableTreeSettings.Save();
+                    TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
+
+                    TreeView.multiColumnHeader.ResizeToFit();
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetPreferences);
+            }
+
+            if (TableTreeSettings.ClipboardHasAny())
+            {
+                menu.AddItem(m_styles.MenuResetClipboard, false, () =>
+                {
+                    TableTreeSettings.ClipboardClear();
+                    TableTreeSettings.Save();
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuResetClipboard);
+            }
+        }
+
+        private void OnMenuClearSetup(GenericMenu menu)
+        {
+            if (TreeView != null && TreeView.PropertyEntries.arraySize > 0)
+            {
+                menu.AddItem(m_styles.MenuClear, false, () =>
+                {
+                    TreeView.PropertyEntries.ClearArray();
+                    TreeView.Apply();
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(m_styles.MenuClear);
+            }
         }
     }
 }

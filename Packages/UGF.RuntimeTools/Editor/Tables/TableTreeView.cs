@@ -29,6 +29,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         public event Action DrawRowsBefore;
         public event Action DrawRowsAfter;
         public event Action KeyEventProcessing;
+        public event Action ContextMenuClicked;
+        public event TableTreeViewContextMenuItemHandler ContextMenuItemClicked;
 
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
         private readonly Dictionary<int, TableTreeViewItem> m_items;
@@ -219,6 +221,22 @@ namespace UGF.RuntimeTools.Editor.Tables
         protected override void KeyEvent()
         {
             KeyEventProcessing?.Invoke();
+        }
+
+        protected override void ContextClickedItem(int id)
+        {
+            base.ContextClickedItem(id);
+
+            TableTreeViewItem item = GetItem(id);
+
+            ContextMenuItemClicked?.Invoke(item);
+        }
+
+        protected override void ContextClicked()
+        {
+            base.ContextClicked();
+
+            ContextMenuClicked?.Invoke();
         }
 
         public void Apply()
