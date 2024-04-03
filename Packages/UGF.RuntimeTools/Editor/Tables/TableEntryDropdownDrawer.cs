@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
+using UGF.EditorTools.Editor.IMGUI.Scopes;
 using UGF.EditorTools.Runtime.Ids;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
@@ -98,6 +99,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_styles ??= new Styles();
 
             GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(serializedProperty);
+            string value = id.ToString();
             GUIContent content = m_styles.NoneContent;
 
             if (id != GlobalId.Empty)
@@ -135,9 +137,17 @@ namespace UGF.RuntimeTools.Editor.Tables
             var rectDropdown = new Rect(position.x, position.y, position.width - height - space, position.height);
             var rectTable = new Rect(rectDropdown.xMax + space, position.y + 1F, height, position.height);
 
-            if (DropdownEditorGUIUtility.Dropdown(rectDropdown, label, content, m_itemsSelection, m_itemsHandler, out DropdownItem<GlobalId> selected))
+            using (var scope = new AssetFieldIconReferenceScope(rectDropdown, "Id", value))
             {
-                GlobalIdEditorUtility.SetGlobalIdToProperty(serializedProperty, selected.Value);
+                if (DropdownEditorGUIUtility.Dropdown(rectDropdown, label, content, m_itemsSelection, m_itemsHandler, out DropdownItem<GlobalId> selected))
+                {
+                    GlobalIdEditorUtility.SetGlobalIdToProperty(serializedProperty, selected.Value);
+                }
+
+                if (scope.Clicked)
+                {
+                    EditorGUIUtility.systemCopyBuffer = value;
+                }
             }
 
             if (id.IsValid())
