@@ -26,6 +26,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         public int ColumnVisibleCount { get { return multiColumnHeader.state.visibleColumns.Length; } }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCell;
+        public event Action DrawRowsBefore;
+        public event Action DrawRowsAfter;
         public event Action KeyEventProcessing;
 
         private readonly TableTreeViewItemComparer m_comparer = new TableTreeViewItemComparer();
@@ -198,6 +200,20 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
             }
+        }
+
+        protected override void BeforeRowsGUI()
+        {
+            base.BeforeRowsGUI();
+
+            DrawRowsBefore?.Invoke();
+        }
+
+        protected override void AfterRowsGUI()
+        {
+            base.AfterRowsGUI();
+
+            DrawRowsAfter?.Invoke();
         }
 
         protected override void KeyEvent()

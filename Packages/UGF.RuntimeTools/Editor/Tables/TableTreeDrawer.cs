@@ -53,6 +53,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIContent AddButtonChildrenContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected children.");
             public GUILayoutOption[] ToolbarButtonOptions { get; } = { GUILayout.Width(50F) };
             public GUILayoutOption[] ToolbarButtonSmallOptions { get; } = { GUILayout.Width(25F) };
+            public GUIContent CopySelectionAddContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add cell of the column to selection.");
+            public GUIContent CopySelectionRemoveContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Remove cell of the column to selection.");
+            public GUIStyle CopySelectionIcon { get; } = new GUIStyle("TV InsertionRelativeToSibling");
+            public GUIStyle CopySelection { get; } = new GUIStyle("TV Selection");
 
             public GUILayoutOption[] TableLayoutOptions { get; } =
             {
@@ -84,6 +88,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
 
             TreeView.DrawRowCell += OnDrawRowCell;
+            TreeView.DrawRowsBefore += OnDrawRowsBefore;
+            TreeView.DrawRowsAfter += OnDrawRowsAfter;
             TreeView.KeyEventProcessing += OnKeyEventProcessing;
 
             TreeView.Reload();
@@ -100,6 +106,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
             TreeView.DrawRowCell -= OnDrawRowCell;
+            TreeView.DrawRowsBefore -= OnDrawRowsBefore;
+            TreeView.DrawRowsAfter -= OnDrawRowsAfter;
             TreeView.KeyEventProcessing -= OnKeyEventProcessing;
         }
 
@@ -276,8 +284,99 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        private Rect? m_copySelectionPosition;
+        private int? m_copySelectionItemId;
+        private TableTreeColumnOptions m_copySelectionColumn;
+        private TableTreeColumnOptions m_copySelectionColumnEdit;
+        private readonly HashSet<int> m_copySelection = new HashSet<int>();
+
+        private void OnCopySelectionProcess()
+        {
+            if (m_copySelectionPosition.HasValue
+                && m_copySelectionItemId.HasValue
+                && (m_copySelectionColumnEdit == null || m_copySelectionColumnEdit == m_copySelectionColumn))
+            {
+                Rect position = m_copySelectionPosition.Value;
+                int id = m_copySelectionItemId.Value;
+
+                float height = EditorGUIUtility.singleLineHeight;
+
+                var rectButton = new Rect(position.xMax - height * 0.5F, position.yMax - height * 0.5F, height, height);
+
+                if (GUI.Button(rectButton, GUIContent.none, GUIStyle.none))
+                {
+                    m_copySelectionColumnEdit ??= m_copySelectionColumn;
+
+                    if (!m_copySelection.Add(id))
+                    {
+                        m_copySelection.Remove(id);
+                    }
+
+                    if (m_copySelection.Count == 0)
+                    {
+                        m_copySelectionColumnEdit = default;
+                    }
+                }
+            }
+
+            m_copySelectionPosition = default;
+            m_copySelectionItemId = default;
+            m_copySelectionColumn = default;
+        }
+
+        private void OnCopySelectionDraw()
+        {
+            if (Event.current.type == EventType.Repaint
+                && m_copySelectionPosition.HasValue
+                && m_copySelectionItemId.HasValue
+                && (m_copySelectionColumnEdit == null || m_copySelectionColumnEdit == m_copySelectionColumn))
+            {
+                Rect position = m_copySelectionPosition.Value;
+                int id = m_copySelectionItemId.Value;
+                bool contains = m_copySelection.Contains(id);
+
+                float height = EditorGUIUtility.singleLineHeight;
+
+                var rectButton = new Rect(position.xMax - height * 0.5F, position.yMax - height * 0.5F, height, height);
+
+                GUIContent content = contains ? m_styles.CopySelectionRemoveContent : m_styles.CopySelectionAddContent;
+
+                GUI.Button(rectButton, content, EditorStyles.iconButton);
+            }
+        }
+
+        protected virtual void OnDrawCopySelection(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
+        {
+            float height = EditorGUIUtility.singleLineHeight;
+            float space = EditorGUIUtility.standardVerticalSpacing;
+
+            var rectHover = new Rect(position.x, position.y, position.width + space, position.height);
+            var rectButton = new Rect(position.xMax - height * 0.5F, position.yMax - height * 0.5F, height, height);
+
+            Vector2 mousePosition = Event.current.mousePosition;
+
+            if (rectHover.Contains(mousePosition) || rectButton.Contains(mousePosition))
+            {
+                m_copySelectionPosition = position;
+                m_copySelectionItemId = item.id;
+                m_copySelectionColumn = column;
+            }
+
+            if (Event.current.type == EventType.Repaint && m_copySelectionColumnEdit == column && m_copySelection.Contains(item.id))
+            {
+                position.xMin -= space;
+                position.xMax += space;
+                position.yMin -= space;
+                position.yMax += space;
+
+                m_styles.CopySelection.Draw(position, false, false, true, true);
+            }
+        }
+
         protected virtual void OnDrawRowCell(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
+            OnDrawCopySelection(position, item, serializedProperty, column);
+
             if (serializedProperty.isArray && serializedProperty.propertyType == SerializedPropertyType.Generic)
             {
                 if (serializedProperty.name == Options.PropertyChildrenName)
@@ -341,6 +440,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 OnEntryAddChildren(item);
             }
+        }
+
+        private void OnDrawRowsBefore()
+        {
+            OnCopySelectionProcess();
+        }
+
+        private void OnDrawRowsAfter()
+        {
+            OnCopySelectionDraw();
         }
 
         private void OnDrawSearch()
