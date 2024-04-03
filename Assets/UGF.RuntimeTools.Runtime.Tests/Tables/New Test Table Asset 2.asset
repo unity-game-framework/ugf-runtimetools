@@ -17,7 +17,7 @@ MonoBehaviour:
     - m_id:
         m_first: 4673992924789272089
         m_second: 13029133632275525310
-      m_name: Entry_7
+      m_name: Entry_7 Abc
       m_text: a
       m_bool: 1
       m_int: 2
@@ -78,7 +78,7 @@ MonoBehaviour:
     - m_id:
         m_first: 5332706398828489564
         m_second: 767393369072790427
-      m_name: Entry_3
+      m_name: Entry_3 Test
       m_text: 
       m_bool: 0
       m_int: 0
@@ -123,6 +123,40 @@ MonoBehaviour:
         m_first: 4626437968892095072
         m_second: 17954986411006592951
       m_name: TEST
+      m_text: 
+      m_bool: 0
+      m_int: 0
+      m_float: 0
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 0
+        m_second: 0
+      m_children: []
+    - m_id:
+        m_first: 5295970138863370839
+        m_second: 12767086879635793290
+      m_name: Description Asset Object
+      m_text: 
+      m_bool: 0
+      m_int: 0
+      m_float: 0
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 0
+        m_second: 0
+      m_children: []
+    - m_id:
+        m_first: 4954840765772229972
+        m_second: 2566093974442309019
+      m_name: Object
       m_text: 
       m_bool: 0
       m_int: 0
