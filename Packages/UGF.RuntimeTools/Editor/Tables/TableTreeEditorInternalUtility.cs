@@ -29,6 +29,24 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        public static bool TryPropertySetBoxedValue(SerializedProperty serializedProperty, object value, out Exception error)
+        {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+
+            try
+            {
+                serializedProperty.boxedValue = value;
+            }
+            catch (Exception exception)
+            {
+                error = exception;
+                return false;
+            }
+
+            error = default;
+            return true;
+        }
+
         public static void PropertyInsert(SerializedProperty serializedProperty, IReadOnlyList<int> indexes, Action<SerializedProperty> initializeHandler = null)
         {
             if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
@@ -99,6 +117,27 @@ namespace UGF.RuntimeTools.Editor.Tables
             GlobalId id = GlobalIdEditorUtility.GetGlobalIdFromProperty(propertyId);
 
             return (int)id.First;
+        }
+
+        public static bool TryGetSerializedField(Type type, string name, out FieldInfo field)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
+            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+
+            List<FieldInfo> fields = GetSerializedFields(type);
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                field = fields[i];
+
+                if (field.Name == name)
+                {
+                    return true;
+                }
+            }
+
+            field = default;
+            return false;
         }
 
         public static List<FieldInfo> GetSerializedFields(Type type)
