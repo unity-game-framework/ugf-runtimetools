@@ -1,4 +1,5 @@
-﻿using UGF.RuntimeTools.Editor.Tables;
+﻿using System.Collections.Generic;
+using UGF.RuntimeTools.Editor.Tables;
 using UGF.RuntimeTools.Runtime.Options;
 using UnityEditor;
 using UnityEngine;
@@ -15,7 +16,17 @@ namespace UGF.RuntimeTools.Editor.Tests.Tables
         {
             base.OnDrawToolbar();
 
-            GUILayout.Button("Test");
+            if (GUILayout.Button("Test"))
+            {
+                var items = new List<TableTreeViewItem>();
+
+                TreeView.GetItems(items, TableTreeEntryType.Entry);
+
+                if (items.Count > 0)
+                {
+                    AddChildren(items[0], TableTreeEditorClipboard.GetData().Children);
+                }
+            }
         }
 
         protected override void OnDrawTable()

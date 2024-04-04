@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace UGF.RuntimeTools.Editor.Tests.Tables
 {
-    [TableTreeWindow(typeof(TestTableEntry3Asset))]
+    [TableTreeWindow(typeof(TestTableEntry2Asset))]
     public class TestTableTreeWindow : TableTreeWindow
     {
         protected override TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject, TableTreeOptions options)
