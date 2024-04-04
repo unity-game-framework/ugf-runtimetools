@@ -16,7 +16,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private SerializedObject m_serializedObject;
         private TableTreeDrawer m_drawer;
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(AssetDatabase.GUIDToAssetPath(m_assetId));
 
@@ -26,7 +26,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             m_drawer?.Disable();
             m_drawer = null;
@@ -34,7 +34,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_serializedObject = null;
         }
 
-        private void OnGUI()
+        protected virtual void OnGUI()
         {
             if (m_serializedObject?.targetObject == null)
             {
@@ -45,6 +45,16 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_drawer?.DrawGUILayout();
         }
 
+        protected virtual TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject)
+        {
+            return new TableTreeDrawer(serializedObject, TableTreeEditorUtility.CreateOptions(serializedObject.targetObject.GetType()));
+        }
+
+        protected virtual TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject, TableTreeOptions options)
+        {
+            return new TableTreeDrawer(serializedObject, options);
+        }
+
         public void SetTarget(TableAsset asset)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
@@ -52,7 +62,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_serializedObject = new SerializedObject(asset);
             m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             m_drawer?.Disable();
-            m_drawer = new TableTreeDrawer(m_serializedObject, TableTreeEditorUtility.CreateOptions(asset.Get().GetType()));
+            m_drawer = OnCreateDrawer(m_serializedObject);
             m_drawer.Enable();
         }
 
@@ -64,7 +74,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_serializedObject = new SerializedObject(asset);
             m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             m_drawer?.Disable();
-            m_drawer = new TableTreeDrawer(m_serializedObject, options);
+            m_drawer = OnCreateDrawer(m_serializedObject, options);
             m_drawer.Enable();
         }
 
