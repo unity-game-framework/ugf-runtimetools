@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
 {
-    internal class TableTreeSettingsData : CustomSettingsData
+    public class TableTreeEditorUserSettingsData : CustomSettingsData
     {
         [SerializeField] private ClipboardData m_clipboard = new ClipboardData();
         [SerializeField] private List<StateData> m_states = new List<StateData>();

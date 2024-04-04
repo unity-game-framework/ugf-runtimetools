@@ -47,7 +47,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject)
         {
-            return new TableTreeDrawer(serializedObject, TableTreeEditorUtility.CreateOptions(serializedObject.targetObject.GetType()));
+            return OnCreateDrawer(serializedObject, TableTreeEditorUtility.CreateOptions((TableAsset)serializedObject.targetObject));
         }
 
         protected virtual TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject, TableTreeOptions options)

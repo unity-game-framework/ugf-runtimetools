@@ -87,7 +87,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             Undo.undoRedoPerformed += OnUndoOrRedoPerformed;
 
-            TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
+            TableTreeEditorState.TryRead(m_targetType, TreeView.State);
 
             TreeView.DrawRowCell += OnDrawRowCell;
             TreeView.KeyEventProcessing += OnKeyEventProcessing;
@@ -102,8 +102,8 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             base.OnDisable();
 
-            TableTreeSettings.StateWrite(m_targetType, TreeView.State);
-            TableTreeSettings.Save();
+            TableTreeEditorState.Write(m_targetType, TreeView.State);
+            TableTreeEditorState.Save();
 
             Undo.undoRedoPerformed -= OnUndoOrRedoPerformed;
 
@@ -134,9 +134,148 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (GUI.changed)
             {
-                TableTreeSettings.StateWrite(m_targetType, TreeView.State);
-                TableTreeSettings.Save();
+                TableTreeEditorState.Write(m_targetType, TreeView.State);
+                TableTreeEditorState.Save();
             }
+        }
+
+        public void AddEntries(IReadOnlyList<object> values)
+        {
+            AddEntry(TreeView.PropertyEntries.arraySize, values);
+        }
+
+        public void AddEntries(int index, IReadOnlyList<object> values)
+        {
+            TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, values, m_entryInitializeHandler);
+        }
+
+        public void AddEntry(object value = null)
+        {
+            AddEntry(TreeView.PropertyEntries.arraySize, value);
+        }
+
+        public void AddEntry(int index, object value = null)
+        {
+            TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
+        }
+
+        public void AddChildren(TableTreeViewItem item, IReadOnlyList<object> values)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            AddChildren(item, item.PropertyChildren.arraySize, values);
+        }
+
+        public void AddChildren(TableTreeViewItem item, int index, IReadOnlyList<object> values)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, index, values);
+        }
+
+        public void AddChild(TableTreeViewItem item, object value = null)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            AddChild(item, item.PropertyChildren.arraySize, value);
+        }
+
+        public void AddChild(TableTreeViewItem item, int index, object value = null)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, index, value);
+        }
+
+        public void DuplicateEntry(IReadOnlyList<int> indexes)
+        {
+            TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, indexes, m_entryInitializeHandler);
+        }
+
+        public void DuplicateChildren(TableTreeViewItem item, IReadOnlyList<int> indexes)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, indexes);
+        }
+
+        public void RemoveEntries(IReadOnlyList<int> indexes)
+        {
+            TableTreeEditorInternalUtility.PropertyRemove(TreeView.PropertyEntries, indexes);
+        }
+
+        public void RemoveEntry(int index)
+        {
+            TreeView.PropertyEntries.DeleteArrayElementAtIndex(index);
+        }
+
+        public void RemoveChildren(TableTreeViewItem item, IReadOnlyList<int> indexes)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            TableTreeEditorInternalUtility.PropertyRemove(item.PropertyChildren, indexes);
+        }
+
+        public void RemoveChild(TableTreeViewItem item, int index)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
+            item.PropertyChildren.DeleteArrayElementAtIndex(index);
+        }
+
+        public void PasteEntriesValues(IReadOnlyList<TableTreeViewItem> items, IReadOnlyList<object> values)
+        {
+            if (items == null) throw new ArgumentNullException(nameof(items));
+            if (values == null) throw new ArgumentNullException(nameof(values));
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                TableTreeViewItem item = items[i];
+
+                object value = i < values.Count ? values[i] : values[^1];
+
+                PasteEntryValues(item, value);
+            }
+        }
+
+        public void PasteEntryValues(TableTreeViewItem item, object value)
+        {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            foreach ((TableTreeColumnOptions column, SerializedProperty serializedProperty) in item.ColumnProperties)
+            {
+                if (column.PropertyName != Options.PropertyIdName
+                    && column.PropertyName != Options.PropertyChildrenName)
+                {
+                    TableTreeEditorClipboardUtility.TrySetPropertyValueFromEntryField(serializedProperty, value);
+                }
+            }
+        }
+
+        public void PasteEntryValues(TableTreeColumnOptions column, IReadOnlyList<TableTreeViewItem> items, IReadOnlyList<object> values)
+        {
+            if (column == null) throw new ArgumentNullException(nameof(column));
+            if (items == null) throw new ArgumentNullException(nameof(items));
+            if (values == null) throw new ArgumentNullException(nameof(values));
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                TableTreeViewItem item = items[i];
+
+                object value = i < values.Count ? values[i] : values[^1];
+
+                PasteEntryValues(column, item, value);
+            }
+        }
+
+        public void PasteEntryValues(TableTreeColumnOptions column, TableTreeViewItem item, object value)
+        {
+            if (column == null) throw new ArgumentNullException(nameof(column));
+            if (item == null) throw new ArgumentNullException(nameof(item));
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            TableTreeEditorClipboardUtility.TrySetPropertyValueFromEntryField(item.ColumnProperties[column], value);
         }
 
         protected void DrawToolbar()
@@ -199,18 +338,18 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 OnDrawFooter();
 
-                if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+                if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
                 {
                     var builder = new StringBuilder("Clipboard:");
 
-                    if (TableTreeSettings.ClipboardEntriesCount > 0)
+                    if (TableTreeEditorClipboard.EntriesCount > 0)
                     {
-                        builder.Append($" Entries {TableTreeSettings.ClipboardEntriesCount}");
+                        builder.Append($" Entries {TableTreeEditorClipboard.EntriesCount}");
                     }
 
-                    if (TableTreeSettings.ClipboardChildrenCount > 0)
+                    if (TableTreeEditorClipboard.ChildrenCount > 0)
                     {
-                        builder.Append($" Children {TableTreeSettings.ClipboardChildrenCount}");
+                        builder.Append($" Children {TableTreeEditorClipboard.ChildrenCount}");
                     }
 
                     using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
@@ -219,8 +358,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                         if (GUILayout.Button(m_styles.FooterClipboardResetButton, EditorStyles.iconButton))
                         {
-                            TableTreeSettings.ClipboardClear();
-                            TableTreeSettings.Save();
+                            TableTreeEditorClipboard.Clear();
+                            TableTreeEditorClipboard.Save();
                         }
                     }
                 }
@@ -380,73 +519,6 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
         }
 
-        protected void AddEntriesBySelection()
-        {
-            OnEntryAdd();
-        }
-
-        protected void RemoveEntriesBySelection()
-        {
-            OnEntryRemove();
-        }
-
-        protected void CopyEntriesBySelection()
-        {
-            OnEntryCopy();
-        }
-
-        protected void PasteEntriesBySelection()
-        {
-            OnEntryPaste();
-        }
-
-        protected void PasteEntryValuesBySelection()
-        {
-            OnEntryPasteValues();
-        }
-
-        protected bool TryGetClipboardEntries(ICollection<object> collection)
-        {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-
-            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
-            {
-                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
-
-                for (int i = 0; i < clipboard.Entries.Count; i++)
-                {
-                    object entry = clipboard.Entries[i];
-
-                    collection.Add(entry);
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        protected bool TryGetClipboardChildren(ICollection<object> collection)
-        {
-            if (collection == null) throw new ArgumentNullException(nameof(collection));
-
-            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
-            {
-                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
-
-                for (int i = 0; i < clipboard.Children.Count; i++)
-                {
-                    object entry = clipboard.Children[i];
-
-                    collection.Add(entry);
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
         private void OnDrawSearch()
         {
             float height = EditorGUIUtility.singleLineHeight;
@@ -502,7 +574,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
-                TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
+                DuplicateChildren(item, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
@@ -511,11 +583,11 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, m_selectedIndexes, m_entryInitializeHandler);
+                DuplicateEntry(m_selectedIndexes);
             }
             else if (!TreeView.HasSelected())
             {
-                TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, TreeView.PropertyEntries.arraySize, m_entryInitializeHandler);
+                AddEntry();
             }
 
             m_selectedIndexes.Clear();
@@ -530,13 +602,13 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, m_selectedIndexes);
+                AddChildren(item, m_selectedItems);
 
                 m_selectedIndexes.Clear();
             }
             else
             {
-                TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize);
+                AddChild(item);
             }
 
             TreeView.Apply();
@@ -551,7 +623,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TreeView.GetChildrenSelectionIndexes(item, m_selectedIndexes);
 
-                TableTreeEditorInternalUtility.PropertyRemove(item.PropertyChildren, m_selectedIndexes);
+                RemoveChildren(item, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
@@ -560,7 +632,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                TableTreeEditorInternalUtility.PropertyRemove(TreeView.PropertyEntries, m_selectedIndexes);
+                RemoveEntries(m_selectedIndexes);
             }
 
             m_selectedIndexes.Clear();
@@ -571,32 +643,32 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryCopy()
         {
-            TableTreeSettings.ClipboardClear();
+            TableTreeEditorClipboard.Clear();
 
             TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Entry);
 
-            TableTreeSettings.TryClipboardCopyEntries(m_selectedItems);
+            TableTreeEditorClipboard.TryCopyEntries(m_selectedItems);
 
             m_selectedItems.Clear();
 
             TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Child);
 
-            TableTreeSettings.TryClipboardCopyChildren(m_selectedItems);
+            TableTreeEditorClipboard.TryCopyChildren(m_selectedItems);
 
             m_selectedItems.Clear();
 
-            if (TableTreeSettings.ClipboardHasAny())
+            if (TableTreeEditorClipboard.HasAny())
             {
-                TableTreeSettings.ClipboardCopyType(m_targetType);
-                TableTreeSettings.Save();
+                TableTreeEditorClipboard.CopyType(m_targetType);
+                TableTreeEditorClipboard.Save();
             }
         }
 
         private void OnEntryPaste()
         {
-            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
 
                 if (clipboard.Children.Count > 0)
                 {
@@ -607,10 +679,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                         TableTreeViewItem item = m_selectedItems[^1];
                         var parent = (TableTreeViewItem)item.parent;
 
-                        foreach (object value in clipboard.Children)
-                        {
-                            TableTreeEditorInternalUtility.PropertyInsert(parent.PropertyChildren, item.Index, value);
-                        }
+                        AddChildren(parent, item.Index, clipboard.Children);
 
                         m_selectedItems.Clear();
                     }
@@ -621,10 +690,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     {
                         TableTreeViewItem item = m_selectedItems[^1];
 
-                        foreach (object value in clipboard.Children)
-                        {
-                            TableTreeEditorInternalUtility.PropertyInsert(item.PropertyChildren, item.PropertyChildren.arraySize, value);
-                        }
+                        AddChildren(item, clipboard.Children);
 
                         m_selectedItems.Clear();
 
@@ -638,10 +704,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
 
-                    foreach (object value in clipboard.Entries)
-                    {
-                        TableTreeEditorInternalUtility.PropertyInsert(TreeView.PropertyEntries, index, m_entryInitializeHandler, value);
-                    }
+                    AddEntries(index, clipboard.Entries);
 
                     m_selectedItems.Clear();
                 }
@@ -658,9 +721,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryPasteValues(TableTreeEntryType entryType)
         {
-            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
 
                 List<object> entries = entryType switch
                 {
@@ -680,21 +743,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                         TreeView.GetItems(m_selectedItems, entryType);
                     }
 
-                    for (int i = 0; i < m_selectedItems.Count; i++)
-                    {
-                        TableTreeViewItem item = m_selectedItems[i];
-
-                        object entry = i < entries.Count ? entries[i] : entries[^1];
-
-                        foreach ((TableTreeColumnOptions column, SerializedProperty serializedProperty) in item.ColumnProperties)
-                        {
-                            if (column.PropertyName != Options.PropertyIdName
-                                && column.PropertyName != Options.PropertyChildrenName)
-                            {
-                                TableTreeSettings.TryClipboardSetEntryPropertyValue(serializedProperty, entry);
-                            }
-                        }
-                    }
+                    PasteEntriesValues(m_selectedItems, entries);
 
                     m_selectedItems.Clear();
                 }
@@ -705,9 +754,9 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnEntryPasteValues(TableTreeColumnOptions column)
         {
-            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
 
                 List<object> entries = column.EntryType switch
                 {
@@ -727,14 +776,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                         TreeView.GetItems(m_selectedItems, column.EntryType);
                     }
 
-                    for (int i = 0; i < m_selectedItems.Count; i++)
-                    {
-                        TableTreeViewItem item = m_selectedItems[i];
-
-                        object entry = i < entries.Count ? entries[i] : entries[^1];
-
-                        TableTreeSettings.TryClipboardSetEntryPropertyValue(item.ColumnProperties[column], entry);
-                    }
+                    PasteEntryValues(column, m_selectedItems, entries);
 
                     m_selectedItems.Clear();
                 }
@@ -747,12 +789,12 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             var menu = new GenericMenu();
 
+            OnMenuCreate(menu);
             OnMenuResetSetup(menu);
 
             menu.AddSeparator(string.Empty);
 
             OnMenuClearSetup(menu);
-            OnMenuCreate(menu);
 
             menu.DropDown(position);
         }
@@ -814,7 +856,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddDisabledItem(m_styles.MenuContextCopy);
             }
 
-            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
                 menu.AddItem(m_styles.MenuContextPaste, false, OnEntryPaste);
 
@@ -833,6 +875,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddDisabledItem(m_styles.MenuContextColumnPaste);
             }
 
+            OnContextMenuCreate(menu);
+
             menu.AddSeparator(string.Empty);
 
             OnMenuResetSetup(menu);
@@ -840,7 +884,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddSeparator(string.Empty);
 
             OnMenuClearSetup(menu);
-            OnContextMenuCreate(menu);
 
             menu.ShowAsContext();
         }
@@ -861,10 +904,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (column.HasValue
                 && column.Value.PropertyName != Options.PropertyIdName
                 && column.Value.PropertyName != Options.PropertyChildrenName
-                && TableTreeSettings.ClipboardHasAny()
-                && TableTreeSettings.ClipboardTryMatch(m_targetType))
+                && TableTreeEditorClipboard.HasAny()
+                && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
 
                 bool hasEntries = column.Value.EntryType switch
                 {
@@ -888,6 +931,10 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             OnContextMenuHeaderCreate(menu, column);
+
+            menu.AddSeparator(string.Empty);
+
+            TreeView.Header.CreateContextMenu(menu);
         }
 
         private void OnUndoOrRedoPerformed()
@@ -942,13 +989,13 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddDisabledItem(m_styles.MenuResetSorting);
             }
 
-            if (TableTreeSettings.HasState(m_targetType))
+            if (TableTreeEditorState.Has(m_targetType))
             {
                 menu.AddItem(m_styles.MenuResetPreferences, false, () =>
                 {
-                    TableTreeSettings.TryStateReset(m_targetType, Options);
-                    TableTreeSettings.Save();
-                    TableTreeSettings.TryStateRead(m_targetType, TreeView.State);
+                    TableTreeEditorState.TryReset(m_targetType, Options);
+                    TableTreeEditorState.Save();
+                    TableTreeEditorState.TryRead(m_targetType, TreeView.State);
 
                     TreeView.multiColumnHeader.ResizeToFit();
                 });
@@ -958,12 +1005,12 @@ namespace UGF.RuntimeTools.Editor.Tables
                 menu.AddDisabledItem(m_styles.MenuResetPreferences);
             }
 
-            if (TableTreeSettings.ClipboardHasAny())
+            if (TableTreeEditorClipboard.HasAny())
             {
                 menu.AddItem(m_styles.MenuResetClipboard, false, () =>
                 {
-                    TableTreeSettings.ClipboardClear();
-                    TableTreeSettings.Save();
+                    TableTreeEditorClipboard.Clear();
+                    TableTreeEditorClipboard.Save();
                 });
             }
             else

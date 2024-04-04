@@ -171,11 +171,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             };
         }
 
+        public static TableTreeOptions CreateOptions(TableAsset asset)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            ITable table = asset.Get();
+
+            return CreateOptions(table.GetType());
+        }
+
         public static TableTreeOptions CreateOptions(Type tableType)
         {
             if (tableType == null) throw new ArgumentNullException(nameof(tableType));
 
-            Type entryType = TableTreeEditorInternalUtility.GetTableEntryType(tableType);
+            Type entryType = GetTableEntryType(tableType);
 
             if (!TryGetEntryChildrenPropertyName(entryType, out string childrenPropertyName))
             {
@@ -213,7 +222,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (field.Name == childrenPropertyName)
                 {
-                    Type type = TableTreeEditorInternalUtility.GetTableEntryChildrenType(field.FieldType);
+                    Type type = GetTableEntryChildrenType(field.FieldType);
 
                     CreateColumnOptionsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type), TableTreeEntryType.Child);
                 }
@@ -251,6 +260,39 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             propertyName = default;
             return false;
+        }
+
+        public static Type GetTableEntryType(Type tableType)
+        {
+            if (tableType == null) throw new ArgumentNullException(nameof(tableType));
+
+            Type[] genericArguments = tableType.GetGenericArguments();
+
+            if (genericArguments.Length != 1)
+            {
+                throw new ArgumentException($"Table entry type is unknown: '{tableType}'.");
+            }
+
+            return genericArguments[0];
+        }
+
+        public static Type GetTableEntryChildrenType(Type collectionType)
+        {
+            if (collectionType == null) throw new ArgumentNullException(nameof(collectionType));
+
+            if (collectionType.IsArray)
+            {
+                return collectionType.GetElementType();
+            }
+
+            if (collectionType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type[] genericArguments = collectionType.GetGenericArguments();
+
+                return genericArguments[0];
+            }
+
+            throw new ArgumentException($"Table entry children type is unknown: '{collectionType}'.");
         }
     }
 }
