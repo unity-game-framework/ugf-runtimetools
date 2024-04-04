@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.9](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.9) - 2024-04-04  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/34?closed=1)  
+    
+
+### Added
+
+- Add table tree extensibility support ([#124](https://github.com/unity-game-framework/ugf-runtimetools/issues/124))  
+    - Add _Table Tree State_ and _Clipboard_ public _APIs_.
+    - Add `TableTreeWindowAttribute` class as attribute which can be used to define custom _Table Tree Window_ for specific table asset type.
+    - Change `TableTreeDrawer` class to be more extensible.
+
 ## [3.0.0-preview.8](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.8) - 2024-04-04  
 
 ### Release Notes
