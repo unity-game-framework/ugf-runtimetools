@@ -156,8 +156,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     }
                 }
 
-                GUILayout.FlexibleSpace();
-
+                OnDrawToolbar();
                 OnDrawSearch();
 
                 Rect rectMenu = GUILayoutUtility.GetRect(m_styles.MenuButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonSmallOptions);
@@ -179,6 +178,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
 
             TreeView.OnGUI(position);
+
+            OnDrawTable();
         }
 
         protected void DrawFooter()
@@ -196,7 +197,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     EditorGUIUtility.PingObject(SerializedObject.targetObject);
                 }
 
-                GUILayout.FlexibleSpace();
+                OnDrawFooter();
 
                 if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
                 {
@@ -286,6 +287,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        protected virtual void OnDrawToolbar()
+        {
+            GUILayout.FlexibleSpace();
+        }
+
+        protected virtual void OnDrawTable()
+        {
+        }
+
+        protected virtual void OnDrawFooter()
+        {
+            GUILayout.FlexibleSpace();
+        }
+
         protected virtual void OnDrawRowCell(Rect position, TableTreeViewItem item, SerializedProperty serializedProperty, TableTreeColumnOptions column)
         {
             if (serializedProperty.isArray && serializedProperty.propertyType == SerializedPropertyType.Generic)
@@ -351,6 +366,85 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 OnEntryAddChildren(item);
             }
+        }
+
+        protected virtual void OnMenuCreate(GenericMenu menu)
+        {
+        }
+
+        protected virtual void OnContextMenuHeaderCreate(GenericMenu menu, Optional<TableTreeColumnOptions> column)
+        {
+        }
+
+        protected virtual void OnContextMenuCreate(GenericMenu menu)
+        {
+        }
+
+        protected void AddEntriesBySelection()
+        {
+            OnEntryAdd();
+        }
+
+        protected void RemoveEntriesBySelection()
+        {
+            OnEntryRemove();
+        }
+
+        protected void CopyEntriesBySelection()
+        {
+            OnEntryCopy();
+        }
+
+        protected void PasteEntriesBySelection()
+        {
+            OnEntryPaste();
+        }
+
+        protected void PasteEntryValuesBySelection()
+        {
+            OnEntryPasteValues();
+        }
+
+        protected bool TryGetClipboardEntries(ICollection<object> collection)
+        {
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
+
+            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            {
+                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+
+                for (int i = 0; i < clipboard.Entries.Count; i++)
+                {
+                    object entry = clipboard.Entries[i];
+
+                    collection.Add(entry);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        protected bool TryGetClipboardChildren(ICollection<object> collection)
+        {
+            if (collection == null) throw new ArgumentNullException(nameof(collection));
+
+            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            {
+                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+
+                for (int i = 0; i < clipboard.Children.Count; i++)
+                {
+                    object entry = clipboard.Children[i];
+
+                    collection.Add(entry);
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private void OnDrawSearch()
@@ -658,6 +752,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddSeparator(string.Empty);
 
             OnMenuClearSetup(menu);
+            OnMenuCreate(menu);
 
             menu.DropDown(position);
         }
@@ -745,6 +840,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddSeparator(string.Empty);
 
             OnMenuClearSetup(menu);
+            OnContextMenuCreate(menu);
 
             menu.ShowAsContext();
         }
@@ -790,6 +886,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 menu.AddDisabledItem(m_styles.MenuContextColumnPaste);
             }
+
+            OnContextMenuHeaderCreate(menu, column);
         }
 
         private void OnUndoOrRedoPerformed()
