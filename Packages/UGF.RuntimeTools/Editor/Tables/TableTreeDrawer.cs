@@ -556,6 +556,59 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
+        private void OnEntryPasteValues()
+        {
+            OnEntryPasteValues(TableTreeEntryType.Entry);
+            OnEntryPasteValues(TableTreeEntryType.Child);
+        }
+
+        private void OnEntryPasteValues(TableTreeEntryType entryType)
+        {
+            if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
+            {
+                TableTreeSettingsData.ClipboardData clipboard = TableTreeSettings.Settings.GetData().Clipboard;
+
+                List<object> entries = entryType switch
+                {
+                    TableTreeEntryType.Entry => clipboard.Entries,
+                    TableTreeEntryType.Child => clipboard.Children,
+                    _ => throw new ArgumentOutOfRangeException(nameof(entryType), entryType, "Table tree column entry type is unknown.")
+                };
+
+                if (entries.Count > 0)
+                {
+                    if (TreeView.HasSelected())
+                    {
+                        TreeView.GetSelection(m_selectedItems, entryType);
+                    }
+                    else
+                    {
+                        TreeView.GetItems(m_selectedItems, entryType);
+                    }
+
+                    for (int i = 0; i < m_selectedItems.Count; i++)
+                    {
+                        TableTreeViewItem item = m_selectedItems[i];
+
+                        object entry = i < entries.Count ? entries[i] : entries[^1];
+
+                        foreach ((TableTreeColumnOptions column, SerializedProperty serializedProperty) in item.ColumnProperties)
+                        {
+                            if (column.PropertyName != Options.PropertyIdName
+                                && column.PropertyName != Options.PropertyChildrenName)
+                            {
+                                TableTreeSettings.TryClipboardSetEntryPropertyValue(serializedProperty, entry);
+                            }
+                        }
+                    }
+
+                    m_selectedItems.Clear();
+                }
+
+                TreeView.Apply();
+            }
+        }
+
         private void OnEntryPasteValues(TableTreeColumnOptions column)
         {
             if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
@@ -669,10 +722,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (TableTreeSettings.ClipboardHasAny() && TableTreeSettings.ClipboardTryMatch(m_targetType))
             {
                 menu.AddItem(m_styles.MenuContextPaste, false, OnEntryPaste);
+
+                if (TreeView.HasSelected())
+                {
+                    menu.AddItem(m_styles.MenuContextColumnPaste, false, OnEntryPasteValues);
+                }
+                else
+                {
+                    menu.AddDisabledItem(m_styles.MenuContextColumnPaste);
+                }
             }
             else
             {
                 menu.AddDisabledItem(m_styles.MenuContextPaste);
+                menu.AddDisabledItem(m_styles.MenuContextColumnPaste);
             }
 
             menu.AddSeparator(string.Empty);
@@ -701,6 +764,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (column.HasValue
                 && column.Value.PropertyName != Options.PropertyIdName
+                && column.Value.PropertyName != Options.PropertyChildrenName
                 && TableTreeSettings.ClipboardHasAny()
                 && TableTreeSettings.ClipboardTryMatch(m_targetType))
             {
