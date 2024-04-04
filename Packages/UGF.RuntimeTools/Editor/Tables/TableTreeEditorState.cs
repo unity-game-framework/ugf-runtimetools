@@ -47,7 +47,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 TableTreeEditorUserSettingsData data = TableTreeEditorUserSettings.Settings.GetData();
 
-                var stateData = new TableTreeEditorUserSettingsData.StateData
+                var stateData = new TableTreeEditorStateData
                 {
                     Type = new TypeReference(type.AssemblyQualifiedName),
                     State = new TableTreeViewState()
@@ -69,7 +69,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             for (int i = 0; i < data.States.Count; i++)
             {
-                TableTreeEditorUserSettingsData.StateData stateData = data.States[i];
+                TableTreeEditorStateData stateData = data.States[i];
 
                 if (stateData.Type.TryGet(out Type assetType) && assetType == type)
                 {
@@ -91,7 +91,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             for (int i = 0; i < data.States.Count; i++)
             {
-                TableTreeEditorUserSettingsData.StateData stateData = data.States[i];
+                TableTreeEditorStateData stateData = data.States[i];
 
                 if (stateData.Type.TryGet(out Type assetType) && assetType == type)
                 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UGF.EditorTools.Runtime.IMGUI.Types;
-using UnityEditor;
 using UnityEngine;
 
 namespace UGF.RuntimeTools.Editor.Tables
@@ -10,6 +9,11 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public static int EntriesCount { get { return TableTreeEditorUserSettings.Settings.GetData().Clipboard.Entries.Count; } }
         public static int ChildrenCount { get { return TableTreeEditorUserSettings.Settings.GetData().Clipboard.Children.Count; } }
+
+        public static TableTreeEditorClipboardData GetData()
+        {
+            return TableTreeEditorUserSettings.Settings.GetData().Clipboard;
+        }
 
         public static void Save()
         {

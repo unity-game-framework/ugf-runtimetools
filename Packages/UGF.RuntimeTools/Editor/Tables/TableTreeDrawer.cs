@@ -668,7 +668,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
+                TableTreeEditorClipboardData clipboard = TableTreeEditorClipboard.GetData();
 
                 if (clipboard.Children.Count > 0)
                 {
@@ -723,7 +723,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
+                TableTreeEditorClipboardData clipboard = TableTreeEditorClipboard.GetData();
 
                 List<object> entries = entryType switch
                 {
@@ -756,7 +756,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (TableTreeEditorClipboard.HasAny() && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
+                TableTreeEditorClipboardData clipboard = TableTreeEditorClipboard.GetData();
 
                 List<object> entries = column.EntryType switch
                 {
@@ -907,7 +907,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 && TableTreeEditorClipboard.HasAny()
                 && TableTreeEditorClipboard.HasMatch(m_targetType))
             {
-                TableTreeEditorUserSettingsData.ClipboardData clipboard = TableTreeEditorUserSettings.Settings.GetData().Clipboard;
+                TableTreeEditorClipboardData clipboard = TableTreeEditorClipboard.GetData();
 
                 bool hasEntries = column.Value.EntryType switch
                 {
