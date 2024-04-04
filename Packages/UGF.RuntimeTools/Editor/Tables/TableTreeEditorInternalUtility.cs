@@ -12,6 +12,8 @@ namespace UGF.RuntimeTools.Editor.Tables
     {
         public static bool IsSingleFieldProperty(SerializedProperty serializedProperty)
         {
+            if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+
             switch (serializedProperty.propertyType)
             {
                 case SerializedPropertyType.Integer:
@@ -65,7 +67,19 @@ namespace UGF.RuntimeTools.Editor.Tables
             }
         }
 
-        public static SerializedProperty PropertyInsert(SerializedProperty serializedProperty, int index, object value)
+        public static void PropertyInsert(SerializedProperty serializedProperty, int index, IReadOnlyList<object> values, Action<SerializedProperty> initializeHandler = null)
+        {
+            if (values == null) throw new ArgumentNullException(nameof(values));
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                object value = values[i];
+
+                PropertyInsert(serializedProperty, index, initializeHandler, value);
+            }
+        }
+
+        public static SerializedProperty PropertyInsert(SerializedProperty serializedProperty, int index, object value = null)
         {
             return PropertyInsert(serializedProperty, index, null, value);
         }
@@ -73,6 +87,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public static SerializedProperty PropertyInsert(SerializedProperty serializedProperty, int index, Action<SerializedProperty> initializeHandler = null, object value = null)
         {
             if (serializedProperty == null) throw new ArgumentNullException(nameof(serializedProperty));
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
 
             serializedProperty.InsertArrayElementAtIndex(index);
 
@@ -162,39 +177,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             fields.Sort(TableTreeEntryFieldComparer.Default);
 
             return fields;
-        }
-
-        public static Type GetTableEntryType(Type type)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-
-            Type[] genericArguments = type.GetGenericArguments();
-
-            if (genericArguments.Length != 1)
-            {
-                throw new ArgumentException("Table entry type is unknown.");
-            }
-
-            return genericArguments[0];
-        }
-
-        public static Type GetTableEntryChildrenType(Type type)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-
-            if (type.IsArray)
-            {
-                return type.GetElementType();
-            }
-
-            if (type.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                Type[] genericArguments = type.GetGenericArguments();
-
-                return genericArguments[0];
-            }
-
-            throw new ArgumentException("Table entry children type is unknown.");
         }
     }
 }

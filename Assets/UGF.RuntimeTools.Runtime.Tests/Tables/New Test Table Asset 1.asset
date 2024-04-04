@@ -131,6 +131,108 @@ MonoBehaviour:
         m_first: 5588017318792250261
         m_second: 5105742835500902057
       m_name: Entry_9
+      m_text: A
+      m_bool: 0
+      m_int: 3
+      m_float: 11
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 4897430060296377985
+        m_second: 13723677217034601641
+      m_name: Entry_17
+      m_text: A
+      m_bool: 0
+      m_int: 3
+      m_float: 11
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 4689430338568099531
+        m_second: 12058238705350229170
+      m_name: Entry_16
+      m_text: A
+      m_bool: 0
+      m_int: 3
+      m_float: 11
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 5588017318792250261
+        m_second: 5105742835500902057
+      m_name: Entry_9
+      m_text: B
+      m_bool: 0
+      m_int: 3
+      m_float: 11
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 5150931005866787513
+        m_second: 12109198096642314661
+      m_name: Entry_15
+      m_text: B
+      m_bool: 0
+      m_int: 3
+      m_float: 11
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 5601772323998739269
+        m_second: 1616755072879856772
+      m_name: Entry_14
+      m_text: B
+      m_bool: 0
+      m_int: 3
+      m_float: 11
+      m_range: 0
+      m_enum: 0
+      m_asset:
+        m_first: 0
+        m_second: 0
+      m_tableEntry:
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
+      m_children: []
+    - m_id:
+        m_first: 5056242738568905311
+        m_second: 15718051977361006487
+      m_name: Entry_13
       m_text: B
       m_bool: 0
       m_int: 3
@@ -147,9 +249,9 @@ MonoBehaviour:
     - m_id:
         m_first: 5651325075048615848
         m_second: 15482157594727532714
-      m_name: Entry_4
-      m_text: B
-      m_bool: 1
+      m_name: Entry_9
+      m_text: A
+      m_bool: 0
       m_int: 3
       m_float: 11
       m_range: 0
@@ -158,8 +260,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 0
-        m_second: 0
+        m_first: 4673992924789272089
+        m_second: 13029133632275525310
       m_children: []
     - m_id:
         m_first: 4720808723136278670
@@ -178,6 +280,15 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_children:
+      - m_childName: A
+        m_childValue: 555
+        m_childBool: 0
+      - m_childName: A
+        m_childValue: 555
+        m_childBool: 0
+      - m_childName: A
+        m_childValue: 555
+        m_childBool: 0
       - m_childName: A
         m_childValue: 555
         m_childBool: 0

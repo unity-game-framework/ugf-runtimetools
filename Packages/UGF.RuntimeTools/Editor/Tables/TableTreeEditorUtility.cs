@@ -11,6 +11,21 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public static class TableTreeEditorUtility
     {
+        private static readonly MethodInfo m_createWindowMethod;
+        private static readonly Type[] m_windowDockTypes;
+
+        static TableTreeEditorUtility()
+        {
+            m_createWindowMethod = typeof(EditorWindow).GetMethod(nameof(EditorWindow.CreateWindow), BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(Type[]) }, null)
+                                   ?? throw new ArgumentException($"Method not found by the specified name: '{nameof(EditorWindow.CreateWindow)}'.");
+
+            var types = new List<Type> { typeof(TableTreeWindow) };
+
+            types.AddRange(TypeCache.GetTypesDerivedFrom<TableTreeWindow>());
+
+            m_windowDockTypes = types.ToArray();
+        }
+
         public static TableTreeWindow ShowWindow(TableAsset asset, GlobalId focusItemId = default)
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
@@ -25,11 +40,23 @@ namespace UGF.RuntimeTools.Editor.Tables
             if (asset == null) throw new ArgumentNullException(nameof(asset));
             if (options == null) throw new ArgumentNullException(nameof(options));
 
-            if (!TryGetWindow(asset, out TableTreeWindow window))
-            {
-                window = EditorWindow.CreateWindow<TableTreeWindow>(asset.name, typeof(TableTreeWindow));
-            }
+            TableTreeWindow window = GetWindow(asset);
 
+            ShowWindow(window, asset, options, focusItemId);
+
+            return window;
+        }
+
+        public static void ShowWindow(TableTreeWindow window, TableAsset asset, TableTreeOptions options, GlobalId focusItemId = default)
+        {
+            if (window == null) throw new ArgumentNullException(nameof(window));
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            string path = AssetDatabase.GetAssetPath(asset);
+            Texture icon = AssetDatabase.GetCachedIcon(path);
+
+            window.titleContent = new GUIContent(asset.name, icon, asset.name);
             window.minSize = new Vector2(500F, 500F);
             window.SetTarget(asset, options);
             window.Show();
@@ -41,6 +68,28 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             window.Focus();
             window.Drawer.TreeView.SetFocusAndEnsureSelectedItem();
+        }
+
+        public static TableTreeWindow GetWindow(TableAsset asset)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            Type assetType = asset.GetType();
+            Type windowType = GetWindowType(assetType);
+
+            return GetWindow(windowType, asset);
+        }
+
+        public static TableTreeWindow GetWindow(Type windowType, TableAsset asset)
+        {
+            if (windowType == null) throw new ArgumentNullException(nameof(windowType));
+
+            if (!TryGetWindow(asset, out TableTreeWindow window))
+            {
+                MethodInfo method = m_createWindowMethod.MakeGenericMethod(windowType);
+
+                window = (TableTreeWindow)method.Invoke(null, new object[] { m_windowDockTypes });
+            }
 
             return window;
         }
@@ -65,6 +114,41 @@ namespace UGF.RuntimeTools.Editor.Tables
             return false;
         }
 
+        public static Type GetWindowType(Type assetType)
+        {
+            if (assetType == null) throw new ArgumentNullException(nameof(assetType));
+
+            TypeCache.TypeCollection types = TypeCache.GetTypesWithAttribute<TableTreeWindowAttribute>();
+
+            var attributes = new List<(Type Type, TableTreeWindowAttribute Attribute)>();
+
+            for (int i = 0; i < types.Count; i++)
+            {
+                Type type = types[i];
+
+                var attribute = type.GetCustomAttribute<TableTreeWindowAttribute>();
+
+                if (attribute != null)
+                {
+                    attributes.Add((type, attribute));
+                }
+            }
+
+            attributes.Sort((a, b) => a.Attribute.Priority.CompareTo(b.Attribute.Priority));
+
+            for (int i = 0; i < attributes.Count; i++)
+            {
+                (Type type, TableTreeWindowAttribute attribute) = attributes[i];
+
+                if (attribute.AssetType == assetType)
+                {
+                    return type;
+                }
+            }
+
+            return typeof(TableTreeWindow);
+        }
+
         public static TableTreeViewState CreateState(TableTreeOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
@@ -87,11 +171,20 @@ namespace UGF.RuntimeTools.Editor.Tables
             };
         }
 
+        public static TableTreeOptions CreateOptions(TableAsset asset)
+        {
+            if (asset == null) throw new ArgumentNullException(nameof(asset));
+
+            ITable table = asset.Get();
+
+            return CreateOptions(table.GetType());
+        }
+
         public static TableTreeOptions CreateOptions(Type tableType)
         {
             if (tableType == null) throw new ArgumentNullException(nameof(tableType));
 
-            Type entryType = TableTreeEditorInternalUtility.GetTableEntryType(tableType);
+            Type entryType = GetTableEntryType(tableType);
 
             if (!TryGetEntryChildrenPropertyName(entryType, out string childrenPropertyName))
             {
@@ -129,7 +222,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 if (field.Name == childrenPropertyName)
                 {
-                    Type type = TableTreeEditorInternalUtility.GetTableEntryChildrenType(field.FieldType);
+                    Type type = GetTableEntryChildrenType(field.FieldType);
 
                     CreateColumnOptionsFromFields(columns, TableTreeEditorInternalUtility.GetSerializedFields(type), TableTreeEntryType.Child);
                 }
@@ -167,6 +260,39 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             propertyName = default;
             return false;
+        }
+
+        public static Type GetTableEntryType(Type tableType)
+        {
+            if (tableType == null) throw new ArgumentNullException(nameof(tableType));
+
+            Type[] genericArguments = tableType.GetGenericArguments();
+
+            if (genericArguments.Length != 1)
+            {
+                throw new ArgumentException($"Table entry type is unknown: '{tableType}'.");
+            }
+
+            return genericArguments[0];
+        }
+
+        public static Type GetTableEntryChildrenType(Type collectionType)
+        {
+            if (collectionType == null) throw new ArgumentNullException(nameof(collectionType));
+
+            if (collectionType.IsArray)
+            {
+                return collectionType.GetElementType();
+            }
+
+            if (collectionType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type[] genericArguments = collectionType.GetGenericArguments();
+
+                return genericArguments[0];
+            }
+
+            throw new ArgumentException($"Table entry children type is unknown: '{collectionType}'.");
         }
     }
 }

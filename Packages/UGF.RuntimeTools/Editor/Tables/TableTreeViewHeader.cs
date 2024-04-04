@@ -16,10 +16,13 @@ namespace UGF.RuntimeTools.Editor.Tables
             Options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
-        protected override void AddColumnHeaderContextMenuItems(GenericMenu menu)
+        public void CreateContextMenu(GenericMenu menu)
         {
             base.AddColumnHeaderContextMenuItems(menu);
+        }
 
+        protected override void AddColumnHeaderContextMenuItems(GenericMenu menu)
+        {
             if (currentColumnIndex >= 0)
             {
                 TableTreeColumnOptions column = Options.Columns[currentColumnIndex];
