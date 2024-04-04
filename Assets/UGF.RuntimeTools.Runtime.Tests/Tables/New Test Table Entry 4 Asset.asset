@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 866099dd12e340dbbd60edc6f9393eb5, type: 3}
+  m_Name: New Test Table Entry 4 Asset
+  m_EditorClassIdentifier: 
+  m_table:
+    m_entries:
+    - m_id:
+        m_first: 5239810723059561849
+        m_second: 13179055995756193417
+      m_name: Entry
+      m_text: 
+    - m_id:
+        m_first: 5242675150080273763
+        m_second: 5133743565036469928
+      m_name: Entry_1
+      m_text: 
+    - m_id:
+        m_first: 5469943692418499571
+        m_second: 6960910559827577777
+      m_name: Entry_2
+      m_text: 
+    - m_id:
+        m_first: 5395047040619668901
+        m_second: 16774014506660724649
+      m_name: Entry_3
+      m_text: 

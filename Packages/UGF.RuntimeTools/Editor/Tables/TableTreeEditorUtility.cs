@@ -140,7 +140,7 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 (Type type, TableTreeWindowAttribute attribute) = attributes[i];
 
-                if (attribute.AssetType == assetType)
+                if (attribute.AssetType.IsAssignableFrom(assetType))
                 {
                     return type;
                 }
