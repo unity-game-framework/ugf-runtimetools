@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.8](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.8) - 2024-04-04  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/33?closed=1)  
+    
+
+### Added
+
+- Add table paste override ([#122](https://github.com/unity-game-framework/ugf-runtimetools/issues/122))  
+    - Add _Table Tree_ context menu to paste values for all columns of the selected items.
+- Add table entry dropdown value copy ([#118](https://github.com/unity-game-framework/ugf-runtimetools/issues/118))  
+    - Add `TableEntryDropdownDrawer` dropdown reference value copy button.
+- Add table words match search ([#117](https://github.com/unity-game-framework/ugf-runtimetools/issues/117))  
+    - Update dependencies: `com.ugf.editortools` to `3.0.0-preview.6` version.
+    - Change `TableTreeColumnSearcher` class to support search by multiple words.
+- Add table tree multiple values change support ([#111](https://github.com/unity-game-framework/ugf-runtimetools/issues/111))  
+    - Add _Table Tree_ copy and paste values for specific column.
+    - Add _Table Tree_ context menu.
+
 ## [3.0.0-preview.7](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.7) - 2024-02-12  
 
 ### Release Notes
