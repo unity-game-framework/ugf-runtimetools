@@ -602,7 +602,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (m_selectedIndexes.Count > 0)
             {
-                AddChildren(item, m_selectedItems);
+                DuplicateChildren(item, m_selectedIndexes);
 
                 m_selectedIndexes.Clear();
             }
@@ -676,10 +676,14 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     if (m_selectedItems.Count > 0)
                     {
-                        TableTreeViewItem item = m_selectedItems[^1];
-                        var parent = (TableTreeViewItem)item.parent;
+                        for (int i = 0; i < m_selectedItems.Count; i++)
+                        {
+                            TableTreeViewItem item = m_selectedItems[i];
 
-                        AddChildren(parent, item.Index, clipboard.Children);
+                            var parent = (TableTreeViewItem)item.parent;
+
+                            AddChildren(parent, item.Index, clipboard.Children);
+                        }
 
                         m_selectedItems.Clear();
                     }
@@ -688,13 +692,16 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     if (m_selectedItems.Count > 0)
                     {
-                        TableTreeViewItem item = m_selectedItems[^1];
+                        for (int i = 0; i < m_selectedItems.Count; i++)
+                        {
+                            TableTreeViewItem item = m_selectedItems[i];
 
-                        AddChildren(item, clipboard.Children);
+                            AddChildren(item, clipboard.Children);
+
+                            TreeView.SetExpanded(item.id, true);
+                        }
 
                         m_selectedItems.Clear();
-
-                        TreeView.SetExpanded(item.id, true);
                     }
                 }
 
@@ -702,9 +709,21 @@ namespace UGF.RuntimeTools.Editor.Tables
                 {
                     TreeView.GetSelection(m_selectedItems, TableTreeEntryType.Entry);
 
-                    int index = m_selectedItems.Count > 0 ? m_selectedItems[^1].Index : TreeView.PropertyEntries.arraySize;
+                    if (m_selectedItems.Count > 0)
+                    {
+                        for (int i = 0; i < m_selectedItems.Count; i++)
+                        {
+                            TableTreeViewItem item = m_selectedItems[i];
 
-                    AddEntries(index, clipboard.Entries);
+                            AddEntries(item.Index, clipboard.Entries);
+                        }
+                    }
+                    else
+                    {
+                        int index = TreeView.PropertyEntries.arraySize;
+
+                        AddEntries(index, clipboard.Entries);
+                    }
 
                     m_selectedItems.Clear();
                 }
