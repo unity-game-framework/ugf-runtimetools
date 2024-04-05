@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.11](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.11) - 2024-04-05  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/36?closed=1)  
+    
+
+### Fixed
+
+- Fix table children add button with selection ([#128](https://github.com/unity-game-framework/ugf-runtimetools/issues/128))  
+    - Add _Table Tree Drawer_ multiple selection duplicate and paste.
+    - Fix _Table Tree Drawer_ add entry and child buttons.
+
 ## [3.0.0-preview.10](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.10) - 2024-04-04  
 
 ### Release Notes
