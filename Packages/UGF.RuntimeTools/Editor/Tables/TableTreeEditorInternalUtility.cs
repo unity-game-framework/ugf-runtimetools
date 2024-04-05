@@ -76,6 +76,8 @@ namespace UGF.RuntimeTools.Editor.Tables
                 object value = values[i];
 
                 PropertyInsert(serializedProperty, index, initializeHandler, value);
+
+                index = Mathf.Min(index + 1, serializedProperty.arraySize - 1);
             }
         }
 
