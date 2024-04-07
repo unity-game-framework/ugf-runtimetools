@@ -240,6 +240,12 @@ namespace UGF.RuntimeTools.Editor.Tables
             ContextMenuClicked?.Invoke();
         }
 
+        public void Revert()
+        {
+            SerializedProperty.serializedObject.Update();
+            Reload();
+        }
+
         public void Apply()
         {
             SerializedProperty.serializedObject.ApplyModifiedProperties();

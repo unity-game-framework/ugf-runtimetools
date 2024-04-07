@@ -44,9 +44,11 @@ namespace UGF.RuntimeTools.Editor.Tables
             public GUIStyle SearchButtonCancel { get; } = new GUIStyle("ToolbarSearchCancelButton");
             public GUIStyle SearchButtonCancelEmpty { get; } = new GUIStyle("ToolbarSearchCancelButtonEmpty");
             public GUIContent SearchDropdownContent { get; } = new GUIContent(string.Empty, "Select search column.");
+            public GUIContent ReloadButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Refresh"), "Reload table.");
             public GUIContent AddButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Plus"), "Add new or duplicate selected entries.");
             public GUIContent RemoveButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("Toolbar Minus"), "Delete selected entries.");
             public GUIContent MenuButtonContent { get; } = new GUIContent(EditorGUIUtility.FindTexture("_Menu"));
+            public GUIContent MenuReload { get; } = new GUIContent("Reload");
             public GUIContent MenuResetSorting { get; } = new GUIContent("Reset Sorting");
             public GUIContent MenuResetPreferences { get; } = new GUIContent("Reset Preferences");
             public GUIContent MenuResetClipboard { get; } = new GUIContent("Reset Clipboard");
@@ -278,10 +280,25 @@ namespace UGF.RuntimeTools.Editor.Tables
             TableTreeEditorClipboardUtility.TrySetPropertyValueFromEntryField(item.ColumnProperties[column], value);
         }
 
+        public void Apply()
+        {
+            TreeView.Apply();
+        }
+
+        public void Reload()
+        {
+            TreeView.Revert();
+        }
+
         protected void DrawToolbar()
         {
             using (new EditorGUILayout.HorizontalScope(m_styles.Toolbar))
             {
+                if (GUILayout.Button(m_styles.ReloadButtonContent, EditorStyles.toolbarButton))
+                {
+                    Reload();
+                }
+
                 if (GUILayout.Button(m_styles.AddButtonContent, EditorStyles.toolbarButton, m_styles.ToolbarButtonOptions))
                 {
                     OnEntryAdd();
@@ -860,6 +877,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                     current.Use();
                 }
             }
+
+            if (current.control && current.type == EventType.KeyUp && current.keyCode == KeyCode.R)
+            {
+                Reload();
+            }
         }
 
         private void OnContextMenuClicked()
@@ -990,6 +1012,8 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         private void OnMenuResetSetup(GenericMenu menu)
         {
+            menu.AddItem(m_styles.MenuReload, false, Reload);
+
             if (TreeView.HasSelected())
             {
                 menu.AddItem(m_styles.MenuResetSelection, false, TreeView.ClearSelection);
