@@ -14,6 +14,68 @@ namespace UGF.RuntimeTools.Runtime.Tables
 
         IReadOnlyList<ITableEntry> ITable.Entries { get { return Entries; } }
 
+        public void Add(TEntry entry)
+        {
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+
+            m_entries.Add(entry);
+        }
+
+        public bool Remove(string name)
+        {
+            return Remove(name, out _);
+        }
+
+        public bool Remove(string name, out TEntry entry)
+        {
+            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+
+            for (int i = 0; i < m_entries.Count; i++)
+            {
+                entry = m_entries[i];
+
+                if (entry.Name == name)
+                {
+                    m_entries.RemoveAt(i);
+                    return true;
+                }
+            }
+
+            entry = default;
+            return false;
+        }
+
+        public bool Remove(GlobalId id)
+        {
+            return Remove(id, out _);
+        }
+
+        public bool Remove(GlobalId id, out TEntry entry)
+        {
+            if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
+
+            for (int i = 0; i < m_entries.Count; i++)
+            {
+                entry = m_entries[i];
+
+                if (entry.Id == id)
+                {
+                    m_entries.RemoveAt(i);
+                    return true;
+                }
+            }
+
+            entry = default;
+            return false;
+        }
+
+        public bool Remove(TEntry entry)
+        {
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+
+            return m_entries.Remove(entry);
+        }
+
         public T GetByName<T>(string name) where T : ITableEntry
         {
             return (T)GetByName(name);
@@ -92,6 +154,40 @@ namespace UGF.RuntimeTools.Runtime.Tables
 
             entry = default;
             return false;
+        }
+
+        void ITable.Add(ITableEntry entry)
+        {
+            Add((TEntry)entry);
+        }
+
+        bool ITable.Remove(string name, out ITableEntry entry)
+        {
+            if (Remove(name, out TEntry value))
+            {
+                entry = value;
+                return true;
+            }
+
+            entry = default;
+            return false;
+        }
+
+        bool ITable.Remove(GlobalId id, out ITableEntry entry)
+        {
+            if (Remove(id, out TEntry value))
+            {
+                entry = value;
+                return true;
+            }
+
+            entry = default;
+            return false;
+        }
+
+        bool ITable.Remove(ITableEntry entry)
+        {
+            return Remove((TEntry)entry);
         }
     }
 }
