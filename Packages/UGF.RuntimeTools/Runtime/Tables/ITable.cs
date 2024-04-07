@@ -7,6 +7,12 @@ namespace UGF.RuntimeTools.Runtime.Tables
     {
         IReadOnlyList<ITableEntry> Entries { get; }
 
+        void Add(ITableEntry entry);
+        bool Remove(string name);
+        bool Remove(string name, out ITableEntry entry);
+        bool Remove(GlobalId id);
+        bool Remove(GlobalId id, out ITableEntry entry);
+        bool Remove(ITableEntry entry);
         T GetByName<T>(string name) where T : ITableEntry;
         ITableEntry GetByName(string name);
         bool TryGetByName<T>(string name, out T entry) where T : class, ITableEntry;
