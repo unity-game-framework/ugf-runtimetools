@@ -161,7 +161,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                 columns[i] = new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent(column.DisplayName)
+                    headerContent = new GUIContent(column.DisplayName, $"{column.DisplayName} ({column.PropertyName})")
                 };
             }
 
