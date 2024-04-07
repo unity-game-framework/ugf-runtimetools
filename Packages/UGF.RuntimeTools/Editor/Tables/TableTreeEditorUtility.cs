@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Runtime.Ids;
 using UGF.RuntimeTools.Runtime.Tables;
 using UnityEditor;
@@ -11,14 +12,10 @@ namespace UGF.RuntimeTools.Editor.Tables
 {
     public static class TableTreeEditorUtility
     {
-        private static readonly MethodInfo m_createWindowMethod;
         private static readonly Type[] m_windowDockTypes;
 
         static TableTreeEditorUtility()
         {
-            m_createWindowMethod = typeof(EditorWindow).GetMethod(nameof(EditorWindow.CreateWindow), BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(Type[]) }, null)
-                                   ?? throw new ArgumentException($"Method not found by the specified name: '{nameof(EditorWindow.CreateWindow)}'.");
-
             var types = new List<Type> { typeof(TableTreeWindow) };
 
             types.AddRange(TypeCache.GetTypesDerivedFrom<TableTreeWindow>());
@@ -86,9 +83,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (!TryGetWindow(asset, out TableTreeWindow window))
             {
-                MethodInfo method = m_createWindowMethod.MakeGenericMethod(windowType);
-
-                window = (TableTreeWindow)method.Invoke(null, new object[] { m_windowDockTypes });
+                window = (TableTreeWindow)EditorIMGUIUtility.CreateWindow(windowType, m_windowDockTypes);
             }
 
             return window;
