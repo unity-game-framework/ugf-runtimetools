@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.12](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.12) - 2024-04-07  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/37?closed=1)  
+    
+
+### Added
+
+- Add table add and remove methods ([#133](https://github.com/unity-game-framework/ugf-runtimetools/issues/133))  
+    - Add `ITable.Add()`, `ITable.Remove()` and related overloads to add or remove entries from table.
+- Add table tree reload ([#132](https://github.com/unity-game-framework/ugf-runtimetools/issues/132))  
+    - Add `TableTreeDrawer.Apply()` and `Reload()` methods to control data.
+    - Add _Table Tree Reload_ toolbar button and context menu.
+- Add table tree header tooltip ([#131](https://github.com/unity-game-framework/ugf-runtimetools/issues/131))  
+    - Add _Table Tree Header_ tooltip display for each column with display and property name.
+
 ## [3.0.0-preview.11](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.11) - 2024-04-05  
 
 ### Release Notes
