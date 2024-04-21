@@ -78,19 +78,19 @@ namespace UGF.RuntimeTools.Runtime.Tables
 
         public T GetByName<T>(string name) where T : ITableEntry
         {
-            return (T)GetByName(name);
+            return (T)(ITableEntry)GetByName(name);
         }
 
-        public ITableEntry GetByName(string name)
+        public TEntry GetByName(string name)
         {
-            return TryGetByName(name, out ITableEntry entry) ? entry : throw new ArgumentException($"Entry not found by the specified name: '{name}'.");
+            return TryGetByName(name, out TEntry entry) ? entry : throw new ArgumentException($"Entry not found by the specified name: '{name}'.");
         }
 
         public bool TryGetByName<T>(string name, out T entry) where T : class, ITableEntry
         {
-            if (TryGetByName(name, out ITableEntry result))
+            if (TryGetByName(name, out TEntry result))
             {
-                entry = (T)result;
+                entry = (T)(ITableEntry)result;
                 return true;
             }
 
@@ -98,7 +98,7 @@ namespace UGF.RuntimeTools.Runtime.Tables
             return false;
         }
 
-        public bool TryGetByName(string name, out ITableEntry entry)
+        public bool TryGetByName(string name, out TEntry entry)
         {
             if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
 
@@ -118,19 +118,19 @@ namespace UGF.RuntimeTools.Runtime.Tables
 
         public T Get<T>(GlobalId id) where T : class, ITableEntry
         {
-            return (T)Get(id);
+            return (T)(ITableEntry)Get(id);
         }
 
-        public ITableEntry Get(GlobalId id)
+        public TEntry Get(GlobalId id)
         {
-            return TryGet(id, out ITableEntry entry) ? entry : throw new ArgumentException($"Entry not found by the specified id: '{id}'.");
+            return TryGet(id, out TEntry entry) ? entry : throw new ArgumentException($"Entry not found by the specified id: '{id}'.");
         }
 
         public bool TryGet<T>(GlobalId id, out T entry) where T : class, ITableEntry
         {
-            if (TryGet(id, out ITableEntry value))
+            if (TryGet(id, out TEntry value))
             {
-                entry = (T)value;
+                entry = (T)(ITableEntry)value;
                 return true;
             }
 
@@ -138,7 +138,7 @@ namespace UGF.RuntimeTools.Runtime.Tables
             return false;
         }
 
-        public bool TryGet(GlobalId id, out ITableEntry entry)
+        public bool TryGet(GlobalId id, out TEntry entry)
         {
             if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
 
@@ -188,6 +188,40 @@ namespace UGF.RuntimeTools.Runtime.Tables
         bool ITable.Remove(ITableEntry entry)
         {
             return Remove((TEntry)entry);
+        }
+
+        ITableEntry ITable.GetByName(string name)
+        {
+            return GetByName(name);
+        }
+
+        bool ITable.TryGetByName(string name, out ITableEntry entry)
+        {
+            if (TryGetByName(name, out TEntry value))
+            {
+                entry = value;
+                return true;
+            }
+
+            entry = default;
+            return false;
+        }
+
+        ITableEntry ITable.Get(GlobalId id)
+        {
+            return Get(id);
+        }
+
+        bool ITable.TryGet(GlobalId id, out ITableEntry entry)
+        {
+            if (TryGet(id, out TEntry value))
+            {
+                entry = value;
+                return true;
+            }
+
+            entry = default;
+            return false;
         }
     }
 }
