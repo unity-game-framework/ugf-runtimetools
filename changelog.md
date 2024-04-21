@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.14](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.14) - 2024-04-21  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/39?closed=1)  
+    
+
+### Fixed
+
+- Fix table drawer missing has selected property ([#141](https://github.com/unity-game-framework/ugf-runtimetools/issues/141))  
+    - Add `TableDrawer.HasSelected` property to check whether drawer has selected index.
+- Fix table try get as non generic argument ([#140](https://github.com/unity-game-framework/ugf-runtimetools/issues/140))  
+    - Fix `Table` class generic get methods to be defined with class generic argument instead of interface.
+
 ## [3.0.0-preview.13](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.13) - 2024-04-07  
 
 ### Release Notes

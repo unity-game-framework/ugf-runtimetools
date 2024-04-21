@@ -4,7 +4,7 @@ UGF.RuntimeTools
 
 ## Information
 
-- **Version**: `3.0.0-preview.13`
+- **Version**: `3.0.0-preview.14`
 - **Unity**: `2023.2`
 - **API Compatibility Level**: `.NET Standard 2.1`
 
