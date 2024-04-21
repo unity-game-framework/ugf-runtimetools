@@ -18,6 +18,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public string PropertyIdName { get; }
         public string PropertyNameName { get; }
         public int SelectedIndex { get { return m_selectedIndex ?? throw new ArgumentException("Value not specified."); } }
+        public bool HasSelected { get { return m_selectedIndex != null; } }
         public bool SearchById { get; set; }
         public bool ShowIndexes { get; set; }
 
