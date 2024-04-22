@@ -19,6 +19,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public TableTreeView TreeView { get; }
         public bool DisplayToolbar { get; set; } = true;
         public bool DisplayFooter { get; set; } = true;
+        public bool DisplayEntriesAsLabel { get; set; }
 
         public event TableTreeViewDrawRowCellHandler DrawRowCellValue;
 
@@ -486,7 +487,14 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 position.height = EditorGUIUtility.singleLineHeight;
 
-                EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+                if (!DisplayEntriesAsLabel || TreeView.IsSelected(item.id))
+                {
+                    EditorGUI.PropertyField(position, serializedProperty, GUIContent.none, false);
+                }
+                else
+                {
+                    GUI.Label(position, serializedProperty.boxedValue.ToString());
+                }
             }
         }
 
@@ -494,9 +502,16 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             position.height = EditorGUIUtility.singleLineHeight;
 
-            using (new EditorGUI.DisabledScope(true))
+            if (!DisplayEntriesAsLabel || TreeView.IsSelected(item.id))
             {
-                EditorGUI.IntField(position, GUIContent.none, serializedProperty.arraySize);
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUI.IntField(position, GUIContent.none, serializedProperty.arraySize);
+                }
+            }
+            else
+            {
+                GUI.Label(position, serializedProperty.arraySize.ToString());
             }
         }
 
@@ -510,7 +525,14 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             int count = item.PropertyChildrenSize.intValue;
 
-            EditorGUI.PropertyField(rectField, item.PropertyChildrenSize, GUIContent.none);
+            if (!DisplayEntriesAsLabel || TreeView.IsSelected(item.id))
+            {
+                EditorGUI.PropertyField(rectField, item.PropertyChildrenSize, GUIContent.none);
+            }
+            else
+            {
+                GUI.Label(position, count.ToString());
+            }
 
             if (count != item.PropertyChildrenSize.intValue)
             {
@@ -518,7 +540,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 GUIUtility.ExitGUI();
             }
 
-            if (GUI.Button(rectButton, m_styles.AddButtonChildrenContent, EditorStyles.iconButton))
+            if ((!DisplayEntriesAsLabel || TreeView.IsSelected(item.id)) && GUI.Button(rectButton, m_styles.AddButtonChildrenContent, EditorStyles.iconButton))
             {
                 OnEntryAddChildren(item);
             }
@@ -831,6 +853,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             menu.AddSeparator(string.Empty);
 
             OnMenuClearSetup(menu);
+
+            menu.AddSeparator(string.Empty);
+            menu.AddItem(new GUIContent("Display As Label"), DisplayEntriesAsLabel, () => DisplayEntriesAsLabel = !DisplayEntriesAsLabel);
 
             menu.DropDown(position);
         }
