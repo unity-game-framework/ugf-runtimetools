@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.16](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.16) - 2024-05-09  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/41?closed=1)  
+    
+
+### Changed
+
+- Change table tree options creation ([#148](https://github.com/unity-game-framework/ugf-runtimetools/issues/148))  
+    - Add `TableTreeWindow.CreateOptions()` protected method to create default instance of `TableTreeOptions`.
+    - Remove `TableTreeWindow.OnCreateDrawer()` and `SetTarget()` overload methods with `TableTreeOptions` as parameter.
+    - Remove `TableTreeEditorUtility.ShowWindow()` overload methods with `TableTreeOptions` as parameter, options created by window itself.
+
 ## [3.0.0-preview.15](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.15) - 2024-04-22  
 
 ### Release Notes
