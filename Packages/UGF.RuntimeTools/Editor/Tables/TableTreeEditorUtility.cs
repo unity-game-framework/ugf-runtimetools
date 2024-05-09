@@ -27,35 +27,24 @@ namespace UGF.RuntimeTools.Editor.Tables
         {
             if (asset == null) throw new ArgumentNullException(nameof(asset));
 
-            TableTreeOptions options = CreateOptions(asset.Get().GetType());
-
-            return ShowWindow(asset, options, focusItemId);
-        }
-
-        public static TableTreeWindow ShowWindow(TableAsset asset, TableTreeOptions options, GlobalId focusItemId = default)
-        {
-            if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (options == null) throw new ArgumentNullException(nameof(options));
-
             TableTreeWindow window = GetWindow(asset);
 
-            ShowWindow(window, asset, options, focusItemId);
+            ShowWindow(window, asset, focusItemId);
 
             return window;
         }
 
-        public static void ShowWindow(TableTreeWindow window, TableAsset asset, TableTreeOptions options, GlobalId focusItemId = default)
+        public static void ShowWindow(TableTreeWindow window, TableAsset asset, GlobalId focusItemId = default)
         {
             if (window == null) throw new ArgumentNullException(nameof(window));
             if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (options == null) throw new ArgumentNullException(nameof(options));
 
             string path = AssetDatabase.GetAssetPath(asset);
             Texture icon = AssetDatabase.GetCachedIcon(path);
 
             window.titleContent = new GUIContent(asset.name, icon, asset.name);
             window.minSize = new Vector2(500F, 500F);
-            window.SetTarget(asset, options);
+            window.SetTarget(asset);
             window.Show();
 
             if (focusItemId.IsValid())

@@ -47,12 +47,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
         protected virtual TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject)
         {
-            return OnCreateDrawer(serializedObject, TableTreeEditorUtility.CreateOptions((TableAsset)serializedObject.targetObject));
+            return new TableTreeDrawer(serializedObject, CreateOptions(serializedObject));
         }
 
-        protected virtual TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject, TableTreeOptions options)
+        protected TableTreeOptions CreateOptions(SerializedObject serializedObject)
         {
-            return new TableTreeDrawer(serializedObject, options);
+            return TableTreeEditorUtility.CreateOptions((TableAsset)serializedObject.targetObject);
         }
 
         public void SetTarget(TableAsset asset)
@@ -63,18 +63,6 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
             m_drawer?.Disable();
             m_drawer = OnCreateDrawer(m_serializedObject);
-            m_drawer.Enable();
-        }
-
-        public void SetTarget(TableAsset asset, TableTreeOptions options)
-        {
-            if (asset == null) throw new ArgumentNullException(nameof(asset));
-            if (options == null) throw new ArgumentNullException(nameof(options));
-
-            m_serializedObject = new SerializedObject(asset);
-            m_assetId = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
-            m_drawer?.Disable();
-            m_drawer = OnCreateDrawer(m_serializedObject, options);
             m_drawer.Enable();
         }
 
