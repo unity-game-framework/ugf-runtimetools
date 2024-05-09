@@ -7,9 +7,9 @@ namespace UGF.RuntimeTools.Editor.Tests.Tables
     [TableTreeWindow(typeof(TestTableEntry3Asset))]
     public class TestTableTreeWindow : TableTreeWindow
     {
-        protected override TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject, TableTreeOptions options)
+        protected override TableTreeDrawer OnCreateDrawer(SerializedObject serializedObject)
         {
-            return new TestTableTreeDrawer(serializedObject, options);
+            return new TestTableTreeDrawer(serializedObject, CreateOptions(serializedObject));
         }
     }
 }
