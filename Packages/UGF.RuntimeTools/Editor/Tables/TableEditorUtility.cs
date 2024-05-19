@@ -27,6 +27,30 @@ namespace UGF.RuntimeTools.Editor.Tables
             return result;
         }
 
+        public static void TryGetEntryNameFromCache(GlobalId id, Type tableType, ICollection<string> names)
+        {
+            if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));
+            if (tableType == null) throw new ArgumentNullException(nameof(tableType));
+            if (names == null) throw new ArgumentNullException(nameof(names));
+
+            if (TableEntryCache.TryGetNameCollection(id, out TableEntryCache.EntryNameCollection nameCollection))
+            {
+                foreach ((GUID guid, HashSet<string> values) in nameCollection)
+                {
+                    if (TableEntryCache.TryGetEntryCollection(guid, out TableEntryCache.TableEntryCollection entryCollection))
+                    {
+                        if (tableType.IsAssignableFrom(entryCollection.TableType))
+                        {
+                            foreach (string value in values)
+                            {
+                                names.Add(value);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public static void TryGetEntryNameFromCache(GlobalId id, ICollection<string> names)
         {
             if (!id.IsValid()) throw new ArgumentException("Value should be valid.", nameof(id));

@@ -13,5 +13,8 @@ MonoBehaviour:
   m_Name: New Test Table Entry Dropdown Asset
   m_EditorClassIdentifier: 
   m_id:
-    m_first: 4989261895982915254
-    m_second: 6157247676228133822
+    m_first: 4948598862824916616
+    m_second: 11984015586900126115
+  m_id2:
+    m_first: 4948598862824916616
+    m_second: 11984015586900126115

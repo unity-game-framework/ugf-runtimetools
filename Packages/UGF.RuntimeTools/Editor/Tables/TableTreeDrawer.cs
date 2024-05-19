@@ -67,6 +67,11 @@ namespace UGF.RuntimeTools.Editor.Tables
                 GUILayout.ExpandWidth(true),
                 GUILayout.ExpandHeight(true)
             };
+
+            public GUILayoutOption[] FooterButtonOptions { get; } =
+            {
+                GUILayout.MinWidth(0F)
+            };
         }
 
         public TableTreeDrawer(SerializedObject serializedObject, TableTreeOptions options)
@@ -348,7 +353,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 int countVisible = TreeView.VisibleEntryCount;
                 int countTotal = TreeView.PropertyEntries.arraySize;
 
-                if (GUILayout.Button($"Path: {path}", m_styles.FooterSection))
+                if (GUILayout.Button($"Path: {path}", m_styles.FooterSection, m_styles.FooterButtonOptions))
                 {
                     EditorGUIUtility.PingObject(SerializedObject.targetObject);
                 }
@@ -371,7 +376,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
                     {
-                        GUILayout.Label(builder.ToString());
+                        GUILayout.Label(builder.ToString(), m_styles.FooterButtonOptions);
 
                         if (GUILayout.Button(m_styles.FooterClipboardResetButton, EditorStyles.iconButton))
                         {
@@ -385,7 +390,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                 {
                     using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
                     {
-                        GUILayout.Label($"Sorting Column: {TreeView.SortColumn.DisplayName}");
+                        GUILayout.Label($"Sorting Column: {TreeView.SortColumn.DisplayName}", m_styles.FooterButtonOptions);
 
                         if (GUILayout.Button(m_styles.FooterSortingResetButton, EditorStyles.iconButton))
                         {
@@ -408,12 +413,12 @@ namespace UGF.RuntimeTools.Editor.Tables
 
                     if (childCount > 0)
                     {
-                        builder.Append($" Children: {childCount}");
+                        builder.Append($" Children {childCount}");
                     }
 
                     using (new EditorGUILayout.HorizontalScope(m_styles.FooterSection))
                     {
-                        GUILayout.Label(builder.ToString());
+                        GUILayout.Label(builder.ToString(), m_styles.FooterButtonOptions);
 
                         if (GUILayout.Button(m_styles.FooterSelectionResetButton, EditorStyles.iconButton))
                         {

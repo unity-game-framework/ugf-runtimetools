@@ -34,7 +34,7 @@ MonoBehaviour:
     - m_id:
         m_first: 4948598862824916616
         m_second: 11984015586900126115
-      m_name: Entry_1
+      m_name: FIND
       m_text: Test
       m_bool: 1
       m_int: 1
@@ -1046,8 +1046,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 0
-        m_second: 0
+        m_first: 5264414945576254707
+        m_second: 2027023837137717632
       m_children: []
     - m_id:
         m_first: 5722413961561543733
@@ -1097,8 +1097,8 @@ MonoBehaviour:
         m_first: 0
         m_second: 0
       m_tableEntry:
-        m_first: 0
-        m_second: 0
+        m_first: 4720808723136278670
+        m_second: 17394508623636605631
       m_children: []
     - m_id:
         m_first: 4966472426377115335
