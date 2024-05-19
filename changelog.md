@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.17](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.17) - 2024-05-19  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/42?closed=1)  
+    
+
+### Added
+
+- Add table dropdown entry asset type cache ([#150](https://github.com/unity-game-framework/ugf-runtimetools/issues/150))  
+    - Update dependencies: `com.ugf.editortools` to `3.0.0-preview.9` version.
+    - Add `TableEditorUtility.TryGetEntryNameFromCache()` method to get entry names for specific table type.
+    - Change `TableEntryDropdownDrawer` to display entry names for target table type only.
+
 ## [3.0.0-preview.16](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.16) - 2024-05-09  
 
 ### Release Notes
