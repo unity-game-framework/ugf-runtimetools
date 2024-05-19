@@ -15,6 +15,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         public class TableEntryCollection : HashSet<GlobalId>
         {
             public string TableName { get; set; }
+            public Type TableType { get; set; }
         }
 
         public class EntryNameCollection : Dictionary<GUID, HashSet<string>>
@@ -75,7 +76,8 @@ namespace UGF.RuntimeTools.Editor.Tables
             {
                 var entryCollection = new TableEntryCollection
                 {
-                    TableName = asset.name
+                    TableName = asset.name,
+                    TableType = asset.GetType()
                 };
 
                 m_entries.Add(guid, entryCollection);
@@ -133,9 +135,9 @@ namespace UGF.RuntimeTools.Editor.Tables
             m_names.Clear();
         }
 
-        public static string GetTableName(GUID guid)
+        public static bool TryGetEntryCollection(GUID guid, out TableEntryCollection entryCollection)
         {
-            return m_entries[guid].TableName;
+            return m_entries.TryGetValue(guid, out entryCollection);
         }
 
         public static bool TryGetNameCollection(GlobalId id, out EntryNameCollection nameCollection)

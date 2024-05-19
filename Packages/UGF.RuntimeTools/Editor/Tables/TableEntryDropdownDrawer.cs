@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using UGF.EditorTools.Editor.Ids;
 using UGF.EditorTools.Editor.IMGUI;
 using UGF.EditorTools.Editor.IMGUI.Dropdown;
@@ -23,6 +24,7 @@ namespace UGF.RuntimeTools.Editor.Tables
         private readonly List<string> m_names = new List<string>();
         private Type m_tableType;
         private Styles m_styles;
+        private StringBuilder m_builder;
 
         private class Styles
         {
@@ -104,7 +106,7 @@ namespace UGF.RuntimeTools.Editor.Tables
 
             if (id != GlobalId.Empty)
             {
-                TableEditorUtility.TryGetEntryNameFromCache(id, m_names);
+                TableEditorUtility.TryGetEntryNameFromCache(id, TableType, m_names);
 
                 if (m_names.Count > 0)
                 {
@@ -114,9 +116,22 @@ namespace UGF.RuntimeTools.Editor.Tables
                     {
                         content = m_styles.NameContent;
 
-                        content.text = m_names.Count > 1
-                            ? $"{name} ({m_names.Count})"
-                            : name;
+                        if (m_names.Count > 1)
+                        {
+                            m_builder ??= new StringBuilder();
+                            m_builder.Append(name);
+                            m_builder.Append(" (");
+                            m_builder.Append(m_names.Count);
+                            m_builder.Append(")");
+
+                            content.text = m_builder.ToString();
+
+                            m_builder.Clear();
+                        }
+                        else
+                        {
+                            content.text = name;
+                        }
                     }
                     else
                     {
@@ -216,7 +231,7 @@ namespace UGF.RuntimeTools.Editor.Tables
                     string path = AssetDatabase.GUIDToAssetPath(tableId);
                     var asset = AssetDatabase.LoadAssetAtPath<TableAsset>(path);
 
-                    if (asset != null)
+                    if (asset != null && TableType.IsInstanceOfType(asset))
                     {
                         foreach (string name in names)
                         {
