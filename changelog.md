@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0-preview.18](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.18) - 2024-08-08  
+
+### Release Notes
+
+- [Milestone](https://github.com/unity-game-framework/ugf-runtimetools/milestone/43?closed=1)  
+    
+
+### Removed
+
+- Remove table ([#153](https://github.com/unity-game-framework/ugf-runtimetools/issues/153))  
+    - Update dependencies: `com.ugf.editortools` to `3.0.0-preview.10` version.
+    - Remove _Table_ related code.
+
 ## [3.0.0-preview.17](https://github.com/unity-game-framework/ugf-runtimetools/releases/tag/3.0.0-preview.17) - 2024-05-19  
 
 ### Release Notes
